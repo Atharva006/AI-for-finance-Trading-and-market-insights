@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, ShieldAlert, Sparkles, Binary, Compass, ArrowRight } from 'lucide-react';
+import { Eye, Sparkles, Binary, Compass, ArrowRight } from 'lucide-react';
 import { MotionAssetCanvas } from './MotionAssetCanvas';
 
 interface MatsyaPhilosophyProps {
@@ -98,55 +98,50 @@ export const MatsyaPhilosophy: React.FC<MatsyaPhilosophyProps> = ({
   const currentPillar = pillars[activeTab];
 
   return (
-    <section id="philosophy" className="py-24 bg-[#050507] relative border-b border-white/10">
-      {/* Background Subtle Grid */}
-      <div className="absolute inset-0 bg-tactical-grid opacity-20 pointer-events-none" />
-
+    <section id="philosophy" className="py-20 bg-[#FBFBFC] relative border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         {/* Section Header */}
-        <div className="mb-14 border-b border-white/10 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="mb-12 border-b border-gray-200 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs font-mono text-[#FF5500]">
               <Compass className="w-3.5 h-3.5" />
               <span>SECTION // 02</span>
-              <span className="text-white/20">|</span>
-              <span className="text-[#7E8490]">THE ANCIENT METAPHOR & MODERN QUANT ENGINE</span>
+              <span className="text-gray-300">|</span>
+              <span className="text-[#64748B]">THE ANCIENT METAPHOR & MODERN QUANT ENGINE</span>
             </div>
 
-            <h2 className="font-display text-3xl sm:text-5xl font-bold text-[#F8F9FA] tracking-tight flex items-baseline gap-3">
+            <h2 className="font-display text-3xl sm:text-5xl font-bold text-[#0A0A0D] tracking-tight flex items-baseline gap-3">
               <span>मत्स्य-वेध</span>
-              <span className="text-xl sm:text-2xl font-mono text-[#7E8490] font-normal">
+              <span className="text-xl sm:text-2xl font-mono text-[#64748B] font-normal">
                 [ THE MATSYA-VEDHA PHILOSOPHY ]
               </span>
             </h2>
           </div>
 
-          <div className="max-w-md text-xs sm:text-sm font-mono text-[#A2A8B4] leading-relaxed">
+          <div className="max-w-md text-xs sm:text-sm font-mono text-[#475569] leading-relaxed">
             How a 3,000-year-old tale of singular optical focus dictates the architectural design of modern NSE quantitative alpha generation.
           </div>
         </div>
 
-        {/* Dynamic Motion Asset Display (Asset 2 / Reflection & Trajectory) */}
-        <div className="mb-12 border border-white/10 bg-[#0C0C10] p-4 relative overflow-hidden">
-          <div className="flex items-center justify-between pb-3 border-b border-white/10 text-xs font-mono text-[#7E8490]">
-            <span className="flex items-center gap-2 text-[#FF5500]">
+        {/* Dynamic Motion Asset Display */}
+        <div className="mb-10 border border-gray-200 bg-white p-4 relative overflow-hidden shadow-subtle">
+          <div className="flex items-center justify-between pb-3 border-b border-gray-100 text-xs font-mono text-[#64748B]">
+            <span className="flex items-center gap-2 text-[#FF5500] font-bold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>CINEMATIC_FLOW // DATA_TO_STRIKE_TRAJECTORY</span>
+              <span>CINEMATIC FLOW // DATA-TO-STRIKE TRAJECTORY</span>
             </span>
-            <span>BLENDED_WITH_HISTORICAL_TICKS</span>
+            <span>BLENDED WITH HISTORICAL TICKS</span>
           </div>
 
-          <div className="h-64 sm:h-80 w-full relative bg-[#060608] mt-3">
+          <div className="h-60 sm:h-72 w-full relative bg-white mt-3 border border-gray-100">
             <MotionAssetCanvas
               mode="data-strike"
-              videoSrc={motionAsset2Url}
               className="w-full h-full"
             />
-            {/* Visual HUD overlay */}
-            <div className="absolute top-4 left-4 font-mono text-[10px] text-white/50 bg-black/60 px-2 py-1 border border-white/10">
+            <div className="absolute top-4 left-4 font-mono text-[10px] text-gray-700 bg-white/90 px-2 py-1 border border-gray-200 shadow-sm">
               VECTOR_STATUS: CONVERGED_ON_HISTORICAL_RESISTANCE
             </div>
-            <div className="absolute bottom-4 right-4 font-mono text-[10px] text-[#00E676] bg-black/60 px-2 py-1 border border-[#00E676]/30">
+            <div className="absolute bottom-4 right-4 font-mono text-[10px] text-[#059669] bg-white/90 px-2 py-1 border border-[#059669]/30 font-bold shadow-sm">
               TARGET_LOCKED: NIFTY 15M ORB STRIKE
             </div>
           </div>
@@ -160,36 +155,35 @@ export const MatsyaPhilosophy: React.FC<MatsyaPhilosophyProps> = ({
               <button
                 key={p.id}
                 onClick={() => setActiveTab(idx)}
-                className={`p-4 text-left transition-all duration-200 border relative ${
+                className={`p-4 text-left transition-all duration-150 border relative ${
                   isSelected
-                    ? 'bg-[#0C0C10] border-[#FF5500] shadow-[0_0_20px_rgba(255,85,0,0.15)]'
-                    : 'bg-[#08080B] border-white/10 hover:border-white/20 text-[#7E8490]'
+                    ? 'bg-white border-[#FF5500] shadow-sm'
+                    : 'bg-white border-gray-200 hover:border-gray-300 text-[#64748B]'
                 }`}
               >
-                {/* Active Corner Accent */}
                 {isSelected && (
-                  <div className="absolute top-0 right-0 w-3 h-3 bg-[#FF5500] clip-path-corner" />
+                  <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-[#FF5500]" />
                 )}
 
                 <div className="flex items-center justify-between text-xs mb-2">
                   <span
                     className={`font-bold ${
-                      isSelected ? 'text-[#FF5500]' : 'text-[#7E8490]'
+                      isSelected ? 'text-[#FF5500]' : 'text-[#64748B]'
                     }`}
                   >
                     STEP // {p.step}
                   </span>
-                  <span className="text-[10px] text-white/30">{p.id.toUpperCase()}</span>
+                  <span className="text-[10px] text-gray-400">{p.id.toUpperCase()}</span>
                 </div>
 
                 <div className="flex items-baseline gap-2 mb-1">
-                  <span className="font-devanagari text-xl font-bold text-[#F8F9FA]">
+                  <span className="font-devanagari text-xl font-bold text-[#0A0A0D]">
                     {p.hindiTitle}
                   </span>
-                  <span className="text-xs text-[#A2A8B4]">({p.englishTitle})</span>
+                  <span className="text-xs text-[#475569]">({p.englishTitle})</span>
                 </div>
 
-                <div className="text-[11px] text-[#7E8490] line-clamp-1 mt-1">
+                <div className="text-[11px] text-[#64748B] line-clamp-1 mt-1">
                   {p.concept}
                 </div>
               </button>
@@ -198,56 +192,49 @@ export const MatsyaPhilosophy: React.FC<MatsyaPhilosophyProps> = ({
         </div>
 
         {/* Active Panel Detailed Blueprint */}
-        <div className="border border-white/10 bg-[#0C0C10] p-6 sm:p-8 font-mono relative">
-          {/* Corner Crosshairs */}
-          <div className="absolute top-2 left-2 text-[#FF5500] text-xs">+</div>
-          <div className="absolute top-2 right-2 text-[#FF5500] text-xs">+</div>
-          <div className="absolute bottom-2 left-2 text-[#FF5500] text-xs">+</div>
-          <div className="absolute bottom-2 right-2 text-[#FF5500] text-xs">+</div>
-
+        <div className="border border-gray-200 bg-white p-6 sm:p-8 font-mono relative shadow-card">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left Column: Philosophical Storytelling */}
             <div className="lg:col-span-7 space-y-5">
               <div className="inline-flex items-center gap-2 text-xs text-[#FF5500]">
                 <Eye className="w-3.5 h-3.5" />
                 <span className="font-bold">ARCHITECTURAL PARADIGM:</span>
-                <span className="text-[#F8F9FA]">{currentPillar.concept}</span>
+                <span className="text-[#0A0A0D] font-semibold">{currentPillar.concept}</span>
               </div>
 
-              {/* Ancient Scripture Quote Callout */}
-              <blockquote className="border-l-2 border-[#FF5500] pl-4 py-1 italic text-xs sm:text-sm text-[#F8F9FA] bg-[#FF5500]/[0.03]">
+              <blockquote className="border-l-2 border-[#FF5500] pl-4 py-1.5 italic text-xs sm:text-sm text-[#0A0A0D] bg-[#FFF7ED]">
                 "{currentPillar.quote}"
               </blockquote>
 
-              <p className="text-xs sm:text-sm text-[#A2A8B4] leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
                 {currentPillar.description}
               </p>
 
               {/* Quant Implementation Specs Table */}
-              <div className="pt-3 border-t border-white/10 space-y-2 text-xs">
+              <div className="pt-3 border-t border-gray-100 space-y-2 text-xs">
                 <div className="text-[#FF5500] text-[11px] font-bold tracking-wider">
                   SYSTEM ARCHITECTURE SPECIFICATION:
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <div className="bg-black/40 border border-white/5 p-2.5">
-                    <span className="text-[#7E8490] block text-[10px]">DATA INGESTION:</span>
-                    <span className="text-[#F8F9FA] text-[11px]">{currentPillar.quantImplementation.input}</span>
+                  <div className="bg-[#F8FAFC] border border-gray-200 p-2.5">
+                    <span className="text-[#64748B] block text-[10px] font-semibold">DATA INGESTION:</span>
+                    <span className="text-[#0A0A0D] text-[11px] font-medium">{currentPillar.quantImplementation.input}</span>
                   </div>
 
-                  <div className="bg-black/40 border border-white/5 p-2.5">
-                    <span className="text-[#7E8490] block text-[10px]">TRANSFORMATION KERNEL:</span>
-                    <span className="text-[#F8F9FA] text-[11px]">{currentPillar.quantImplementation.transformation}</span>
+                  <div className="bg-[#F8FAFC] border border-gray-200 p-2.5">
+                    <span className="text-[#64748B] block text-[10px] font-semibold">TRANSFORMATION KERNEL:</span>
+                    <span className="text-[#0A0A0D] text-[11px] font-medium">{currentPillar.quantImplementation.transformation}</span>
                   </div>
 
-                  <div className="bg-black/40 border border-white/5 p-2.5">
-                    <span className="text-[#7E8490] block text-[10px]">OUTPUT STATE:</span>
-                    <span className="text-[#00E676] text-[11px]">{currentPillar.quantImplementation.output}</span>
+                  <div className="bg-[#F8FAFC] border border-gray-200 p-2.5">
+                    <span className="text-[#64748B] block text-[10px] font-semibold">OUTPUT STATE:</span>
+                    <span className="text-[#059669] text-[11px] font-bold">{currentPillar.quantImplementation.output}</span>
                   </div>
 
-                  <div className="bg-black/40 border border-white/5 p-2.5">
-                    <span className="text-[#7E8490] block text-[10px]">VALIDATION METRIC:</span>
-                    <span className="text-[#FF8800] text-[11px]">{currentPillar.quantImplementation.metric}</span>
+                  <div className="bg-[#F8FAFC] border border-gray-200 p-2.5">
+                    <span className="text-[#64748B] block text-[10px] font-semibold">VALIDATION METRIC:</span>
+                    <span className="text-[#FF5500] text-[11px] font-bold">{currentPillar.quantImplementation.metric}</span>
                   </div>
                 </div>
               </div>
@@ -255,25 +242,25 @@ export const MatsyaPhilosophy: React.FC<MatsyaPhilosophyProps> = ({
 
             {/* Right Column: Code Implementation Terminal */}
             <div className="lg:col-span-5 flex flex-col justify-between">
-              <div className="border border-white/10 bg-[#050507] p-4 text-xs font-mono">
-                <div className="flex items-center justify-between pb-2 mb-3 border-b border-white/10 text-[10px] text-[#7E8490]">
-                  <span className="flex items-center gap-1.5 text-[#FF5500]">
+              <div className="border border-gray-800 bg-[#0A0A0D] p-4 text-xs font-mono shadow-sm">
+                <div className="flex items-center justify-between pb-2 mb-3 border-b border-gray-800 text-[10px] text-gray-400">
+                  <span className="flex items-center gap-1.5 text-[#FF5500] font-bold">
                     <Binary className="w-3 h-3" />
                     <span>KERNEL_MODULE // {currentPillar.id}.py</span>
                   </span>
-                  <span>PYTHON 3.11 [NUMBA_JIT]</span>
+                  <span>PYTHON 3.11</span>
                 </div>
 
-                <pre className="text-[11px] text-[#F8F9FA] overflow-x-auto leading-relaxed font-tabular">
+                <pre className="text-[11px] text-gray-200 overflow-x-auto leading-relaxed font-tabular">
                   <code>{currentPillar.codeSnippet}</code>
                 </pre>
               </div>
 
-              <div className="mt-4 p-3 border border-white/10 bg-[#09090D] flex items-center justify-between text-xs text-[#7E8490]">
+              <div className="mt-4 p-3 border border-gray-200 bg-[#F8FAFC] flex items-center justify-between text-xs text-[#64748B]">
                 <span>NEXT SYSTEM PARADIGM:</span>
                 <button
                   onClick={() => setActiveTab((activeTab + 1) % pillars.length)}
-                  className="text-[#FF5500] hover:text-[#FF8800] flex items-center gap-1 font-bold"
+                  className="text-[#FF5500] hover:text-[#E04B00] flex items-center gap-1 font-bold"
                 >
                   <span>STEP 0{((activeTab + 1) % pillars.length) + 1}</span>
                   <ArrowRight className="w-3.5 h-3.5" />

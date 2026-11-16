@@ -3,32 +3,32 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: #050507;
-  color: #F8F9FA;
+  background-color: #FFFFFF;
+  color: #0A0A0D;
   font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
   overflow-x: hidden;
   cursor: default;
 }
 
-/* Custom Scrollbar */
+/* Custom Minimalist Scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #050507;
-  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  background: #FFFFFF;
+  border-left: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #252830;
+  background: #CBD5E1;
   border-radius: 0px;
 }
 
@@ -42,49 +42,33 @@ body {
   font-feature-settings: "tnum" 1, "zero" 1;
 }
 
-/* Architectural Hairline Grid Background */
+/* Light Architectural Hairline Grid Background */
 .bg-tactical-grid {
   background-size: 60px 60px;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
 }
 
 .bg-tactical-grid-dense {
   background-size: 24px 24px;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-}
-
-/* Scanline Effect */
-.scanline-overlay {
-  background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%, 
-    rgba(0, 0, 0, 0.25) 50%
-  ), linear-gradient(
-    90deg,
-    rgba(255, 0, 0, 0.03),
-    rgba(0, 255, 0, 0.01),
-    rgba(0, 0, 255, 0.03)
-  );
-  background-size: 100% 4px, 6px 100%;
-  pointer-events: none;
-}
-
-/* Saffron Glow utilities */
-.glow-saffron {
-  box-shadow: 0 0 25px rgba(255, 85, 0, 0.25), 0 0 50px rgba(255, 85, 0, 0.1);
-}
-
-.text-glow-saffron {
-  text-shadow: 0 0 20px rgba(255, 85, 0, 0.6), 0 0 40px rgba(255, 85, 0, 0.3);
+    linear-gradient(to right, rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.025) 1px, transparent 1px);
 }
 
 .border-hairline {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .border-hairline-saffron {
-  border: 1px solid rgba(255, 85, 0, 0.3);
+  border: 1px solid rgba(255, 85, 0, 0.35);
+}
+
+.shadow-subtle {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-card {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
 }

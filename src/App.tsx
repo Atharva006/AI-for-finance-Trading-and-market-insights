@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Lenis from 'lenis';
-import { Preloader } from './components/Preloader';
 import { CustomCursor } from './components/CustomCursor';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
@@ -12,14 +11,13 @@ import { TerminalModal } from './components/TerminalModal';
 import { quantSound } from './components/AudioAmbience';
 
 export function App() {
-  const [preloaderDone, setPreloaderDone] = useState(false);
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
 
-  // Initialize Lenis Smooth Scroll for heavy, high-inertia institutional scroll physics
+  // Initialize Lenis Smooth Scroll
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 1.0,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
     });
@@ -61,14 +59,9 @@ export function App() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#050507] text-[#F8F9FA] selection:bg-[#FF5500] selection:text-black">
+    <div className="relative min-h-screen bg-white text-[#0A0A0D] selection:bg-[#FF5500] selection:text-white">
       {/* Precision Custom Reticle Cursor */}
       <CustomCursor />
-
-      {/* Tactical Preloader */}
-      {!preloaderDone && (
-        <Preloader onComplete={() => setPreloaderDone(true)} />
-      )}
 
       {/* Top HUD Navigation Bar */}
       <Navbar
@@ -79,14 +72,14 @@ export function App() {
 
       {/* Main Content Area */}
       <main className="relative">
-        {/* Hero Section with Vanta.js 3D Globe + Matsya Astrolabe Motion Overlay */}
+        {/* Hero Section with Vanta.js 3D Globe in Pure White + Matsya Astrolabe Motion Canvas */}
         <HeroSection
           onOpenTerminal={handleOpenTerminal}
           onExplorePhilosophy={handleExplorePhilosophy}
           motionAsset1Url="/assets/matsya-target.mp4"
         />
 
-        {/* Section 2: Matsya-Vedha — The Philosophy (Scroll-Pinned Storytelling) */}
+        {/* Section 2: Matsya-Vedha — The Philosophy */}
         <MatsyaPhilosophy
           motionAsset2Url="/assets/data-strike.mp4"
         />

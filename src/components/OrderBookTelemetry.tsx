@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layers, Activity, ArrowUp, ArrowDown, Radio, Zap } from 'lucide-react';
+import { Layers, Activity, Radio } from 'lucide-react';
 
 interface NewsItem {
   id: string;
@@ -68,7 +68,6 @@ export const OrderBookTelemetry: React.FC = () => {
     { price: 24183.00, qty: 8100, orders: 98 },
   ]);
 
-  // Subtle tick update
   useEffect(() => {
     const interval = setInterval(() => {
       setBids((prev) =>
@@ -89,45 +88,45 @@ export const OrderBookTelemetry: React.FC = () => {
   }, []);
 
   return (
-    <section className="py-20 bg-[#050507] border-b border-white/10 relative">
+    <section className="py-20 bg-[#FBFBFC] border-b border-gray-200 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-        <div className="mb-10 border-b border-white/10 pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="mb-10 border-b border-gray-200 pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-xs font-mono text-[#FF5500]">
               <Layers className="w-3.5 h-3.5" />
               <span>MICROSTRUCTURE TELEMETRY</span>
-              <span className="text-white/20">|</span>
-              <span className="text-[#7E8490]">LIVE ORDER BOOK & CATALYST STREAM</span>
+              <span className="text-gray-300">|</span>
+              <span className="text-[#64748B]">LIVE ORDER BOOK & CATALYST STREAM</span>
             </div>
-            <h2 className="font-display text-2xl sm:text-4xl font-bold text-[#F8F9FA] tracking-tight mt-1">
+            <h2 className="font-display text-2xl sm:text-4xl font-bold text-[#0A0A0D] tracking-tight mt-1">
               Level 2 Depth & News Sentiment Core
             </h2>
           </div>
 
-          <div className="text-xs font-mono text-[#7E8490] flex items-center gap-3">
-            <span>ENGINE LATENCY: <span className="text-[#00E676]">118µs</span></span>
-            <span className="w-1.5 h-1.5 bg-[#00E676] rounded-full animate-ping" />
+          <div className="text-xs font-mono text-[#64748B] flex items-center gap-3">
+            <span>ENGINE LATENCY: <span className="text-[#059669] font-bold">118µs</span></span>
+            <span className="w-1.5 h-1.5 bg-[#059669] rounded-full animate-ping" />
             <span>NSE CO-LOCATION SIMULATOR</span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 font-mono text-xs">
           {/* Left Column: Level 2 Depth Order Book */}
-          <div className="lg:col-span-6 border border-white/10 bg-[#0C0C10] p-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <span className="text-[#F8F9FA] font-bold flex items-center gap-2">
+          <div className="lg:col-span-6 border border-gray-200 bg-white p-5 shadow-card">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <span className="text-[#0A0A0D] font-bold flex items-center gap-2">
                 <Activity className="w-3.5 h-3.5 text-[#FF5500]" />
                 NIFTY 50 DEPTH L2 [5-TIER SNAPSHOT]
               </span>
-              <span className="text-[10px] text-[#00E676] bg-[#00E676]/10 px-1.5 py-0.5 border border-[#00E676]/30">
+              <span className="text-[10px] text-[#059669] bg-[#059669]/10 px-2 py-0.5 border border-[#059669]/30 font-bold">
                 OFI: +1,240 (BUY PRESSURE)
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mt-3">
+            <div className="grid grid-cols-2 gap-4 mt-4">
               {/* Bids */}
               <div>
-                <div className="text-[10px] text-[#00E676] font-bold pb-1 mb-2 border-b border-white/5 flex justify-between">
+                <div className="text-[10px] text-[#059669] font-bold pb-1.5 mb-2 border-b border-gray-100 flex justify-between">
                   <span>BID QTY</span>
                   <span>PRICE (₹)</span>
                 </div>
@@ -138,11 +137,11 @@ export const OrderBookTelemetry: React.FC = () => {
                       className="flex justify-between items-center text-[11px] relative p-1 overflow-hidden"
                     >
                       <div
-                        className="absolute right-0 top-0 bottom-0 bg-[#00E676]/10 -z-0"
+                        className="absolute right-0 top-0 bottom-0 bg-[#059669]/10 -z-0"
                         style={{ width: `${(b.qty / 10000) * 100}%` }}
                       />
-                      <span className="text-[#F8F9FA] z-10">{b.qty.toLocaleString()}</span>
-                      <span className="text-[#00E676] font-bold z-10">
+                      <span className="text-[#0A0A0D] z-10 font-medium">{b.qty.toLocaleString()}</span>
+                      <span className="text-[#059669] font-bold z-10">
                         {b.price.toFixed(2)}
                       </span>
                     </div>
@@ -152,7 +151,7 @@ export const OrderBookTelemetry: React.FC = () => {
 
               {/* Asks */}
               <div>
-                <div className="text-[10px] text-[#FF1744] font-bold pb-1 mb-2 border-b border-white/5 flex justify-between">
+                <div className="text-[10px] text-[#DC2626] font-bold pb-1.5 mb-2 border-b border-gray-100 flex justify-between">
                   <span>PRICE (₹)</span>
                   <span>ASK QTY</span>
                 </div>
@@ -163,61 +162,61 @@ export const OrderBookTelemetry: React.FC = () => {
                       className="flex justify-between items-center text-[11px] relative p-1 overflow-hidden"
                     >
                       <div
-                        className="absolute left-0 top-0 bottom-0 bg-[#FF1744]/10 -z-0"
+                        className="absolute left-0 top-0 bottom-0 bg-[#DC2626]/10 -z-0"
                         style={{ width: `${(a.qty / 10000) * 100}%` }}
                       />
-                      <span className="text-[#FF1744] font-bold z-10">
+                      <span className="text-[#DC2626] font-bold z-10">
                         {a.price.toFixed(2)}
                       </span>
-                      <span className="text-[#F8F9FA] z-10">{a.qty.toLocaleString()}</span>
+                      <span className="text-[#0A0A0D] z-10 font-medium">{a.qty.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[10px] text-[#7E8490]">
-              <span>SPREAD: <span className="text-[#F8F9FA]">₹0.50 (0.002%)</span></span>
-              <span>MATCHED VOLUME: <span className="text-[#FF5500]">38.2M SHARES</span></span>
+            <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] text-[#64748B]">
+              <span>SPREAD: <span className="text-[#0A0A0D] font-bold">₹0.50 (0.002%)</span></span>
+              <span>MATCHED VOLUME: <span className="text-[#FF5500] font-bold">38.2M SHARES</span></span>
             </div>
           </div>
 
           {/* Right Column: Live News Catalyst Stream */}
-          <div className="lg:col-span-6 border border-white/10 bg-[#0C0C10] p-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <span className="text-[#F8F9FA] font-bold flex items-center gap-2">
+          <div className="lg:col-span-6 border border-gray-200 bg-white p-5 shadow-card">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <span className="text-[#0A0A0D] font-bold flex items-center gap-2">
                 <Radio className="w-3.5 h-3.5 text-[#FF5500] animate-pulse" />
                 NLP CATALYST RADAR [FinBERT SCORES]
               </span>
-              <span className="text-[10px] text-[#A2A8B4]">AUTO-VECTORIZED</span>
+              <span className="text-[10px] text-[#64748B] font-semibold">AUTO-VECTORIZED</span>
             </div>
 
-            <div className="space-y-2.5 mt-3">
+            <div className="space-y-2.5 mt-4">
               {news.map((item) => (
                 <div
                   key={item.id}
-                  className="p-2.5 border border-white/5 bg-black/40 hover:border-white/20 transition-colors"
+                  className="p-3 border border-gray-200 bg-[#F8FAFC] hover:border-gray-300 transition-colors"
                 >
-                  <div className="flex items-center justify-between text-[10px] text-[#7E8490] mb-1">
+                  <div className="flex items-center justify-between text-[10px] text-[#64748B] mb-1">
                     <span className="text-[#FF5500] font-bold">{item.impactTicker}</span>
                     <span className="flex items-center gap-2">
                       <span>{item.time} IST</span>
-                      <span className="text-white/20">|</span>
+                      <span className="text-gray-300">|</span>
                       <span>{item.source}</span>
                     </span>
                   </div>
 
-                  <p className="text-[#F8F9FA] text-[11px] leading-snug line-clamp-2">
+                  <p className="text-[#0A0A0D] text-[11px] leading-snug line-clamp-2 font-medium">
                     {item.headline}
                   </p>
 
                   <div className="mt-2 flex items-center justify-between text-[10px]">
-                    <span className="text-[#7E8490]">SENTIMENT VECTOR:</span>
+                    <span className="text-[#64748B]">SENTIMENT VECTOR:</span>
                     <span
                       className={`font-bold font-tabular flex items-center gap-1 ${
                         item.sentiment === 'BULLISH'
-                          ? 'text-[#00E676]'
-                          : 'text-[#FF1744]'
+                          ? 'text-[#059669]'
+                          : 'text-[#DC2626]'
                       }`}
                     >
                       {item.sentiment === 'BULLISH' ? '+' : ''}
