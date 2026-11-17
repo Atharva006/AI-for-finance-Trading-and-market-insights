@@ -12,6 +12,22 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    host: true
+    host: true,
+    proxy: {
+      '/upstox-api': {
+        target: 'https://api.upstox.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/upstox-api/, '')
+      },
+      '/yahoo-api': {
+        target: 'https://query2.finance.yahoo.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/yahoo-api/, ''),
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          'Accept': 'application/json, text/plain, */*'
+        }
+      }
+    }
   }
 })
