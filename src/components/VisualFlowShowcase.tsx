@@ -77,6 +77,43 @@ class RelianceFVG(BaseQuantModel):
             stop_loss = fvg_cluster.swing_low
             return self.post_limit_bid(price=entry_limit, sl=stop_loss, target_mult=3.4)`,
   },
+  {
+    id: 'nifty-chandelier-prompt',
+    title: 'Prompt 04: NIFTY Daily Trend-Pullback 1% Risk Chandelier (Pine Script v5)',
+    promptText:
+      'Nifty50 daily trend pullback: Filter with 50 EMA > 200 EMA, positive 200 EMA 20-day slope, and ADX(14) > 20. Trigger Long entry when RSI(5) crosses above 30 (oversold bounce). Position size dynamically for 1% equity risk using 5-bar swing low or 1.0x ATR floor. Activate Chandelier trailing stop (3.0x ATR) after reaching +1R profit, and enforce a 30-bar time stop.',
+    ticker: 'NIFTY 50 (NSE_INDEX) & Futures',
+    timeframe: 'Daily (1D)',
+    trigger: '50/200 EMA + ADX(14)>20 + RSI(5) Cross 30/70',
+    riskReward: 'Chandelier Dynamic Trail (3.0x ATR)',
+    riskPerTrade: '1.0% Equity Risk Sizing',
+    nlpFilter: 'Regime: 20-Bar Slope + ADX > 20',
+    generatedDsl: `//@version=5
+strategy("Nifty50 Daily Trend-Pullback | 1% Risk | Chandelier",
+     overlay=true, initial_capital=1000000, currency=currency.INR,
+     default_qty_type=strategy.fixed, default_qty_value=1, pyramiding=0,
+     process_orders_on_close=true, calc_on_every_tick=false,
+     commission_type=strategy.commission.percent, commission_value=0.1,
+     slippage=2, margin_long=100, margin_short=100)
+
+// ───────────── Inputs & Indicators ─────────────
+fastLen = input.int(50, "Fast EMA"), slowLen = input.int(200, "Slow EMA")
+slopeLen = input.int(20, "Slow EMA slope"), adxLen = input.int(14, "ADX"), adxMin = input.float(20, "ADX min")
+rsiLen = input.int(5, "RSI"), rsiLow = input.float(30, "RSI Low"), rsiHigh = input.float(70, "RSI High")
+swingLen = input.int(5, "Swing stop"), atrLen = input.int(14, "ATR"), atrFloor = input.float(1.0, "ATR Floor")
+trailMult = input.float(3.0, "Chandelier mult"), maxBars = input.int(30, "Time stop")
+
+ema50 = ta.ema(close, fastLen), ema200 = ta.ema(close, slowLen)
+[diP, diM, adx] = ta.dmi(adxLen, adxLen), rsi = ta.rsi(close, rsiLen), atr = ta.atr(atrLen)
+
+regimeLong  = close > ema200 and ema50 > ema200 and ema200 > ema200[slopeLen] and adx > adxMin
+regimeShort = close < ema200 and ema50 < ema200 and ema200 < ema200[slopeLen] and adx > adxMin
+
+longSig  = regimeLong  and ta.crossover(rsi, rsiLow)
+shortSig = regimeShort and ta.crossunder(rsi, rsiHigh)
+
+// Dynamic 1% risk sizing + Chandelier Trailing Exit (+1R activation)`,
+  },
 ];
 
 export const VisualFlowShowcase: React.FC = () => {

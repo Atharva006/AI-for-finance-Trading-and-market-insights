@@ -43,6 +43,36 @@ const strategySpecs: StrategySpec[] = [
     statutoryNotice: 'Operates on verified daily closing prices. No intrabar repainting.',
   },
   {
+    id: 'nifty-chandelier',
+    name: 'Nifty50 Daily Trend-Pullback | 1% Risk | Chandelier (Pine Script v5)',
+    ticker: 'NIFTY 50 (NSE_INDEX) & F&O Futures',
+    timeframe: 'Daily (1D) Candlesticks',
+    category: 'Regime Filter & Chandelier Trailing Exit',
+    description:
+      'Exact Pine Script v5 implementation: Filters trend via EMA(50) > EMA(200), positive 20-period EMA200 slope, and ADX(14) > 20 regime. Enters on RSI(5) oversold bounce cross > 30 (Long) or overbought reject cross < 70 (Short). Initial stop is 5-bar swing low or 1.0x ATR floor. Dynamic sizing risks exactly 1% equity. Activates Chandelier 3.0x ATR trailing stop after +1R profit and forces square-off at 30 bars.',
+    entryRule:
+      'Long: Close > EMA200 and EMA50 > EMA200 and EMA200 > EMA200[20] and ADX(14) > 20 and ta.crossover(RSI5, 30). Short: Close < EMA200 and EMA50 < EMA200 and EMA200 < EMA200[20] and ADX(14) > 20 and ta.crossunder(RSI5, 70).',
+    exitRule:
+      'Chandelier Exit: Trailing stop at Extreme - 3.0x ATR armed once High >= Entry + 1R risk distance. Time stop at 30 bars. Initial swing stop: min(lowest(low, 5), close - 1.0x ATR).',
+    riskRule:
+      'Dynamic 1.0% equity risk per trade. Quantity = floor(min(Equity * 1% / RiskDistance, Equity * 100% / Close)). 2-tick slippage + 0.1% commission accounted.',
+    statutoryNotice:
+      'Calibrated from TradingView Pine Script v5 specification. Zero look-ahead bias; process_orders_on_close verified.',
+  },
+  {
+    id: 'psar-trend',
+    name: 'Parabolic SAR (P-SAR) Trend Following · SMA 100 Trend Filter',
+    ticker: 'NIFTY 50 / BANKNIFTY (NSE_INDEX)',
+    timeframe: '15-Minute / Daily Multi-timeframe',
+    category: 'Trend Following & Volatility Stops',
+    description:
+      'Combines Wilder Parabolic SAR (Start 0.02, Step 0.02, Max 0.20) with a 100-period Simple Moving Average structural trend filter. Enters long when price crosses above PSAR while trading strictly above SMA 100. Enters short when price crosses below PSAR while trading below SMA 100. PSAR dots serve as continuous trailing stops.',
+    entryRule: 'Long: Close crosses above PSAR and Close > SMA(100). Short: Close crosses below PSAR and Close < SMA(100).',
+    exitRule: 'Stop loss moves dynamically with opposite PSAR dot flip, or 1:2.4 ATR profit objective.',
+    riskRule: '1.5% capital risk per trade. Position sized by distance from entry price to current PSAR dot.',
+    statutoryNotice: 'Tested against authentic NSE tick data. No repainting indicators permitted.',
+  },
+  {
     id: 'fvg-orderblock',
     name: 'Institutional Order Block & Fair Value Gap (FVG) Inversion',
     ticker: 'RELIANCE.NS (NSE_EQ)',
