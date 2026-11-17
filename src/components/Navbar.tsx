@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Terminal, Shield, Activity, Volume2, VolumeX } from 'lucide-react';
+import { Terminal, Shield, Activity, Volume2, VolumeX, Menu, X, ArrowUpRight } from 'lucide-react';
+import { quantSound } from './AudioAmbience';
 
 interface NavbarProps {
   onOpenTerminal: () => void;
@@ -31,6 +32,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleSound,
 }) => {
   const [tickers, setTickers] = useState<TickerItem[]>(initialTickers);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -55,6 +57,15 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => clearInterval(interval);
   }, []);
 
+  const handleNavClick = (id: string) => {
+    quantSound.playClick();
+    setIsMobileMenuOpen(false);
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 select-none shadow-subtle">
       {/* Upper Ticker Tape */}
@@ -64,7 +75,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <span>NSE FEED // SIMULATED:</span>
         </div>
 
-        <div className="flex gap-6 overflow-x-hidden whitespace-nowrap md:flex">
+        <div className="flex gap-6 overflow-x-hidden whitespace-nowrap md:flex flex-1">
           <div className="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth">
             {tickers.map((t) => {
               const isPositive = t.change >= 0;
@@ -109,14 +120,53 @@ export const Navbar: React.FC<NavbarProps> = ({
             </span>
             <div className="h-4 w-[1px] bg-gray-300" />
             <span className="font-mono text-xs font-bold text-[#0A0A0D] tracking-widest uppercase">
-              // ARJUNA QUANT <span className="text-[#FF5500] text-[10px]">v1.0</span>
+              // ARJUNA QUANT <span className="text-[#FF5500] text-[10px]">v2.4</span>
             </span>
           </a>
 
-          <div className="hidden sm:block font-mono text-[10px] text-gray-400 ml-2">
-            + 28°36'N 77°12'E +
+          <div className="hidden xl:block font-mono text-[10px] text-gray-400 ml-2">
+            + 18.9256° N, 72.8242° E +
           </div>
         </div>
+
+        {/* Center Navigation Links (Desktop) */}
+        <nav className="hidden lg:flex items-center gap-6 font-mono text-xs text-[#475569]">
+          <button
+            onClick={() => handleNavClick('philosophy')}
+            className="hover:text-[#FF5500] transition-colors flex items-center gap-1"
+          >
+            <span className="text-[#FF5500] font-bold text-[10px]">01 //</span>
+            <span>ARCHITECTURE</span>
+          </button>
+          <button
+            onClick={() => handleNavClick('sandbox')}
+            className="hover:text-[#FF5500] transition-colors flex items-center gap-1"
+          >
+            <span className="text-[#FF5500] font-bold text-[10px]">02 //</span>
+            <span>BACKTEST ENGINE</span>
+          </button>
+          <button
+            onClick={() => handleNavClick('visual-studio')}
+            className="hover:text-[#FF5500] transition-colors flex items-center gap-1"
+          >
+            <span className="text-[#FF5500] font-bold text-[10px]">03 //</span>
+            <span>VISUAL STUDIO</span>
+          </button>
+          <button
+            onClick={() => handleNavClick('microstructure')}
+            className="hover:text-[#FF5500] transition-colors flex items-center gap-1"
+          >
+            <span className="text-[#FF5500] font-bold text-[10px]">04 //</span>
+            <span>L2 DEPTH</span>
+          </button>
+          <button
+            onClick={() => handleNavClick('features')}
+            className="hover:text-[#FF5500] transition-colors flex items-center gap-1"
+          >
+            <span className="text-[#FF5500] font-bold text-[10px]">05 //</span>
+            <span>FEATURES</span>
+          </button>
+        </nav>
 
         {/* Right Section: Status Badge + Sound + Terminal CTA */}
         <div className="flex items-center gap-3">
@@ -136,19 +186,76 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Mode Badge */}
           <div className="hidden md:flex items-center gap-1.5 border border-gray-200 bg-[#F8FAFC] px-2.5 py-1 text-[10px] font-mono text-[#475569]">
             <Shield className="w-3 h-3 text-[#FF5500]" />
-            <span>[MODE: HISTORICAL BACKTEST & PAPER TRADING ONLY]</span>
+            <span>[MODE: HISTORICAL BACKTEST & PAPER ONLY]</span>
           </div>
 
           {/* Terminal CTA */}
           <button
             onClick={onOpenTerminal}
-            className="flex items-center gap-2 bg-[#FF5500] hover:bg-[#E04B00] text-white font-mono font-bold text-xs px-4 py-2 transition-all duration-150 active:scale-95 shadow-sm"
+            className="hidden sm:flex items-center gap-2 bg-[#FF5500] hover:bg-[#E04B00] text-white font-mono font-bold text-xs px-4 py-2 transition-all duration-150 active:scale-95 shadow-sm"
           >
             <Terminal className="w-3.5 h-3.5 stroke-[2.5]" />
             <span className="tracking-wide">INITIALIZE TERMINAL -&gt;</span>
           </button>
+
+          {/* Mobile Menu Toggle */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="lg:hidden p-1.5 border border-gray-200 text-[#0A0A0D] hover:border-[#FF5500] transition-colors"
+          >
+            {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Drawer */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden border-t border-gray-200 bg-white/98 backdrop-blur-md px-4 py-4 space-y-3 font-mono text-xs">
+          <div className="space-y-2 pb-3 border-b border-gray-100">
+            <button
+              onClick={() => handleNavClick('philosophy')}
+              className="block w-full text-left py-1 text-[#475569] hover:text-[#FF5500]"
+            >
+              01 // QUANT ARCHITECTURE
+            </button>
+            <button
+              onClick={() => handleNavClick('sandbox')}
+              className="block w-full text-left py-1 text-[#475569] hover:text-[#FF5500]"
+            >
+              02 // BACKTEST ENGINE
+            </button>
+            <button
+              onClick={() => handleNavClick('visual-studio')}
+              className="block w-full text-left py-1 text-[#475569] hover:text-[#FF5500]"
+            >
+              03 // VISUAL FLOW & PROMPTING
+            </button>
+            <button
+              onClick={() => handleNavClick('microstructure')}
+              className="block w-full text-left py-1 text-[#475569] hover:text-[#FF5500]"
+            >
+              04 // LEVEL 2 DEPTH & RADAR
+            </button>
+            <button
+              onClick={() => handleNavClick('features')}
+              className="block w-full text-left py-1 text-[#475569] hover:text-[#FF5500]"
+            >
+              05 // INSTITUTIONAL FEATURES
+            </button>
+          </div>
+
+          <button
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              onOpenTerminal();
+            }}
+            className="w-full flex items-center justify-center gap-2 bg-[#FF5500] text-white font-mono font-bold text-xs py-2.5"
+          >
+            <Terminal className="w-3.5 h-3.5" />
+            <span>LAUNCH TERMINAL SHELL</span>
+          </button>
+        </div>
+      )}
     </header>
   );
 };

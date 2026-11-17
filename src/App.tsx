@@ -5,7 +5,9 @@ import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { MatsyaPhilosophy } from './components/MatsyaPhilosophy';
 import { BacktestSandbox } from './components/BacktestSandbox';
+import { VisualFlowShowcase } from './components/VisualFlowShowcase';
 import { OrderBookTelemetry } from './components/OrderBookTelemetry';
+import { InstitutionalFeatures } from './components/InstitutionalFeatures';
 import { Footer } from './components/Footer';
 import { TerminalModal } from './components/TerminalModal';
 import { quantSound } from './components/AudioAmbience';
@@ -72,23 +74,29 @@ export function App() {
 
       {/* Main Content Area */}
       <main className="relative">
-        {/* Hero Section with Vanta.js 3D Globe in Pure White + Matsya Astrolabe Motion Canvas */}
+        {/* Section 00: Hero Section with 3D Globe + Matsya Astrolabe Motion Canvas */}
         <HeroSection
           onOpenTerminal={handleOpenTerminal}
           onExplorePhilosophy={handleExplorePhilosophy}
           motionAsset1Url="/assets/matsya-target.mp4"
         />
 
-        {/* Section 2: Matsya-Vedha — The Philosophy */}
+        {/* Section 01: The Matsya-Vedha Quant Architecture Framework */}
         <MatsyaPhilosophy
           motionAsset2Url="/assets/data-strike.mp4"
         />
 
-        {/* Section 3: Interactive NSE Strategy Backtest Sandbox */}
+        {/* Section 02: Interactive NSE Strategy Backtest Sandbox & Calibration */}
         <BacktestSandbox />
 
-        {/* Microstructure Telemetry: Level 2 Depth & News Sentiment Core */}
+        {/* Section 03: Visual Strategy Studio & Natural Language Prompting */}
+        <VisualFlowShowcase />
+
+        {/* Section 04: Microstructure Telemetry: Level 2 Depth & News Sentiment Core */}
         <OrderBookTelemetry />
+
+        {/* Section 05: Institutional Verification Standards & Feature Grid */}
+        <InstitutionalFeatures />
       </main>
 
       {/* Footer & Compliance Stamp */}

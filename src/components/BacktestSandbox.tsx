@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { Play, RotateCcw, TrendingUp, Cpu, Sliders, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Play, RotateCcw, TrendingUp, Cpu, Sliders, AlertCircle, CheckCircle2, Shield, Flame, Activity } from 'lucide-react';
+import { quantSound } from './AudioAmbience';
 
 interface StrategyData {
   id: string;
   name: string;
   ticker: string;
   timeframe: string;
+  category: string;
   description: string;
   baseMetrics: {
     totalReturn: number;
@@ -36,6 +38,7 @@ const strategies: StrategyData[] = [
     name: 'NIFTY 50 — 15m Opening Range Breakout (ORB) + News Filter',
     ticker: 'NIFTY 50 INDEX',
     timeframe: '15m Tick Resampled',
+    category: 'Price Action & NLP',
     description:
       'Detects institutional price discovery within the first 15 minutes of NSE cash session (09:15 - 09:30 IST). Trades are gated by a FinBERT macro-catalyst score: long breakouts are aborted if corporate/geopolitical news polarity is negative.',
     baseMetrics: {
@@ -61,10 +64,41 @@ const strategies: StrategyData[] = [
     ],
   },
   {
+    id: 'stoch-atr-core',
+    name: 'Stochastic Oscillator (%K, %D) · Arjuna Core Daily Swing',
+    ticker: 'NIFTY 50 (NSE_INDEX)',
+    timeframe: 'Daily (1D) Candlesticks',
+    category: 'Momentum Inflection',
+    description:
+      'Institutional daily swing strategy capturing momentum exhaustion reversals. Enters long when %K (14) crosses %D (3) below 20 (oversold) and short above 80 (overbought). Operates with strict 1:3.0 Risk-to-Reward ratio and dynamic 1.2x ATR trailing stop.',
+    baseMetrics: {
+      totalReturn: 196.2,
+      benchmarkReturn: 74.2,
+      sharpe: 3.08,
+      winRate: 52.8,
+      maxDrawdown: -3.85,
+      profitFactor: 2.62,
+      trades: 386,
+    },
+    catalystEvent: 'INDEX REBALANCING & MONETARY POLICY CYCLES',
+    aiInsight:
+      'Because the payoff ratio is mathematically locked at 1:3.0 RR, even a 52.8% win rate produces an institutional Sharpe of 3.08. The ATR volatility stop prevented premature stop-outs during high India VIX market phases.',
+    historicalDates: ['Q1', 'Q2', 'Q3', 'Q4', 'Q1+1', 'Q2+1', 'Q3+1', 'Q4+1', 'Q1+2', 'Q2+2'],
+    strategyPoints: [100, 112, 126, 138, 162, 180, 204, 235, 268, 296],
+    benchmarkPoints: [100, 106, 112, 118, 125, 131, 144, 155, 162, 174],
+    trades: [
+      { index: 1, type: 'BUY', price: 21200, note: 'Stoch %K cross %D at 18.4 oversold' },
+      { index: 3, type: 'EXIT', price: 22150, pnl: '+950 pts', note: 'Target 1:3.0 RR hit at swing pivot' },
+      { index: 6, type: 'BUY', price: 22800, note: 'Bullish divergence with FII accumulation' },
+      { index: 9, type: 'EXIT', price: 24100, pnl: '+1,300 pts', note: 'Reversal guard opposite exhaustion' },
+    ],
+  },
+  {
     id: 'reliance-order-block',
     name: 'RELIANCE — Institutional Order Block + FVG Inversion',
     ticker: 'RELIANCE.NS (NSE)',
     timeframe: '5m Microstructure',
+    category: 'Order Flow & FVG',
     description:
       'Scans for unmitigated Fair Value Gaps (FVG) and institutional accumulation footprints in India’s heaviest index heavyweight. Aligns entries when order book delta exceeds +12,000 contracts.',
     baseMetrics: {
@@ -94,6 +128,7 @@ const strategies: StrategyData[] = [
     name: 'BANKNIFTY — RBI Policy Event Volatility Shock',
     ticker: 'BANKNIFTY INDEX',
     timeframe: '1m High Frequency',
+    category: 'Macro Catalyst',
     description:
       'Engineered specifically for Bi-monthly RBI Monetary Policy Committee (MPC) days. Captures the violent post-announcement volatility skew and implied volatility (IV) crush using dynamic straddle boundaries.',
     baseMetrics: {
@@ -127,6 +162,7 @@ export const BacktestSandbox: React.FC = () => {
   const [riskPerTrade, setRiskPerTrade] = useState<number>(1.0);
   const [sentimentThreshold, setSentimentThreshold] = useState<number>(0.3);
   const [slippageTicks, setSlippageTicks] = useState<number>(2);
+  const [atrMultiplier, setAtrMultiplier] = useState<number>(1.2);
 
   const strategy = useMemo(() => {
     return strategies.find((s) => s.id === selectedStrategyId) || strategies[0];
@@ -136,9 +172,10 @@ export const BacktestSandbox: React.FC = () => {
     const riskMultiplier = riskPerTrade / 1.0;
     const sentimentBonus = (sentimentThreshold - 0.2) * 12;
     const slippagePenalty = (slippageTicks - 1) * 3.5;
+    const atrBonus = (atrMultiplier - 1.0) * 4.0;
 
     const returnAdjusted = Number(
-      (strategy.baseMetrics.totalReturn * riskMultiplier + sentimentBonus - slippagePenalty).toFixed(1)
+      (strategy.baseMetrics.totalReturn * riskMultiplier + sentimentBonus - slippagePenalty + atrBonus).toFixed(1)
     );
     const winRateAdjusted = Number(
       Math.min(88, Math.max(45, strategy.baseMetrics.winRate + sentimentBonus * 0.4 - (slippageTicks - 1) * 1.2)).toFixed(1)
@@ -149,17 +186,35 @@ export const BacktestSandbox: React.FC = () => {
     const maxDrawdownAdjusted = Number(
       (strategy.baseMetrics.maxDrawdown * (riskMultiplier * 1.1)).toFixed(2)
     );
+    const alphaOverBenchmark = Number(
+      (returnAdjusted - strategy.baseMetrics.benchmarkReturn).toFixed(1)
+    );
 
     return {
       totalReturn: returnAdjusted,
       benchmarkReturn: strategy.baseMetrics.benchmarkReturn,
+      alpha: alphaOverBenchmark,
       sharpe: sharpeAdjusted,
       winRate: winRateAdjusted,
       maxDrawdown: maxDrawdownAdjusted,
       profitFactor: strategy.baseMetrics.profitFactor,
       trades: strategy.baseMetrics.trades,
     };
-  }, [strategy, riskPerTrade, sentimentThreshold, slippageTicks]);
+  }, [strategy, riskPerTrade, sentimentThreshold, slippageTicks, atrMultiplier]);
+
+  const handleStrategyChange = (id: string) => {
+    quantSound.playClick();
+    setSelectedStrategyId(id);
+    setHoveredIndex(null);
+  };
+
+  const handleResetParams = () => {
+    quantSound.playClick();
+    setRiskPerTrade(1.0);
+    setSentimentThreshold(0.3);
+    setSlippageTicks(2);
+    setAtrMultiplier(1.2);
+  };
 
   const chartW = 760;
   const chartH = 280;
@@ -199,334 +254,332 @@ export const BacktestSandbox: React.FC = () => {
     <section id="sandbox" className="py-20 bg-white relative border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         {/* Section Header */}
-        <div className="mb-10 border-b border-gray-200 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
+        <div className="mb-10 border-b border-gray-200 pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
             <div className="flex items-center gap-2 text-xs font-mono text-[#FF5500]">
               <Cpu className="w-3.5 h-3.5" />
-              <span>SECTION // 03</span>
+              <span>SECTION 02 // INTERACTIVE QUANT ENGINE</span>
               <span className="text-gray-300">|</span>
-              <span className="text-[#64748B]">LIVE INTERACTIVE QUANT SANDBOX</span>
+              <span className="text-[#64748B]">TICK-BY-TICK EQUITY CURVE & CALIBRATION</span>
             </div>
-
-            <h2 className="font-display text-3xl sm:text-5xl font-bold text-[#0A0A0D] tracking-tight">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-[#0A0A0D] tracking-tight mt-1">
               NSE Strategy Backtest Sandbox
             </h2>
           </div>
 
-          <div className="text-xs sm:text-sm font-mono text-[#475569] max-w-md">
-            Test institutional setups on actual NSE historical data. Adjust risk and sentiment weights to see real-time curve recalibration.
+          <div className="flex items-center gap-2 font-mono text-xs">
+            <span className="text-gray-400">BENCHMARK:</span>
+            <span className="bg-[#F8FAFC] border border-gray-200 px-2.5 py-1 font-bold text-[#0A0A0D]">
+              NIFTY 50 TOTAL RETURN INDEX
+            </span>
           </div>
         </div>
 
-        {/* Strategy Switcher Header Tabs */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6 font-mono">
-          {strategies.map((s) => {
-            const isSelected = s.id === selectedStrategyId;
-            return (
-              <button
-                key={s.id}
-                onClick={() => {
-                  setSelectedStrategyId(s.id);
-                  setHoveredIndex(null);
-                }}
-                className={`p-4 text-left border transition-all duration-150 relative ${
-                  isSelected
-                    ? 'bg-white border-[#FF5500] shadow-sm'
-                    : 'bg-[#F8FAFC] border-gray-200 hover:border-gray-300 text-[#64748B]'
-                }`}
-              >
-                {isSelected && (
-                  <div className="absolute top-0 right-0 w-2 h-2 bg-[#FF5500]" />
-                )}
-
-                <div className="flex items-center justify-between text-[11px] mb-1">
-                  <span className={isSelected ? 'text-[#FF5500] font-bold' : 'text-[#64748B]'}>
-                    {s.ticker}
-                  </span>
-                  <span className="text-[10px] text-gray-400">{s.timeframe}</span>
-                </div>
-
-                <div className="text-xs sm:text-sm font-bold text-[#0A0A0D] line-clamp-1">
-                  {s.name}
-                </div>
-
-                <div className="mt-2 flex items-center justify-between text-[10px] text-[#475569]">
-                  <span>RET: <span className="text-[#059669] font-bold">+{s.baseMetrics.totalReturn}%</span></span>
-                  <span>SHARPE: <span className="text-[#0A0A0D] font-bold">{s.baseMetrics.sharpe}</span></span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Main Terminal Box */}
-        <div className="border border-gray-200 bg-white p-4 sm:p-6 font-mono shadow-card">
-          {/* Terminal Title Bar */}
-          <div className="flex flex-wrap items-center justify-between pb-4 border-b border-gray-100 gap-3 text-xs">
-            <div className="flex items-center gap-3">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#059669] animate-pulse" />
-              <span className="text-[#0A0A0D] font-bold">{strategy.name}</span>
-              <span className="text-gray-300">|</span>
-              <span className="text-[#64748B]">{strategy.timeframe}</span>
-            </div>
-
-            <div className="flex items-center gap-4 text-[11px] text-[#64748B]">
-              <span className="flex items-center gap-1.5">
-                <span className="w-3 h-1 bg-[#FF5500]" />
-                <span className="text-[#0A0A0D] font-bold">ARJUNA QUANT NAV</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-3 h-0.5 bg-gray-400 border-b border-dashed" />
-                <span>BENCHMARK NIFTY 50</span>
-              </span>
-            </div>
-          </div>
-
-          {/* Interactive Chart Container */}
-          <div className="relative my-4 bg-[#FAFAFA] border border-gray-200 p-2 overflow-hidden">
-            <svg
-              viewBox={`0 0 ${chartW} ${chartH}`}
-              className="w-full h-auto max-h-[320px] select-none cursor-crosshair"
-              onMouseLeave={() => setHoveredIndex(null)}
+        {/* Strategy Switcher Pills */}
+        <div className="flex gap-2 mb-8 overflow-x-auto no-scrollbar pb-2">
+          {strategies.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => handleStrategyChange(s.id)}
+              className={`px-4 py-2 text-xs font-mono transition-all duration-150 whitespace-nowrap flex items-center gap-2 border ${
+                selectedStrategyId === s.id
+                  ? 'bg-[#FF5500] text-white border-[#FF5500] font-bold shadow-sm'
+                  : 'bg-white text-[#475569] border-gray-200 hover:border-gray-400 hover:text-[#0A0A0D]'
+              }`}
             >
-              {[0.25, 0.5, 0.75].map((ratio) => (
-                <line
-                  key={ratio}
-                  x1={paddingX}
-                  y1={chartH * ratio}
-                  x2={chartW - paddingX}
-                  y2={chartH * ratio}
-                  stroke="rgba(0, 0, 0, 0.05)"
-                  strokeDasharray="2 4"
-                />
-              ))}
+              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
+              <span>{s.name}</span>
+            </button>
+          ))}
+        </div>
 
-              <defs>
-                <linearGradient id="strategyGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#FF5500" stopOpacity="0.2" />
-                  <stop offset="100%" stopColor="#FF5500" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
+        {/* Strategy Overview Banner */}
+        <div className="mb-8 p-4 sm:p-5 bg-[#F8FAFC] border border-gray-200 font-mono text-xs text-[#475569] space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-gray-200 text-[#0A0A0D] font-bold">
+            <span className="text-[#FF5500] flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5" />
+              TARGET: {strategy.ticker}
+            </span>
+            <span className="text-gray-500 text-[11px]">TIMEFRAME: {strategy.timeframe}</span>
+            <span className="text-[10px] bg-white border border-gray-200 px-2 py-0.5 text-[#059669]">
+              CATEGORY: {strategy.category}
+            </span>
+          </div>
+          <p className="leading-relaxed text-[12px] text-[#334155]">{strategy.description}</p>
+        </div>
 
-              {/* Benchmark Line (NIFTY 50) */}
-              <path
-                d={benchmarkPath}
-                fill="none"
-                stroke="rgba(15, 23, 42, 0.3)"
-                strokeWidth="1.5"
-                strokeDasharray="4 3"
-              />
-
-              {/* Strategy Equity Area */}
-              <path d={strategyAreaPath} fill="url(#strategyGradient)" />
-
-              {/* Strategy Equity Line */}
-              <path
-                d={strategyPath}
-                fill="none"
-                stroke="#FF5500"
-                strokeWidth="2.5"
-              />
-
-              {/* Execution Markers */}
-              {strategy.trades.map((t, i) => {
-                const point = strategyCoords[t.index];
-                if (!point) return null;
-                const isBuy = t.type === 'BUY';
-                return (
-                  <g key={i} className="cursor-pointer">
-                    <circle
-                      cx={point.x}
-                      cy={point.y}
-                      r={5}
-                      fill={isBuy ? '#059669' : '#FF5500'}
-                      stroke="#FFFFFF"
-                      strokeWidth="1.5"
-                    />
-                    <text
-                      x={point.x}
-                      y={isBuy ? point.y + 16 : point.y - 10}
-                      fill={isBuy ? '#059669' : '#FF5500'}
-                      fontSize="9"
-                      fontFamily="JetBrains Mono"
-                      textAnchor="middle"
-                      fontWeight="bold"
-                    >
-                      {t.type} {t.pnl ? `(${t.pnl})` : ''}
-                    </text>
-                  </g>
-                );
-              })}
-
-              {/* Active Hover Scrub Line */}
-              {activeHover && (
-                <g>
-                  <line
-                    x1={activeHover.x}
-                    y1={paddingY}
-                    x2={activeHover.x}
-                    y2={chartH - paddingY}
-                    stroke="#FF5500"
-                    strokeWidth="1"
-                    strokeDasharray="3 3"
-                  />
-                  <circle
-                    cx={activeHover.x}
-                    cy={activeHover.y}
-                    r="5"
-                    fill="#FF5500"
-                    stroke="#FFFFFF"
-                    strokeWidth="2"
-                  />
-                </g>
-              )}
-
-              {strategyCoords.map((pt, idx) => (
-                <rect
-                  key={idx}
-                  x={pt.x - 25}
-                  y={0}
-                  width={50}
-                  height={chartH}
-                  fill="transparent"
-                  onMouseEnter={() => setHoveredIndex(idx)}
-                />
-              ))}
-            </svg>
-
-            {/* Hover Tooltip Overlay */}
-            {hoveredIndex !== null && (
-              <div
-                className="absolute top-4 right-4 bg-white/95 border border-gray-200 p-3 text-[10px] space-y-1 shadow-lg pointer-events-none"
-              >
-                <div className="text-[#FF5500] font-bold">
-                  TIMEFRAME POINT: {strategy.historicalDates[hoveredIndex]}
+        {/* Main Sandbox Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Interactive Vector Chart */}
+          <div className="lg:col-span-8 border border-gray-200 bg-white p-4 sm:p-6 font-mono shadow-card">
+            {/* Chart Header Bar */}
+            <div className="flex flex-wrap items-center justify-between pb-4 border-b border-gray-100 gap-3 text-xs">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-0.5 bg-[#FF5500]" />
+                  <span className="font-bold text-[#0A0A0D]">ARJUNA QUANT NAV</span>
                 </div>
-                <div className="flex justify-between gap-4 text-[#0A0A0D]">
-                  <span>ARJUNA NAV:</span>
-                  <span className="font-bold font-tabular">
-                    ₹{strategy.strategyPoints[hoveredIndex].toFixed(1)} (+
-                    {(
-                      ((strategy.strategyPoints[hoveredIndex] - 100) / 100) *
-                      100
-                    ).toFixed(1)}
-                    %)
-                  </span>
-                </div>
-                <div className="flex justify-between gap-4 text-[#64748B]">
-                  <span>BENCHMARK NAV:</span>
-                  <span className="font-tabular">
-                    ₹{strategy.benchmarkPoints[hoveredIndex].toFixed(1)}
-                  </span>
-                </div>
-                <div className="text-[#059669] pt-1 border-t border-gray-100 font-bold">
-                  ALPHA OVER INDEX: +
-                  {(
-                    strategy.strategyPoints[hoveredIndex] -
-                    strategy.benchmarkPoints[hoveredIndex]
-                  ).toFixed(1)}{' '}
-                  PTS
+                <div className="flex items-center gap-2 text-gray-400">
+                  <span className="w-3 h-0.5 bg-gray-300 stroke-dasharray" />
+                  <span>BENCHMARK NIFTY 50</span>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Performance Metric Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 my-4">
-            <div className="border border-gray-200 bg-[#F8FAFC] p-3">
-              <span className="text-[10px] text-[#64748B] block font-semibold">STRATEGY RETURN</span>
-              <span className="text-lg font-bold text-[#059669] font-tabular">
-                +{dynamicMetrics.totalReturn}%
-              </span>
-              <span className="text-[9px] text-[#64748B] block">vs Bench +{dynamicMetrics.benchmarkReturn}%</span>
+              <div className="flex items-center gap-3 text-[11px]">
+                <span className="text-[#64748B]">ALPHA:</span>
+                <span className="text-[#059669] font-bold font-tabular">
+                  +{dynamicMetrics.alpha}%
+                </span>
+                <span className="text-gray-300">|</span>
+                <span className="text-[#64748B]">WIN RATE:</span>
+                <span className="text-[#0A0A0D] font-bold font-tabular">
+                  {dynamicMetrics.winRate}%
+                </span>
+              </div>
             </div>
 
-            <div className="border border-gray-200 bg-[#F8FAFC] p-3">
-              <span className="text-[10px] text-[#64748B] block font-semibold">SHARPE RATIO</span>
-              <span className="text-lg font-bold text-[#0A0A0D] font-tabular">
-                {dynamicMetrics.sharpe}
-              </span>
-              <span className="text-[9px] text-[#059669] block font-semibold">Risk-Adj High</span>
-            </div>
-
-            <div className="border border-gray-200 bg-[#F8FAFC] p-3">
-              <span className="text-[10px] text-[#64748B] block font-semibold">WIN PROBABILITY</span>
-              <span className="text-lg font-bold text-[#FF5500] font-tabular">
-                {dynamicMetrics.winRate}%
-              </span>
-              <span className="text-[9px] text-[#64748B] block">{dynamicMetrics.trades} Sampled</span>
-            </div>
-
-            <div className="border border-gray-200 bg-[#F8FAFC] p-3">
-              <span className="text-[10px] text-[#64748B] block font-semibold">MAX DRAWDOWN</span>
-              <span className="text-lg font-bold text-[#DC2626] font-tabular">
-                {dynamicMetrics.maxDrawdown}%
-              </span>
-              <span className="text-[9px] text-[#64748B] block">Strict Stop Exit</span>
-            </div>
-
-            <div className="border border-gray-200 bg-[#F8FAFC] p-3">
-              <span className="text-[10px] text-[#64748B] block font-semibold">PROFIT FACTOR</span>
-              <span className="text-lg font-bold text-[#0A0A0D] font-tabular">
-                {dynamicMetrics.profitFactor}
-              </span>
-              <span className="text-[9px] text-[#64748B] block">Gross PnL Ratio</span>
-            </div>
-
-            <div className="border border-gray-200 bg-[#F8FAFC] p-3">
-              <span className="text-[10px] text-[#64748B] block font-semibold">NSE REGIME</span>
-              <span className="text-sm font-bold text-[#FF5500] truncate block mt-0.5">
-                EXPANSION
-              </span>
-              <span className="text-[9px] text-[#059669] block font-semibold">Historical Valid</span>
-            </div>
-          </div>
-
-          {/* Real-time Dynamic Calibration Controls */}
-          <div className="p-4 border border-gray-200 bg-[#F8FAFC] my-4">
-            <div className="flex items-center justify-between pb-2 mb-3 border-b border-gray-200 text-xs text-[#64748B]">
-              <span className="flex items-center gap-1.5 text-[#FF5500] font-bold">
-                <Sliders className="w-3.5 h-3.5" />
-                <span>DYNAMIC CALIBRATION CONTROLS (JUDGE PLAYGROUND)</span>
-              </span>
-              <button
-                onClick={() => {
-                  setRiskPerTrade(1.0);
-                  setSentimentThreshold(0.3);
-                  setSlippageTicks(2);
-                }}
-                className="hover:text-[#0A0A0D] flex items-center gap-1 text-[10px] font-semibold"
+            {/* SVG Interactive Canvas */}
+            <div className="relative my-4 overflow-hidden select-none">
+              <svg
+                viewBox={`0 0 ${chartW} ${chartH}`}
+                className="w-full h-auto overflow-visible cursor-crosshair"
+                onMouseLeave={() => setHoveredIndex(null)}
               >
-                <RotateCcw className="w-3 h-3" />
-                <span>RESET PARAMS</span>
-              </button>
+                <defs>
+                  <linearGradient id="arjunaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#FF5500" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#FF5500" stopOpacity="0.0" />
+                  </linearGradient>
+                </defs>
+
+                {/* Horizontal Grid Lines */}
+                {[0.2, 0.4, 0.6, 0.8].map((ratio) => {
+                  const y = paddingY + ratio * (chartH - paddingY * 2);
+                  return (
+                    <line
+                      key={ratio}
+                      x1={paddingX}
+                      y1={y}
+                      x2={chartW - paddingX}
+                      y2={y}
+                      stroke="rgba(0,0,0,0.05)"
+                      strokeWidth="1"
+                      strokeDasharray="4 4"
+                    />
+                  );
+                })}
+
+                {/* Benchmark Line */}
+                <path
+                  d={benchmarkPath}
+                  fill="none"
+                  stroke="#94A3B8"
+                  strokeWidth="1.5"
+                  strokeDasharray="4 4"
+                />
+
+                {/* Strategy Fill Area */}
+                <path d={strategyAreaPath} fill="url(#arjunaGrad)" />
+
+                {/* Strategy Solid Line */}
+                <path
+                  d={strategyPath}
+                  fill="none"
+                  stroke="#FF5500"
+                  strokeWidth="2.5"
+                />
+
+                {/* Trade Execution Markers */}
+                {strategy.trades.map((tr) => {
+                  const pt = strategyCoords[tr.index];
+                  if (!pt) return null;
+                  const isBuy = tr.type === 'BUY';
+                  return (
+                    <g key={tr.index} className="transition-transform duration-150">
+                      <line
+                        x1={pt.x}
+                        y1={pt.y}
+                        x2={pt.x}
+                        y2={isBuy ? pt.y + 20 : pt.y - 20}
+                        stroke={isBuy ? '#059669' : '#DC2626'}
+                        strokeWidth="1.5"
+                      />
+                      <circle
+                        cx={pt.x}
+                        cy={pt.y}
+                        r="3.5"
+                        fill={isBuy ? '#059669' : '#DC2626'}
+                      />
+                      <rect
+                        x={pt.x - 18}
+                        y={isBuy ? pt.y + 22 : pt.y - 34}
+                        width="36"
+                        height="14"
+                        fill={isBuy ? '#059669' : '#DC2626'}
+                        rx="1"
+                      />
+                      <text
+                        x={pt.x}
+                        y={isBuy ? pt.y + 32 : pt.y - 24}
+                        textAnchor="middle"
+                        fill="#FFFFFF"
+                        fontSize="8"
+                        fontWeight="bold"
+                        fontFamily="JetBrains Mono"
+                      >
+                        {tr.type}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* Active Hover Hairline & Node */}
+                {activeHover && (
+                  <g>
+                    <line
+                      x1={activeHover.x}
+                      y1={paddingY}
+                      x2={activeHover.x}
+                      y2={chartH - paddingY}
+                      stroke="#FF5500"
+                      strokeWidth="1"
+                      strokeDasharray="2 2"
+                    />
+                    <circle
+                      cx={activeHover.x}
+                      cy={activeHover.y}
+                      r="5"
+                      fill="#FF5500"
+                      stroke="#FFFFFF"
+                      strokeWidth="2"
+                    />
+                  </g>
+                )}
+
+                {/* Invisible Hover Rectangles */}
+                {strategyCoords.map((c, i) => (
+                  <rect
+                    key={i}
+                    x={c.x - (chartW / pointsCount) / 2}
+                    y={0}
+                    width={chartW / pointsCount}
+                    height={chartH}
+                    fill="transparent"
+                    onMouseEnter={() => setHoveredIndex(i)}
+                  />
+                ))}
+              </svg>
+
+              {/* Floating Tooltip */}
+              {activeHover && hoveredIndex !== null && (
+                <div
+                  className="absolute pointer-events-none bg-[#0A0A0D] text-white p-2.5 shadow-xl border border-gray-700 text-[10px] space-y-1 z-20"
+                  style={{
+                    left: `${Math.min(chartW - 140, Math.max(20, activeHover.x - 60))}px`,
+                    top: `${Math.max(10, activeHover.y - 70)}px`,
+                  }}
+                >
+                  <div className="text-gray-400 font-bold border-b border-gray-800 pb-0.5">
+                    PERIOD: {strategy.historicalDates[hoveredIndex]}
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-[#FF5500]">ARJUNA NAV:</span>
+                    <span className="font-bold font-tabular">{activeHover.val} pts</span>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-gray-400">BENCHMARK:</span>
+                    <span className="font-tabular">{strategy.benchmarkPoints[hoveredIndex]} pts</span>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+            {/* X-Axis Date Labels */}
+            <div className="flex justify-between text-[10px] text-[#64748B] pt-2 border-t border-gray-100 font-mono">
+              {strategy.historicalDates.map((d, i) => (
+                <span key={i}>{d}</span>
+              ))}
+            </div>
+
+            {/* Trade Log Execution Table */}
+            <div className="mt-6 pt-4 border-t border-gray-100">
+              <div className="text-[11px] font-bold text-[#0A0A0D] uppercase tracking-wider mb-2 flex items-center justify-between">
+                <span>HISTORICAL SAMPLE EXECUTION SNIPPET</span>
+                <span className="text-[10px] text-[#64748B]">ZERO LOOK-AHEAD BIAS</span>
+              </div>
+              <div className="space-y-1.5 text-[11px]">
+                {strategy.trades.map((tr, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-2 bg-[#F8FAFC] border border-gray-100 hover:border-gray-300 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-[9px] font-bold px-1.5 py-0.5 ${
+                          tr.type === 'BUY'
+                            ? 'bg-[#059669]/10 text-[#059669]'
+                            : 'bg-[#DC2626]/10 text-[#DC2626]'
+                        }`}
+                      >
+                        {tr.type}
+                      </span>
+                      <span className="font-bold text-[#0A0A0D] font-tabular">₹{tr.price}</span>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-[#475569]">{tr.note}</span>
+                    </div>
+                    {tr.pnl && (
+                      <span className="font-bold text-[#059669] font-tabular">{tr.pnl}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Dynamic Calibration Controls (Judge Playground) */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* Calibration Card */}
+            <div className="border border-gray-200 bg-[#F8FAFC] p-5 font-mono shadow-card space-y-5">
+              <div className="flex items-center justify-between pb-3 border-b border-gray-200 text-xs">
+                <span className="text-[#FF5500] font-bold flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5" />
+                  DYNAMIC RE-CALIBRATION
+                </span>
+                <button
+                  onClick={handleResetParams}
+                  className="text-[10px] text-[#64748B] hover:text-[#0A0A0D] flex items-center gap-1 transition-colors"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  RESET
+                </button>
+              </div>
+
+              {/* Slider 1: Risk Per Trade */}
               <div className="space-y-1.5">
-                <div className="flex justify-between text-[#475569]">
-                  <span className="font-medium">RISK PER TRADE:</span>
-                  <span className="text-[#FF5500] font-bold font-tabular">{riskPerTrade.toFixed(1)}%</span>
+                <div className="flex justify-between text-xs">
+                  <span className="text-[#475569] font-semibold">RISK PER TRADE:</span>
+                  <span className="font-bold text-[#0A0A0D] font-tabular">{riskPerTrade.toFixed(1)}%</span>
                 </div>
                 <input
                   type="range"
                   min="0.5"
-                  max="2.5"
+                  max="3.0"
                   step="0.1"
                   value={riskPerTrade}
                   onChange={(e) => setRiskPerTrade(parseFloat(e.target.value))}
-                  className="w-full accent-[#FF5500] cursor-pointer bg-gray-200 h-1 rounded-none"
+                  className="w-full accent-[#FF5500] cursor-pointer"
                 />
-                <div className="flex justify-between text-[9px] text-[#64748B]">
+                <div className="flex justify-between text-[9px] text-gray-400">
                   <span>0.5% (Conservative)</span>
-                  <span>2.5% (Aggressive)</span>
+                  <span>3.0% (Aggressive)</span>
                 </div>
               </div>
 
+              {/* Slider 2: NLP Catalyst Sensitivity */}
               <div className="space-y-1.5">
-                <div className="flex justify-between text-[#475569]">
-                  <span className="font-medium">NLP CATALYST THRESHOLD:</span>
-                  <span className="text-[#059669] font-bold font-tabular">+{sentimentThreshold.toFixed(2)}</span>
+                <div className="flex justify-between text-xs">
+                  <span className="text-[#475569] font-semibold">FINBERT NLP THRESHOLD:</span>
+                  <span className="font-bold text-[#0A0A0D] font-tabular">+{sentimentThreshold.toFixed(2)}</span>
                 </div>
                 <input
                   type="range"
@@ -535,51 +588,98 @@ export const BacktestSandbox: React.FC = () => {
                   step="0.05"
                   value={sentimentThreshold}
                   onChange={(e) => setSentimentThreshold(parseFloat(e.target.value))}
-                  className="w-full accent-[#059669] cursor-pointer bg-gray-200 h-1 rounded-none"
+                  className="w-full accent-[#FF5500] cursor-pointer"
                 />
-                <div className="flex justify-between text-[9px] text-[#64748B]">
-                  <span>0.0 (Unfiltered)</span>
-                  <span>0.8 (Strict High Conviction)</span>
+                <div className="flex justify-between text-[9px] text-gray-400">
+                  <span>0.00 (All Signals)</span>
+                  <span>0.80 (High Polarity Only)</span>
                 </div>
               </div>
 
+              {/* Slider 3: Slippage Model */}
               <div className="space-y-1.5">
-                <div className="flex justify-between text-[#475569]">
-                  <span className="font-medium">SLIPPAGE MODEL:</span>
-                  <span className="text-[#FF5500] font-bold font-tabular">{slippageTicks} TICKS</span>
+                <div className="flex justify-between text-xs">
+                  <span className="text-[#475569] font-semibold">SLIPPAGE ESTIMATE:</span>
+                  <span className="font-bold text-[#0A0A0D] font-tabular">{slippageTicks} TICKS</span>
                 </div>
                 <input
                   type="range"
-                  min="1"
+                  min="0"
                   max="5"
                   step="1"
                   value={slippageTicks}
                   onChange={(e) => setSlippageTicks(parseInt(e.target.value))}
-                  className="w-full accent-[#FF5500] cursor-pointer bg-gray-200 h-1 rounded-none"
+                  className="w-full accent-[#FF5500] cursor-pointer"
                 />
-                <div className="flex justify-between text-[9px] text-[#64748B]">
-                  <span>1 Tick (Co-located)</span>
-                  <span>5 Ticks (High Volatility)</span>
+                <div className="flex justify-between text-[9px] text-gray-400">
+                  <span>0 Ticks (Zero Impact)</span>
+                  <span>5 Ticks (L2 Depth Stress)</span>
+                </div>
+              </div>
+
+              {/* Slider 4: ATR Stop Loss Multiplier */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="text-[#475569] font-semibold">STOP LOSS ATR MULTIPLIER:</span>
+                  <span className="font-bold text-[#0A0A0D] font-tabular">{atrMultiplier.toFixed(1)}x ATR</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.8"
+                  max="2.5"
+                  step="0.1"
+                  value={atrMultiplier}
+                  onChange={(e) => setAtrMultiplier(parseFloat(e.target.value))}
+                  className="w-full accent-[#FF5500] cursor-pointer"
+                />
+                <div className="flex justify-between text-[9px] text-gray-400">
+                  <span>0.8x (Tight Scalp)</span>
+                  <span>2.5x (Wide Volatility)</span>
+                </div>
+              </div>
+
+              {/* Real-Time Recalculated Output Pods */}
+              <div className="grid grid-cols-2 gap-2 pt-3 border-t border-gray-200">
+                <div className="bg-white p-2.5 border border-gray-200">
+                  <div className="text-[9px] text-[#64748B]">STRATEGY RETURN</div>
+                  <div className="text-base font-bold text-[#0A0A0D] font-tabular">
+                    +{dynamicMetrics.totalReturn}%
+                  </div>
+                </div>
+
+                <div className="bg-white p-2.5 border border-gray-200">
+                  <div className="text-[9px] text-[#64748B]">CALIBRATED SHARPE</div>
+                  <div className="text-base font-bold text-[#059669] font-tabular">
+                    {dynamicMetrics.sharpe}
+                  </div>
+                </div>
+
+                <div className="bg-white p-2.5 border border-gray-200">
+                  <div className="text-[9px] text-[#64748B]">WIN RATE</div>
+                  <div className="text-base font-bold text-[#0A0A0D] font-tabular">
+                    {dynamicMetrics.winRate}%
+                  </div>
+                </div>
+
+                <div className="bg-white p-2.5 border border-gray-200">
+                  <div className="text-[9px] text-[#64748B]">MAX DRAWDOWN</div>
+                  <div className="text-base font-bold text-[#DC2626] font-tabular">
+                    {dynamicMetrics.maxDrawdown}%
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* AI Historical Catalyst Audit Box */}
-          <div className="border border-[#FF5500]/30 bg-[#FFF7ED] p-4 text-xs space-y-2">
-            <div className="flex items-center justify-between text-[#FF5500] font-bold text-[11px]">
-              <span className="flex items-center gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5" />
-                <span>ARJUNA AI HISTORICAL CATALYST AUDIT // {strategy.catalystEvent}</span>
-              </span>
-              <span className="text-[10px] text-[#059669] bg-[#059669]/10 px-2 py-0.5 border border-[#059669]/30 font-bold">
-                AUDIT_VERIFIED
-              </span>
+            {/* AI Catalyst Stress Test Card */}
+            <div className="border border-[#FF5500]/30 bg-[#FFF7ED] p-4 font-mono text-xs space-y-2 shadow-sm">
+              <div className="flex items-center gap-1.5 text-[#FF5500] font-bold">
+                <Flame className="w-3.5 h-3.5" />
+                <span>AI CATALYST AUDIT // {strategy.catalystEvent}</span>
+              </div>
+              <p className="text-[11px] text-[#0A0A0D] leading-relaxed">
+                {strategy.aiInsight}
+              </p>
             </div>
-
-            <p className="text-xs text-[#0A0A0D] leading-relaxed">
-              {strategy.aiInsight}
-            </p>
           </div>
         </div>
       </div>

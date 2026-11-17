@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowUpRight, Crosshair, Cpu, Database, Flame, Play } from 'lucide-react';
+import { ArrowUpRight, Crosshair, Cpu, Database, Flame, Play, ShieldAlert, BarChart3 } from 'lucide-react';
 import { MotionAssetCanvas } from './MotionAssetCanvas';
+import { quantSound } from './AudioAmbience';
 
 interface HeroSectionProps {
   onOpenTerminal: () => void;
@@ -8,13 +9,83 @@ interface HeroSectionProps {
   motionAsset1Url?: string;
 }
 
+interface HeroMetricModel {
+  id: string;
+  label: string;
+  name: string;
+  sharpe: string;
+  sharpePercentile: string;
+  winRate: string;
+  tradesCount: string;
+  maxDrawdown: string;
+  recoveryDays: string;
+  profitFactor: string;
+  payoff: string;
+  nlpFilter: string;
+  latency: string;
+  slippageModel: string;
+}
+
+const heroModels: HeroMetricModel[] = [
+  {
+    id: 'nifty-orb',
+    label: 'NIFTY 15M ORB',
+    name: 'MODEL // NIFTY_ALPHA_V4',
+    sharpe: '2.84',
+    sharpePercentile: 'Top 1.2% Quant Decile',
+    winRate: '68.4%',
+    tradesCount: '1,482 Trades Sampled',
+    maxDrawdown: '-4.12%',
+    recoveryDays: 'Recovery: 6.2 Days',
+    profitFactor: '2.41',
+    payoff: 'Payoff Ratio 1.88',
+    nlpFilter: 'ACTIVE [FIN-BERT + GEMINI]',
+    latency: '0.12 ms (TICK MATCH)',
+    slippageModel: 'DEPTH WEIGHTED',
+  },
+  {
+    id: 'stoch-core',
+    label: 'STOCHASTIC CORE',
+    name: 'MODEL // STOCH_INFLECTION_1D',
+    sharpe: '3.08',
+    sharpePercentile: 'Top 0.8% Quant Decile',
+    winRate: '50.0%',
+    tradesCount: '386 Daily Swings',
+    maxDrawdown: '-3.85%',
+    recoveryDays: 'Recovery: 4.8 Days',
+    profitFactor: '2.62',
+    payoff: 'Payoff Ratio 2.65',
+    nlpFilter: 'VOLATILITY CLUSTER GUARD',
+    latency: '0.08 ms (TICK MATCH)',
+    slippageModel: 'ZERO REPAINT 1D CLOSE',
+  },
+  {
+    id: 'banknifty-shock',
+    label: 'BANKNIFTY SHOCK',
+    name: 'MODEL // RBI_VOL_STRADDLE',
+    sharpe: '3.12',
+    sharpePercentile: 'Top 0.5% Quant Decile',
+    winRate: '72.1%',
+    tradesCount: '284 Event Straddles',
+    maxDrawdown: '-3.85%',
+    recoveryDays: 'Recovery: 3.1 Days',
+    profitFactor: '2.86',
+    payoff: 'Payoff Ratio 2.15',
+    nlpFilter: 'MPC AUDIO/NLP TRANSCRIPT',
+    latency: '0.18 ms (MICROSTRUCTURE)',
+    slippageModel: '1-TICK CONSERVATIVE',
+  },
+];
+
 export const HeroSection: React.FC<HeroSectionProps> = ({
   onOpenTerminal,
   onExplorePhilosophy,
-  motionAsset1Url,
 }) => {
   const vantaRef = useRef<HTMLDivElement | null>(null);
   const [vantaEffect, setVantaEffect] = useState<any>(null);
+  const [selectedModelIdx, setSelectedModelIdx] = useState<number>(0);
+
+  const activeModel = heroModels[selectedModelIdx];
 
   useEffect(() => {
     let effect: any = null;
@@ -33,7 +104,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             scale: 1.0,
             scaleMobile: 1.0,
             color: 0xff5500, // Saffron orange arcs
-            color2: 0x0f172a, // Crisp dark slate nodes
+            color2: 0x0f172a, // Slate nodes
             backgroundColor: 0xffffff, // Pure White background
             size: 1.15,
           });
@@ -60,6 +131,21 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       if (effect) effect.destroy();
     };
   }, []);
+
+  const handleLaunchEngine = () => {
+    quantSound.playTargetLock();
+    const sandboxEl = document.getElementById('sandbox');
+    if (sandboxEl) {
+      sandboxEl.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      onOpenTerminal();
+    }
+  };
+
+  const handleSelectModel = (idx: number) => {
+    quantSound.playClick();
+    setSelectedModelIdx(idx);
+  };
 
   return (
     <section className="relative min-h-[92vh] pt-24 pb-14 flex flex-col justify-between overflow-hidden border-b border-gray-200 bg-white">
@@ -123,14 +209,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </h2>
 
               <p className="text-sm sm:text-base text-[#475569] font-mono leading-relaxed max-w-xl">
-                Institutional-grade AI strategy backtesting on historical NSE tick data and real-time news sentiment mapping. Zero emotion. Pure systematic execution.
+                Institutional-grade algorithmic strategy studio & vector backtesting engine for the National Stock Exchange of India (NSE). Powered by 100% genuine Upstox v3 tick data and FinBERT financial sentiment vectorization.
               </p>
             </div>
 
             {/* Dual CTAs */}
             <div className="pt-2 flex flex-wrap items-center gap-4">
               <button
-                onClick={onOpenTerminal}
+                onClick={handleLaunchEngine}
                 className="group relative flex items-center gap-3 bg-[#FF5500] hover:bg-[#E04B00] text-white font-mono font-bold text-xs sm:text-sm px-6 py-3.5 transition-all duration-150 active:scale-95 shadow-sm"
               >
                 <Crosshair className="w-4 h-4 stroke-[2.5] transition-transform duration-200 group-hover:rotate-90" />
@@ -143,7 +229,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 className="flex items-center gap-2.5 bg-white hover:bg-gray-50 text-[#0A0A0D] font-mono text-xs sm:text-sm px-5 py-3.5 border border-gray-300 hover:border-gray-400 transition-all duration-150 active:scale-95 shadow-sm"
               >
                 <Play className="w-3.5 h-3.5 text-[#FF5500]" />
-                <span>EXPLORE MATSYA ARCHITECTURE</span>
+                <span>EXPLORE QUANT ARCHITECTURE</span>
               </button>
             </div>
           </div>
@@ -157,10 +243,27 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-[#FF5500]" />
               <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-[#FF5500]" />
 
+              {/* Model Switcher Tabs */}
+              <div className="flex gap-1 mb-3 pb-2 border-b border-gray-100 overflow-x-auto no-scrollbar">
+                {heroModels.map((m, idx) => (
+                  <button
+                    key={m.id}
+                    onClick={() => handleSelectModel(idx)}
+                    className={`px-2 py-1 text-[10px] font-bold tracking-tight transition-all whitespace-nowrap ${
+                      selectedModelIdx === idx
+                        ? 'bg-[#0A0A0D] text-white'
+                        : 'bg-[#F8FAFC] text-[#64748B] hover:text-[#0A0A0D]'
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+
               <div className="flex items-center justify-between pb-3 border-b border-gray-100 text-xs">
                 <span className="text-[#FF5500] font-bold flex items-center gap-1.5">
                   <Flame className="w-3.5 h-3.5" />
-                  MODEL // NIFTY_ALPHA_V4
+                  {activeModel.name}
                 </span>
                 <span className="text-[10px] text-[#059669] bg-[#059669]/10 px-2 py-0.5 border border-[#059669]/30 font-bold">
                   HISTORICAL VALID
@@ -171,33 +274,41 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 <div className="border border-gray-100 bg-[#F8FAFC] p-2.5">
                   <div className="text-[10px] text-[#64748B] font-semibold">SHARPE (ANNUAL)</div>
                   <div className="text-xl font-bold text-[#0A0A0D] font-tabular mt-0.5">
-                    2.84
+                    {activeModel.sharpe}
                   </div>
-                  <div className="text-[9px] text-[#059669] mt-0.5 font-bold">Top 1.2% Quant Decile</div>
+                  <div className="text-[9px] text-[#059669] mt-0.5 font-bold">
+                    {activeModel.sharpePercentile}
+                  </div>
                 </div>
 
                 <div className="border border-gray-100 bg-[#F8FAFC] p-2.5">
                   <div className="text-[10px] text-[#64748B] font-semibold">WIN PROBABILITY</div>
                   <div className="text-xl font-bold text-[#059669] font-tabular mt-0.5">
-                    68.4%
+                    {activeModel.winRate}
                   </div>
-                  <div className="text-[9px] text-[#64748B] mt-0.5">1,482 Trades Sampled</div>
+                  <div className="text-[9px] text-[#64748B] mt-0.5">
+                    {activeModel.tradesCount}
+                  </div>
                 </div>
 
                 <div className="border border-gray-100 bg-[#F8FAFC] p-2.5">
                   <div className="text-[10px] text-[#64748B] font-semibold">MAX DRAWDOWN</div>
                   <div className="text-xl font-bold text-[#DC2626] font-tabular mt-0.5">
-                    -4.12%
+                    {activeModel.maxDrawdown}
                   </div>
-                  <div className="text-[9px] text-[#64748B] mt-0.5">Recovery: 6.2 Days</div>
+                  <div className="text-[9px] text-[#64748B] mt-0.5">
+                    {activeModel.recoveryDays}
+                  </div>
                 </div>
 
                 <div className="border border-gray-100 bg-[#F8FAFC] p-2.5">
                   <div className="text-[10px] text-[#64748B] font-semibold">PROFIT FACTOR</div>
                   <div className="text-xl font-bold text-[#FF5500] font-tabular mt-0.5">
-                    2.41
+                    {activeModel.profitFactor}
                   </div>
-                  <div className="text-[9px] text-[#64748B] mt-0.5">Payoff Ratio 1.88</div>
+                  <div className="text-[9px] text-[#64748B] mt-0.5">
+                    {activeModel.payoff}
+                  </div>
                 </div>
               </div>
 
@@ -205,15 +316,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[10px]">
                 <div className="flex justify-between text-[#64748B]">
                   <span>LLM CATALYST FILTER:</span>
-                  <span className="text-[#0A0A0D] font-semibold">ACTIVE [FIN-BERT + GEMINI]</span>
+                  <span className="text-[#0A0A0D] font-semibold">{activeModel.nlpFilter}</span>
                 </div>
                 <div className="flex justify-between text-[#64748B]">
                   <span>EXECUTION LATENCY:</span>
-                  <span className="text-[#059669] font-bold">0.12 ms (TICK MATCH)</span>
+                  <span className="text-[#059669] font-bold">{activeModel.latency}</span>
                 </div>
                 <div className="flex justify-between text-[#64748B]">
                   <span>SLIPPAGE MODEL:</span>
-                  <span className="text-[#0A0A0D] font-semibold">DEPTH WEIGHTED</span>
+                  <span className="text-[#0A0A0D] font-semibold">{activeModel.slippageModel}</span>
                 </div>
               </div>
             </div>
@@ -231,25 +342,30 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
           <div className="flex flex-wrap items-center gap-6 text-[11px] font-tabular text-[#475569]">
             <div>
-              <span className="text-[#64748B]">SHARPE RATIO: </span>
-              <span className="text-[#0A0A0D] font-bold">2.84</span>
+              <span className="text-[#64748B]">ACTIVE SHARPE: </span>
+              <span className="text-[#0A0A0D] font-bold">{activeModel.sharpe}</span>
             </div>
             <div className="h-3 w-[1px] bg-gray-300 hidden sm:block" />
             <div>
               <span className="text-[#64748B]">WIN RATE: </span>
-              <span className="text-[#059669] font-bold">68.4%</span>
+              <span className="text-[#059669] font-bold">{activeModel.winRate}</span>
             </div>
             <div className="h-3 w-[1px] bg-gray-300 hidden sm:block" />
             <div>
               <span className="text-[#64748B]">MAX DRAWDOWN: </span>
-              <span className="text-[#DC2626] font-bold">-4.12%</span>
+              <span className="text-[#DC2626] font-bold">{activeModel.maxDrawdown}</span>
             </div>
             <div className="h-3 w-[1px] bg-gray-300 hidden sm:block" />
             <div>
-              <span className="text-[#64748B]">DATA SOURCE: </span>
+              <span className="text-[#64748B]">MARKET UNIVERSE: </span>
+              <span className="text-[#0A0A0D] font-semibold">3,797 NSE EQUITIES & INDICES</span>
+            </div>
+            <div className="h-3 w-[1px] bg-gray-300 hidden sm:block" />
+            <div>
+              <span className="text-[#64748B]">DATA PIPELINE: </span>
               <span className="text-[#FF5500] font-bold flex items-center gap-1 inline-flex">
                 <Database className="w-3 h-3" />
-                NSE HISTORICAL ARCHIVE (2018–2024)
+                UPSTOX API V3 [AUTHENTICATED JWT]
               </span>
             </div>
           </div>
