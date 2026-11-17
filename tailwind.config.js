@@ -38,7 +38,7 @@ export default {
         }
       },
       fontFamily: {
-        devanagari: ['"Gotu"', '"Rozha One"', 'sans-serif'],
+        devanagari: ['"Rozha One"', '"Yatra One"', '"Gotu"', 'sans-serif'],
         display: ['"Syne"', '"Space Grotesk"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },

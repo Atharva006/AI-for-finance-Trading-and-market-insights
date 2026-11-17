@@ -99,8 +99,8 @@ export function App() {
         <InstitutionalFeatures />
       </main>
 
-      {/* Footer & Compliance Stamp */}
-      <Footer />
+      {/* Footer & Compliance Stamp + ARJUN Hindi Bottom Section */}
+      <Footer onOpenTerminal={handleOpenTerminal} />
 
       {/* Terminal Shell Modal */}
       <TerminalModal

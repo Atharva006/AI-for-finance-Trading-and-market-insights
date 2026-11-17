@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Workflow, Sparkles, ArrowRight, Play, CheckCircle2, Shield, Zap, Terminal, Layers } from 'lucide-react';
+import { Workflow, Sparkles, ArrowRight, CheckCircle2, Terminal } from 'lucide-react';
 import { quantSound } from './AudioAmbience';
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button';
 
 interface PromptTemplate {
   id: string;
@@ -90,8 +91,8 @@ export const VisualFlowShowcase: React.FC = () => {
     setCopied(false);
   };
 
-  const handleCopy = () => {
-    quantSound.playClick();
+  const handleCompile = () => {
+    quantSound.playTargetLock();
     navigator.clipboard.writeText(current.generatedDsl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -155,6 +156,16 @@ export const VisualFlowShowcase: React.FC = () => {
 
               <div className="p-4 bg-[#F8FAFC] border border-gray-200 text-xs text-[#0A0A0D] leading-relaxed font-sans font-medium">
                 "{current.promptText}"
+              </div>
+
+              {/* Action Bar with Liquid Metal Button */}
+              <div className="flex items-center justify-between pt-2">
+                <span className="text-[10px] text-[#059669] font-bold">READY TO COMPILE</span>
+                <LiquidMetalButton
+                  label="Compile Prompt"
+                  onClick={handleCompile}
+                  viewMode="text"
+                />
               </div>
 
               {/* Synthesized Parameter Extraction */}
@@ -273,7 +284,7 @@ export const VisualFlowShowcase: React.FC = () => {
                   SYNTHESIZED PYTHON VECTOR DSL
                 </span>
                 <button
-                  onClick={handleCopy}
+                  onClick={handleCompile}
                   className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-[#F8F9FA] text-[10px] transition-colors"
                 >
                   {copied ? 'COPIED TO CLIPBOARD' : 'COPY CODE'}

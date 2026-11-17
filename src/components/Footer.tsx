@@ -1,9 +1,26 @@
 import React from 'react';
-import { ShieldCheck, ArrowUp } from 'lucide-react';
+import { ShieldCheck, ArrowUp, Sparkles, Terminal, Activity, Zap } from 'lucide-react';
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button';
+import { quantSound } from './AudioAmbience';
 
-export const Footer: React.FC = () => {
+interface FooterProps {
+  onOpenTerminal?: () => void;
+}
+
+export const Footer: React.FC<FooterProps> = ({ onOpenTerminal }) => {
   const scrollToTop = () => {
+    quantSound.playClick();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleLaunch = () => {
+    quantSound.playTargetLock();
+    if (onOpenTerminal) {
+      onOpenTerminal();
+    } else {
+      const el = document.getElementById('sandbox');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
@@ -21,6 +38,82 @@ export const Footer: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+        {/* ============================================================== */}
+        {/* ARJUN IN HINDI (अर्जुन) STYLISH BOTTOM HERO & LIQUID METAL BUTTON */}
+        {/* ============================================================== */}
+        <div className="relative mb-16 p-8 sm:p-12 md:p-16 border-2 border-gray-200 bg-white shadow-card overflow-hidden">
+          {/* Corner Crosshairs */}
+          <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-[#FF5500]" />
+          <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-[#FF5500]" />
+          <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-[#FF5500]" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-[#FF5500]" />
+
+          {/* Background Grid Accent */}
+          <div className="absolute inset-0 bg-tactical-grid opacity-40 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+            {/* Top Subtitle Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#F8FAFC] border border-gray-200 text-xs font-mono text-[#475569] shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-[#FF5500] animate-pulse" />
+              <span className="text-[#FF5500] font-bold">[ लक्ष्यभेदी क्वांट :</span>
+              <span>MATSYA-VEDHA ENGINE ]</span>
+              <span className="text-gray-300">|</span>
+              <span className="text-[#64748B]">ARJUN HIGH-PRECISION TERMINAL</span>
+            </div>
+
+            {/* STYLISH HINDI PAGE NAME: "अर्जुन" */}
+            <div className="relative my-2">
+              <h2 className="font-devanagari text-6xl sm:text-8xl md:text-9xl font-bold tracking-wider leading-none select-none flex items-center justify-center">
+                <span className="bg-clip-text text-transparent bg-gradient-to-b from-[#0A0A0D] via-[#1E293B] to-[#FF5500] drop-shadow-sm">
+                  अर्जुन
+                </span>
+                <span className="inline-block w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8 bg-[#FF5500] rounded-full ml-3 sm:ml-4 shadow-[0_0_25px_rgba(255,85,0,0.6)] animate-pulse" />
+              </h2>
+              <div className="text-xs sm:text-sm font-mono text-[#64748B] tracking-[0.3em] uppercase mt-3 font-semibold">
+                // ARJUNA ALGORITHMIC TRADING & BACKTESTING ENGINE
+              </div>
+            </div>
+
+            {/* Poetic Inscription */}
+            <p className="max-w-2xl text-xs sm:text-sm text-[#475569] font-mono leading-relaxed">
+              "What do you see, Arjuna?" — <span className="text-[#0A0A0D] font-bold">"I see only the eye of the fish."</span> Ingesting millions of NSE market ticks, filtering noise, and executing high-expectancy algorithmic models with zero lookahead bias.
+            </p>
+
+            {/* Interactive Liquid Metal Button Integration */}
+            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-6">
+              <LiquidMetalButton
+                label="Initialize अर्जुन"
+                onClick={handleLaunch}
+                viewMode="text"
+              />
+              <LiquidMetalButton
+                onClick={handleLaunch}
+                viewMode="icon"
+              />
+            </div>
+
+            {/* Interactive Feature Readouts */}
+            <div className="pt-6 flex flex-wrap items-center justify-center gap-4 text-[10px] sm:text-[11px] text-[#475569] font-tabular">
+              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#F8FAFC] border border-gray-200">
+                <Zap className="w-3 h-3 text-[#FF5500]" />
+                0.12ms TICK MATCH
+              </span>
+              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#F8FAFC] border border-gray-200">
+                <Activity className="w-3 h-3 text-[#059669]" />
+                UPSTOX V3 DIRECT JWT
+              </span>
+              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#F8FAFC] border border-gray-200">
+                <Sparkles className="w-3 h-3 text-[#FF5500]" />
+                LIQUID METAL SHADER READY
+              </span>
+              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#F8FAFC] border border-gray-200">
+                <ShieldCheck className="w-3 h-3 text-[#059669]" />
+                ZERO SYNTHETIC DRIFT
+              </span>
+            </div>
+          </div>
+        </div>
+
         {/* Compliance Stamp Banner */}
         <div className="border border-[#FF5500]/30 bg-[#FFF7ED] p-5 sm:p-6 mb-12 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

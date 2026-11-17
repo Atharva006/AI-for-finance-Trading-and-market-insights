@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowUpRight, Crosshair, Cpu, Database, Flame, Play, ShieldAlert, BarChart3 } from 'lucide-react';
+import { ArrowUpRight, Crosshair, Cpu, Database, Flame, Play } from 'lucide-react';
 import { MotionAssetCanvas } from './MotionAssetCanvas';
 import { quantSound } from './AudioAmbience';
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button';
 
 interface HeroSectionProps {
   onOpenTerminal: () => void;
@@ -213,7 +214,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </p>
             </div>
 
-            {/* Dual CTAs */}
+            {/* Dual CTAs & Liquid Metal Button Integration */}
             <div className="pt-2 flex flex-wrap items-center gap-4">
               <button
                 onClick={handleLaunchEngine}
@@ -223,6 +224,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 <span>LAUNCH BACKTEST ENGINE</span>
                 <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
               </button>
+
+              {/* Liquid Metal Button Action */}
+              <LiquidMetalButton
+                label="Launch अर्जुन"
+                onClick={onOpenTerminal}
+                viewMode="text"
+              />
 
               <button
                 onClick={onExplorePhilosophy}
