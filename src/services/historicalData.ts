@@ -77,11 +77,17 @@ async function fetchYahooDailyCandles(
     period1 = 0;
   }
 
-  const urls = [
-    ...(typeof window !== 'undefined' ? [`/yahoo-api/v8/finance/chart/${encodedSymbol}?interval=1d&period1=${period1}&period2=${period2}`] : []),
-    `https://query1.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?interval=1d&period1=${period1}&period2=${period2}`,
-    `https://query2.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?interval=1d&period1=${period1}&period2=${period2}`,
-  ];
+  const rangeParam = range === 'custom' ? '5y' : (range === '300d' ? '1y' : range);
+
+  const urls: string[] = [];
+
+  if (typeof window !== 'undefined') {
+    urls.push(`/yahoo-api/v8/finance/chart/${encodedSymbol}?interval=1d&period1=${period1}&period2=${period2}`);
+    urls.push(`/yahoo-api/v8/finance/chart/${encodedSymbol}?interval=1d&range=${rangeParam}`);
+  }
+  urls.push(`https://query1.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?interval=1d&period1=${period1}&period2=${period2}`);
+  urls.push(`https://query1.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?interval=1d&range=${rangeParam}`);
+  urls.push(`https://query2.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?interval=1d&period1=${period1}&period2=${period2}`);
 
   for (const url of urls) {
     try {
