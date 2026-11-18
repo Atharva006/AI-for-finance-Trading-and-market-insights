@@ -55,7 +55,7 @@ const pillars: Pillar[] = [
     quote:
       'The fish rotated continuously on the overhead wheel. Striking required calculating the rotational velocity and timing the arrow to the exact microsecond.',
     description:
-      'Indian market regimes oscillate between range-bound consolidation, explosive Opening Range Breakouts (ORB), and institutional liquidity sweeps (FVGs & Order Blocks). अर्जुन runs high-throughput vectorized backtesting through 7+ years of NSE historical data, identifying the structural rotational frequencies of NIFTY and BANKNIFTY across election years, Union Budget days, and rate cuts.',
+      'Indian market regimes oscillate between range-bound consolidation, explosive Opening Range Breakouts (ORB), and institutional liquidity sweeps (FVGs & Order Blocks). अर्जुन runs high-throughput vectorized backtesting through 7+ years of NSE historical data, identifying structural rotational frequencies across election years, Union Budget days, and rate cuts.',
     quantImplementation: {
       input: '7 Years Historical NSE 1-Min & Daily OHLCV Archive',
       transformation: 'Fair Value Gap (FVG) Detection & Institutional Order Block Mapping',
@@ -103,8 +103,8 @@ export const MatsyaPhilosophy: React.FC<MatsyaPhilosophyProps> = ({
         {/* Section Header */}
         <div className="mb-12 border-b border-gray-200 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-xs font-mono text-[#FF5500]">
-              <Compass className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-2 text-xs font-mono text-emerald-700">
+              <Compass className="w-3.5 h-3.5 text-emerald-600" />
               <span>SECTION // 02</span>
               <span className="text-gray-300">|</span>
               <span className="text-[#64748B]">THE ANCIENT METAPHOR & MODERN QUANT ENGINE</span>
@@ -124,24 +124,24 @@ export const MatsyaPhilosophy: React.FC<MatsyaPhilosophyProps> = ({
         </div>
 
         {/* Dynamic Motion Asset Display */}
-        <div className="mb-10 border border-gray-200 bg-white p-4 relative overflow-hidden shadow-subtle">
+        <div className="mb-10 border border-gray-200 bg-white p-4 relative overflow-hidden shadow-sm rounded-2xl">
           <div className="flex items-center justify-between pb-3 border-b border-gray-100 text-xs font-mono text-[#64748B]">
-            <span className="flex items-center gap-2 text-[#FF5500] font-bold">
-              <Sparkles className="w-3.5 h-3.5" />
+            <span className="flex items-center gap-2 text-emerald-700 font-bold">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
               <span>CINEMATIC FLOW // DATA-TO-STRIKE TRAJECTORY</span>
             </span>
             <span>BLENDED WITH HISTORICAL TICKS</span>
           </div>
 
-          <div className="h-60 sm:h-72 w-full relative bg-white mt-3 border border-gray-100">
+          <div className="h-60 sm:h-72 w-full relative bg-white mt-3 border border-gray-100 rounded-xl overflow-hidden">
             <MotionAssetCanvas
               mode="data-strike"
               className="w-full h-full"
             />
-            <div className="absolute top-4 left-4 font-mono text-[10px] text-gray-700 bg-white/90 px-2 py-1 border border-gray-200 shadow-sm">
+            <div className="absolute top-4 left-4 font-mono text-[10px] text-gray-700 bg-white/90 px-2 py-1 border border-gray-200 shadow-sm rounded">
               VECTOR_STATUS: CONVERGED_ON_HISTORICAL_RESISTANCE
             </div>
-            <div className="absolute bottom-4 right-4 font-mono text-[10px] text-[#059669] bg-white/90 px-2 py-1 border border-[#059669]/30 font-bold shadow-sm">
+            <div className="absolute bottom-4 right-4 font-mono text-[10px] text-emerald-700 bg-emerald-50 px-2 py-1 border border-emerald-200 font-bold shadow-sm rounded">
               TARGET_LOCKED: NIFTY 15M ORB STRIKE
             </div>
           </div>
@@ -155,20 +155,20 @@ export const MatsyaPhilosophy: React.FC<MatsyaPhilosophyProps> = ({
               <button
                 key={p.id}
                 onClick={() => setActiveTab(idx)}
-                className={`p-4 text-left transition-all duration-150 border relative ${
+                className={`p-4 text-left transition-all duration-150 border rounded-2xl relative ${
                   isSelected
-                    ? 'bg-white border-[#FF5500] shadow-sm'
+                    ? 'bg-white border-emerald-500 shadow-sm ring-1 ring-emerald-500/30'
                     : 'bg-white border-gray-200 hover:border-gray-300 text-[#64748B]'
                 }`}
               >
                 {isSelected && (
-                  <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-[#FF5500]" />
+                  <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-tr-2xl" />
                 )}
 
                 <div className="flex items-center justify-between text-xs mb-2">
                   <span
                     className={`font-bold ${
-                      isSelected ? 'text-[#FF5500]' : 'text-[#64748B]'
+                      isSelected ? 'text-emerald-700' : 'text-[#64748B]'
                     }`}
                   >
                     STEP // {p.step}
@@ -192,17 +192,17 @@ export const MatsyaPhilosophy: React.FC<MatsyaPhilosophyProps> = ({
         </div>
 
         {/* Active Panel Detailed Blueprint */}
-        <div className="border border-gray-200 bg-white p-6 sm:p-8 font-mono relative shadow-card">
+        <div className="border border-gray-200 bg-white p-6 sm:p-8 font-mono relative shadow-md rounded-2xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left Column: Philosophical Storytelling */}
             <div className="lg:col-span-7 space-y-5">
-              <div className="inline-flex items-center gap-2 text-xs text-[#FF5500]">
+              <div className="inline-flex items-center gap-2 text-xs text-emerald-700 font-bold">
                 <Eye className="w-3.5 h-3.5" />
-                <span className="font-bold">ARCHITECTURAL PARADIGM:</span>
+                <span>ARCHITECTURAL PARADIGM:</span>
                 <span className="text-[#0A0A0D] font-semibold">{currentPillar.concept}</span>
               </div>
 
-              <blockquote className="border-l-2 border-[#FF5500] pl-4 py-1.5 italic text-xs sm:text-sm text-[#0A0A0D] bg-[#FFF7ED]">
+              <blockquote className="border-l-2 border-emerald-500 pl-4 py-2 italic text-xs sm:text-sm text-[#0A0A0D] bg-emerald-50/50 rounded-r-xl">
                 "{currentPillar.quote}"
               </blockquote>
 
@@ -212,29 +212,29 @@ export const MatsyaPhilosophy: React.FC<MatsyaPhilosophyProps> = ({
 
               {/* Quant Implementation Specs Table */}
               <div className="pt-3 border-t border-gray-100 space-y-2 text-xs">
-                <div className="text-[#FF5500] text-[11px] font-bold tracking-wider">
+                <div className="text-emerald-700 text-[11px] font-bold tracking-wider">
                   SYSTEM ARCHITECTURE SPECIFICATION:
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <div className="bg-[#F8FAFC] border border-gray-200 p-2.5">
+                  <div className="bg-[#F8FAFC] border border-gray-200 p-2.5 rounded-xl">
                     <span className="text-[#64748B] block text-[10px] font-semibold">DATA INGESTION:</span>
                     <span className="text-[#0A0A0D] text-[11px] font-medium">{currentPillar.quantImplementation.input}</span>
                   </div>
 
-                  <div className="bg-[#F8FAFC] border border-gray-200 p-2.5">
+                  <div className="bg-[#F8FAFC] border border-gray-200 p-2.5 rounded-xl">
                     <span className="text-[#64748B] block text-[10px] font-semibold">TRANSFORMATION KERNEL:</span>
                     <span className="text-[#0A0A0D] text-[11px] font-medium">{currentPillar.quantImplementation.transformation}</span>
                   </div>
 
-                  <div className="bg-[#F8FAFC] border border-gray-200 p-2.5">
+                  <div className="bg-[#F8FAFC] border border-gray-200 p-2.5 rounded-xl">
                     <span className="text-[#64748B] block text-[10px] font-semibold">OUTPUT STATE:</span>
-                    <span className="text-[#059669] text-[11px] font-bold">{currentPillar.quantImplementation.output}</span>
+                    <span className="text-emerald-700 text-[11px] font-bold">{currentPillar.quantImplementation.output}</span>
                   </div>
 
-                  <div className="bg-[#F8FAFC] border border-gray-200 p-2.5">
+                  <div className="bg-[#F8FAFC] border border-gray-200 p-2.5 rounded-xl">
                     <span className="text-[#64748B] block text-[10px] font-semibold">VALIDATION METRIC:</span>
-                    <span className="text-[#FF5500] text-[11px] font-bold">{currentPillar.quantImplementation.metric}</span>
+                    <span className="text-emerald-700 text-[11px] font-bold">{currentPillar.quantImplementation.metric}</span>
                   </div>
                 </div>
               </div>
@@ -242,9 +242,9 @@ export const MatsyaPhilosophy: React.FC<MatsyaPhilosophyProps> = ({
 
             {/* Right Column: Code Implementation Terminal */}
             <div className="lg:col-span-5 flex flex-col justify-between">
-              <div className="border border-gray-800 bg-[#0A0A0D] p-4 text-xs font-mono shadow-sm">
+              <div className="border border-gray-800 bg-[#0A0A0D] p-4 text-xs font-mono shadow-sm rounded-2xl">
                 <div className="flex items-center justify-between pb-2 mb-3 border-b border-gray-800 text-[10px] text-gray-400">
-                  <span className="flex items-center gap-1.5 text-[#FF5500] font-bold">
+                  <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
                     <Binary className="w-3 h-3" />
                     <span>KERNEL_MODULE // {currentPillar.id}.py</span>
                   </span>
@@ -256,11 +256,11 @@ export const MatsyaPhilosophy: React.FC<MatsyaPhilosophyProps> = ({
                 </pre>
               </div>
 
-              <div className="mt-4 p-3 border border-gray-200 bg-[#F8FAFC] flex items-center justify-between text-xs text-[#64748B]">
+              <div className="mt-4 p-3 border border-gray-200 bg-[#F8FAFC] rounded-xl flex items-center justify-between text-xs text-[#64748B]">
                 <span>NEXT SYSTEM PARADIGM:</span>
                 <button
                   onClick={() => setActiveTab((activeTab + 1) % pillars.length)}
-                  className="text-[#FF5500] hover:text-[#E04B00] flex items-center gap-1 font-bold"
+                  className="text-emerald-700 hover:text-emerald-800 flex items-center gap-1 font-bold"
                 >
                   <span>STEP 0{((activeTab + 1) % pillars.length) + 1}</span>
                   <ArrowRight className="w-3.5 h-3.5" />

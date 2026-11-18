@@ -61,174 +61,136 @@ export const OrderBookTelemetry: React.FC = () => {
   ]);
 
   const [asks, setAsks] = useState([
-    { price: 24181.00, qty: 1150, orders: 14 },
-    { price: 24181.50, qty: 2400, orders: 28 },
-    { price: 24182.00, qty: 3890, orders: 46 },
-    { price: 24182.50, qty: 5740, orders: 67 },
-    { price: 24183.00, qty: 8100, orders: 98 },
+    { price: 24181.00, qty: 1180, orders: 15 },
+    { price: 24181.50, qty: 2450, orders: 29 },
+    { price: 24182.00, qty: 3890, orders: 48 },
+    { price: 24182.50, qty: 5720, orders: 74 },
+    { price: 24183.00, qty: 8910, orders: 108 },
   ]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    // Micro-jitter simulation for live order book dynamics
+    const timer = setInterval(() => {
       setBids((prev) =>
         prev.map((b) => ({
           ...b,
-          qty: Math.max(800, b.qty + Math.floor((Math.random() - 0.48) * 150)),
+          qty: Math.max(800, b.qty + Math.floor((Math.random() - 0.48) * 120)),
         }))
       );
       setAsks((prev) =>
         prev.map((a) => ({
           ...a,
-          qty: Math.max(700, a.qty + Math.floor((Math.random() - 0.48) * 150)),
+          qty: Math.max(800, a.qty + Math.floor((Math.random() - 0.52) * 120)),
         }))
       );
-    }, 1800);
+    }, 800);
 
-    return () => clearInterval(interval);
+    return () => clearInterval(timer);
   }, []);
 
   return (
-    <section className="py-20 bg-[#FBFBFC] border-b border-gray-200 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-        <div className="mb-10 border-b border-gray-200 pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-[#FF5500]">
-              <Layers className="w-3.5 h-3.5" />
-              <span>MICROSTRUCTURE TELEMETRY</span>
-              <span className="text-gray-300">|</span>
-              <span className="text-[#64748B]">LIVE ORDER BOOK & CATALYST STREAM</span>
-            </div>
-            <h2 className="font-display text-2xl sm:text-4xl font-bold text-[#0A0A0D] tracking-tight mt-1">
-              Level 2 Depth & News Sentiment Core
-            </h2>
-          </div>
-
-          <div className="text-xs font-mono text-[#64748B] flex items-center gap-3">
-            <span>ENGINE LATENCY: <span className="text-[#059669] font-bold">118µs</span></span>
-            <span className="w-1.5 h-1.5 bg-[#059669] rounded-full animate-ping" />
-            <span>NSE CO-LOCATION SIMULATOR</span>
-          </div>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 font-mono text-xs">
+      {/* Left Column: Level 2 Depth Order Book */}
+      <div className="lg:col-span-6 border border-gray-200 bg-white p-5 rounded-2xl shadow-sm">
+        <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+          <span className="text-[#0A0A0D] font-bold flex items-center gap-2">
+            <Activity className="w-3.5 h-3.5 text-emerald-500" />
+            NIFTY 50 DEPTH L2 [5-TIER SNAPSHOT]
+          </span>
+          <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 font-bold">
+            OFI: +1,240 (BUY PRESSURE)
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 font-mono text-xs">
-          {/* Left Column: Level 2 Depth Order Book */}
-          <div className="lg:col-span-6 border border-gray-200 bg-white p-5 shadow-card">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <span className="text-[#0A0A0D] font-bold flex items-center gap-2">
-                <Activity className="w-3.5 h-3.5 text-[#FF5500]" />
-                NIFTY 50 DEPTH L2 [5-TIER SNAPSHOT]
-              </span>
-              <span className="text-[10px] text-[#059669] bg-[#059669]/10 px-2 py-0.5 border border-[#059669]/30 font-bold">
-                OFI: +1,240 (BUY PRESSURE)
-              </span>
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          {/* Bids */}
+          <div>
+            <div className="text-[10px] text-emerald-700 font-bold pb-1.5 mb-2 border-b border-gray-100 flex justify-between">
+              <span>BID QTY</span>
+              <span>PRICE</span>
             </div>
-
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              {/* Bids */}
-              <div>
-                <div className="text-[10px] text-[#059669] font-bold pb-1.5 mb-2 border-b border-gray-100 flex justify-between">
-                  <span>BID QTY</span>
-                  <span>PRICE (₹)</span>
+            <div className="space-y-1.5 font-tabular">
+              {bids.map((b, i) => (
+                <div key={i} className="flex justify-between items-center text-[11px] relative">
+                  <div
+                    className="absolute left-0 top-0 bottom-0 bg-emerald-500/10 -z-0 rounded"
+                    style={{ width: `${(b.qty / 10000) * 100}%` }}
+                  />
+                  <span className="text-gray-600 relative z-10 pl-1">{b.qty.toLocaleString()}</span>
+                  <span className="text-emerald-700 font-bold relative z-10">{b.price.toFixed(2)}</span>
                 </div>
-                <div className="space-y-1.5 font-tabular">
-                  {bids.map((b, i) => (
-                    <div
-                      key={i}
-                      className="flex justify-between items-center text-[11px] relative p-1 overflow-hidden"
-                    >
-                      <div
-                        className="absolute right-0 top-0 bottom-0 bg-[#059669]/10 -z-0"
-                        style={{ width: `${(b.qty / 10000) * 100}%` }}
-                      />
-                      <span className="text-[#0A0A0D] z-10 font-medium">{b.qty.toLocaleString()}</span>
-                      <span className="text-[#059669] font-bold z-10">
-                        {b.price.toFixed(2)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Asks */}
-              <div>
-                <div className="text-[10px] text-[#DC2626] font-bold pb-1.5 mb-2 border-b border-gray-100 flex justify-between">
-                  <span>PRICE (₹)</span>
-                  <span>ASK QTY</span>
-                </div>
-                <div className="space-y-1.5 font-tabular">
-                  {asks.map((a, i) => (
-                    <div
-                      key={i}
-                      className="flex justify-between items-center text-[11px] relative p-1 overflow-hidden"
-                    >
-                      <div
-                        className="absolute left-0 top-0 bottom-0 bg-[#DC2626]/10 -z-0"
-                        style={{ width: `${(a.qty / 10000) * 100}%` }}
-                      />
-                      <span className="text-[#DC2626] font-bold z-10">
-                        {a.price.toFixed(2)}
-                      </span>
-                      <span className="text-[#0A0A0D] z-10 font-medium">{a.qty.toLocaleString()}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] text-[#64748B]">
-              <span>SPREAD: <span className="text-[#0A0A0D] font-bold">₹0.50 (0.002%)</span></span>
-              <span>MATCHED VOLUME: <span className="text-[#FF5500] font-bold">38.2M SHARES</span></span>
+              ))}
             </div>
           </div>
 
-          {/* Right Column: Live News Catalyst Stream */}
-          <div className="lg:col-span-6 border border-gray-200 bg-white p-5 shadow-card">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <span className="text-[#0A0A0D] font-bold flex items-center gap-2">
-                <Radio className="w-3.5 h-3.5 text-[#FF5500] animate-pulse" />
-                NLP CATALYST RADAR [FinBERT SCORES]
-              </span>
-              <span className="text-[10px] text-[#64748B] font-semibold">AUTO-VECTORIZED</span>
+          {/* Asks */}
+          <div>
+            <div className="text-[10px] text-rose-600 font-bold pb-1.5 mb-2 border-b border-gray-100 flex justify-between">
+              <span>PRICE</span>
+              <span>ASK QTY</span>
             </div>
-
-            <div className="space-y-2.5 mt-4">
-              {news.map((item) => (
-                <div
-                  key={item.id}
-                  className="p-3 border border-gray-200 bg-[#F8FAFC] hover:border-gray-300 transition-colors"
-                >
-                  <div className="flex items-center justify-between text-[10px] text-[#64748B] mb-1">
-                    <span className="text-[#FF5500] font-bold">{item.impactTicker}</span>
-                    <span className="flex items-center gap-2">
-                      <span>{item.time} IST</span>
-                      <span className="text-gray-300">|</span>
-                      <span>{item.source}</span>
-                    </span>
-                  </div>
-
-                  <p className="text-[#0A0A0D] text-[11px] leading-snug line-clamp-2 font-medium">
-                    {item.headline}
-                  </p>
-
-                  <div className="mt-2 flex items-center justify-between text-[10px]">
-                    <span className="text-[#64748B]">SENTIMENT VECTOR:</span>
-                    <span
-                      className={`font-bold font-tabular flex items-center gap-1 ${
-                        item.sentiment === 'BULLISH'
-                          ? 'text-[#059669]'
-                          : 'text-[#DC2626]'
-                      }`}
-                    >
-                      {item.sentiment === 'BULLISH' ? '+' : ''}
-                      {item.score.toFixed(2)} [{item.sentiment}]
-                    </span>
-                  </div>
+            <div className="space-y-1.5 font-tabular">
+              {asks.map((a, i) => (
+                <div key={i} className="flex justify-between items-center text-[11px] relative">
+                  <div
+                    className="absolute right-0 top-0 bottom-0 bg-rose-500/10 -z-0 rounded"
+                    style={{ width: `${(a.qty / 10000) * 100}%` }}
+                  />
+                  <span className="text-rose-600 font-bold relative z-10">{a.price.toFixed(2)}</span>
+                  <span className="text-gray-600 relative z-10 pr-1">{a.qty.toLocaleString()}</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
+
+        {/* Microstructure Status Strip */}
+        <div className="mt-5 pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-500">
+          <span>SPREAD: <strong className="text-black">₹0.50 (1 TICK)</strong></span>
+          <span>IMBALANCE: <strong className="text-emerald-700">+14.2% BID</strong></span>
+          <span>VOLUME: <strong className="text-emerald-700">38.2M SHARES</strong></span>
+        </div>
       </div>
-    </section>
+
+      {/* Right Column: Live NLP News Catalysts Feed */}
+      <div className="lg:col-span-6 border border-gray-200 bg-white p-5 rounded-2xl shadow-sm space-y-3">
+        <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+          <span className="text-[#0A0A0D] font-bold flex items-center gap-2">
+            <Radio className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
+            REAL-TIME CORPORATE NLP CATALYST STREAM
+          </span>
+          <span className="text-[10px] text-gray-400">FIN-BERT V2</span>
+        </div>
+
+        <div className="space-y-2.5">
+          {news.map((item) => (
+            <div
+              key={item.id}
+              className="p-3 bg-[#F8FAFC] border border-gray-200 hover:border-gray-400 rounded-xl transition-all shadow-xs"
+            >
+              <div className="flex items-center justify-between text-[10px] text-gray-400 mb-1">
+                <span className="text-emerald-700 font-bold">{item.impactTicker}</span>
+                <span>{item.source} · {item.time}</span>
+              </div>
+              <p className="text-[11px] text-[#0A0A0D] font-sans font-medium leading-snug">
+                {item.headline}
+              </p>
+              <div className="flex items-center gap-2 mt-2 pt-1 border-t border-gray-100 text-[9px]">
+                <span
+                  className={`px-1.5 py-0.2 rounded font-bold ${
+                    item.sentiment === 'BULLISH'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                  }`}
+                >
+                  {item.sentiment} ({(item.score * 100).toFixed(0)}%)
+                </span>
+                <span className="text-gray-400 font-sans">Directional shock anticipated in next 15-min candle</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 };

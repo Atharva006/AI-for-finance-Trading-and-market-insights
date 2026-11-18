@@ -61,7 +61,7 @@ export const MotionAssetCanvas: React.FC<MotionAssetCanvasProps> = ({
           speed: 1.5 + Math.random() * 2.5,
           length: 12 + Math.random() * 25,
           opacity: 0.2 + Math.random() * 0.5,
-          color: Math.random() > 0.4 ? '#FF5500' : '#0F172A',
+          color: Math.random() > 0.4 ? '#10B981' : '#0F172A',
           isCandle: Math.random() > 0.5,
           text: headlines[Math.floor(Math.random() * headlines.length)],
         });
@@ -86,7 +86,7 @@ export const MotionAssetCanvas: React.FC<MotionAssetCanvasProps> = ({
           const rippleRadius = (time * 15 * r) % 280;
           ctx.beginPath();
           ctx.arc(cx, cy, rippleRadius, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(255, 85, 0, ${Math.max(0, 0.2 - rippleRadius / 350)})`;
+          ctx.strokeStyle = `rgba(16, 185, 129, ${Math.max(0, 0.2 - rippleRadius / 350)})`;
           ctx.lineWidth = 1;
           ctx.stroke();
         }
@@ -98,7 +98,7 @@ export const MotionAssetCanvas: React.FC<MotionAssetCanvasProps> = ({
         ctx.rotate(time * 0.3);
         ctx.beginPath();
         ctx.arc(0, 0, 160, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(255, 85, 0, 0.45)';
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.45)';
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
@@ -109,7 +109,7 @@ export const MotionAssetCanvas: React.FC<MotionAssetCanvasProps> = ({
           ctx.beginPath();
           ctx.moveTo(Math.cos(angle) * r1, Math.sin(angle) * r1);
           ctx.lineTo(Math.cos(angle) * r2, Math.sin(angle) * r2);
-          ctx.strokeStyle = i % 3 === 0 ? '#FF5500' : 'rgba(15, 23, 42, 0.15)';
+          ctx.strokeStyle = i % 3 === 0 ? '#10B981' : 'rgba(15, 23, 42, 0.15)';
           ctx.lineWidth = 1;
           ctx.stroke();
         }
@@ -126,7 +126,7 @@ export const MotionAssetCanvas: React.FC<MotionAssetCanvasProps> = ({
           else ctx.lineTo(x, y);
         }
         ctx.closePath();
-        ctx.strokeStyle = 'rgba(255, 85, 0, 0.35)';
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.35)';
         ctx.lineWidth = 1;
         ctx.stroke();
 
@@ -140,7 +140,7 @@ export const MotionAssetCanvas: React.FC<MotionAssetCanvasProps> = ({
         ctx.restore();
 
         // 3. Converging Laser Focal Strike Point
-        ctx.strokeStyle = 'rgba(255, 85, 0, 0.25)';
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.25)';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(0, cy);
@@ -158,22 +158,22 @@ export const MotionAssetCanvas: React.FC<MotionAssetCanvasProps> = ({
           ctx.beginPath();
           ctx.moveTo(bx, by);
           ctx.lineTo(cx, cy);
-          ctx.strokeStyle = 'rgba(255, 85, 0, 0.6)';
+          ctx.strokeStyle = 'rgba(16, 185, 129, 0.6)';
           ctx.lineWidth = 1.2;
           ctx.stroke();
 
           ctx.beginPath();
           ctx.arc(bx, by, 2, 0, Math.PI * 2);
-          ctx.fillStyle = '#FF5500';
+          ctx.fillStyle = '#10B981';
           ctx.fill();
         }
 
         // Razor Sharp Center Point
         const pulse = Math.sin(time * 6) * 1.5 + 4.5;
         const glowGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 30);
-        glowGrad.addColorStop(0, '#FF5500');
-        glowGrad.addColorStop(0.3, 'rgba(255, 85, 0, 0.3)');
-        glowGrad.addColorStop(1, 'rgba(255, 85, 0, 0)');
+        glowGrad.addColorStop(0, '#10B981');
+        glowGrad.addColorStop(0.3, 'rgba(16, 185, 129, 0.3)');
+        glowGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
         ctx.fillStyle = glowGrad;
         ctx.beginPath();
         ctx.arc(cx, cy, 30, 0, Math.PI * 2);
@@ -190,7 +190,7 @@ export const MotionAssetCanvas: React.FC<MotionAssetCanvasProps> = ({
         ctx.beginPath();
         ctx.moveTo(width * 0.4, targetY);
         ctx.lineTo(width, targetY);
-        ctx.strokeStyle = '#FF5500';
+        ctx.strokeStyle = '#10B981';
         ctx.lineWidth = 3;
         ctx.stroke();
 
@@ -208,7 +208,7 @@ export const MotionAssetCanvas: React.FC<MotionAssetCanvasProps> = ({
           ctx.globalAlpha = p.opacity;
 
           if (convergenceRatio > 0.85) {
-            ctx.fillStyle = '#FF5500';
+            ctx.fillStyle = '#10B981';
             ctx.fillRect(p.x, currentY - 1, p.length, 2);
           } else if (p.isCandle) {
             const candleH = 12;
@@ -224,7 +224,7 @@ export const MotionAssetCanvas: React.FC<MotionAssetCanvasProps> = ({
 
         ctx.beginPath();
         ctx.arc(width * 0.98, targetY, 4 + Math.sin(time * 8) * 2, 0, Math.PI * 2);
-        ctx.fillStyle = '#FF5500';
+        ctx.fillStyle = '#10B981';
         ctx.fill();
       }
 

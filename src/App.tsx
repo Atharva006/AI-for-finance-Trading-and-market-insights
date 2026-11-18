@@ -1,112 +1,298 @@
 import React, { useState, useEffect } from 'react';
-import Lenis from 'lenis';
-import { CustomCursor } from './components/CustomCursor';
-import { Navbar } from './components/Navbar';
-import { HeroSection } from './components/HeroSection';
-import { MatsyaPhilosophy } from './components/MatsyaPhilosophy';
-import { BacktestSandbox } from './components/BacktestSandbox';
-import { VisualFlowShowcase } from './components/VisualFlowShowcase';
-import { OrderBookTelemetry } from './components/OrderBookTelemetry';
-import { InstitutionalFeatures } from './components/InstitutionalFeatures';
-import { Footer } from './components/Footer';
-import { TerminalModal } from './components/TerminalModal';
-import { quantSound } from './components/AudioAmbience';
+import { ALL_CANONICAL_STRATEGIES } from './services/canonicalStrategies';
+import { QuantTerminalHeader } from './components/QuantTerminalHeader';
+import { DhanNavbar, AppView } from './components/DhanNavbar';
+import { LandingPage } from './components/LandingPage';
+import { DhanMarketplace } from './components/DhanMarketplace';
+import { DhanStrategyDetail } from './components/DhanStrategyDetail';
+import { BacktestStudio } from './components/BacktestStudio';
+import { VisualFlowStudio } from './components/VisualFlowStudio';
+import { AdminStrategyPortal } from './components/AdminStrategyPortal';
+import { UpstoxSettingsModal } from './components/UpstoxSettingsModal';
+import { MarketPulseInsights } from './components/MarketPulseInsights';
+import { AuthPage } from './components/AuthPage';
+import { AlgoStrategy } from './types/algoMarketplace';
+import {
+  getStoredStrategies,
+  addStrategy as storeAddStrategy,
+  updateStrategy as storeUpdateStrategy,
+  deleteStrategy as storeDeleteStrategy,
+  saveStrategies,
+} from './services/strategyStore';
+
+function getViewFromPath(pathname: string, strategies: AlgoStrategy[]): { view: AppView; strategy: AlgoStrategy | null } {
+  const cleanPath = pathname.replace(/\/+$/, '') || '/';
+  
+  if (cleanPath === '/' || cleanPath === '') {
+    return { view: 'landing', strategy: null };
+  }
+  if (cleanPath === '/trading-algorithms') {
+    return { view: 'marketplace', strategy: null };
+  }
+  if (cleanPath === '/trading-algorithms/backtesting-studio') {
+    return { view: 'backtest', strategy: null };
+  }
+  if (cleanPath === '/trading-algorithms/flow-studio') {
+    return { view: 'flow', strategy: null };
+  }
+  if (cleanPath.startsWith('/trading-algorithms/detail/')) {
+    const id = decodeURIComponent(cleanPath.replace('/trading-algorithms/detail/', ''));
+    const found = strategies.find(s => s.id === id);
+    return { view: 'detail', strategy: found || strategies[0] || null };
+  }
+  if (cleanPath === '/market-insights') {
+    return { view: 'insights', strategy: null };
+  }
+  if (cleanPath === '/admin') {
+    return { view: 'admin', strategy: null };
+  }
+  if (cleanPath === '/auth' || cleanPath === '/sign-in') {
+    return { view: 'auth', strategy: null };
+  }
+  
+  return { view: 'landing', strategy: null };
+}
+
+function getPathForView(view: AppView, strategy?: AlgoStrategy | null): string {
+  switch (view) {
+    case 'landing':
+      return '/';
+    case 'marketplace':
+      return '/trading-algorithms';
+    case 'backtest':
+      return '/trading-algorithms/backtesting-studio';
+    case 'flow':
+      return '/trading-algorithms/flow-studio';
+    case 'detail':
+      return strategy ? `/trading-algorithms/detail/${encodeURIComponent(strategy.id)}` : '/trading-algorithms';
+    case 'insights':
+      return '/market-insights';
+    case 'admin':
+      return '/admin';
+    case 'auth':
+      return '/auth';
+    default:
+      return '/';
+  }
+}
 
 export function App() {
-  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [strategies, setStrategies] = useState<AlgoStrategy[]>(() => {
+    return getStoredStrategies();
+  });
 
-  // Initialize Lenis Smooth Scroll
+  const [activeView, setActiveView] = useState<AppView>(() => {
+    const initial = getViewFromPath(window.location.pathname, getStoredStrategies());
+    return initial.view;
+  });
+
+  const [selectedStrategy, setSelectedStrategy] = useState<AlgoStrategy | null>(() => {
+    const stored = getStoredStrategies();
+    const initial = getViewFromPath(window.location.pathname, stored);
+    return initial.strategy || stored[0] || null;
+  });
+
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [selectedInstrument, setSelectedInstrument] = useState<string>('NIFTY 50');
+
+  // Synchronize browser history and popstate events
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.0,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-    });
-
-    let rafId: number;
-    function raf(time: number) {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    }
-
-    rafId = requestAnimationFrame(raf);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      lenis.destroy();
+    const handlePopState = (event: PopStateEvent) => {
+      const match = getViewFromPath(window.location.pathname, strategies);
+      setActiveView(match.view);
+      if (match.strategy) {
+        setSelectedStrategy(match.strategy);
+      }
     };
-  }, []);
 
-  const handleToggleSound = () => {
-    const next = !soundEnabled;
-    setSoundEnabled(next);
-    quantSound.enabled = next;
-    if (next) {
-      quantSound.playTargetLock();
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [strategies]);
+
+  // Master navigation handler with browser history pushState
+  const navigateTo = (view: AppView, strategyOverride?: AlgoStrategy | null, replace = false) => {
+    const targetStrategy = strategyOverride !== undefined ? strategyOverride : selectedStrategy;
+    if (strategyOverride !== undefined) {
+      setSelectedStrategy(strategyOverride);
+    }
+    setActiveView(view);
+    const targetPath = getPathForView(view, targetStrategy);
+
+    if (window.location.pathname !== targetPath) {
+      if (replace) {
+        window.history.replaceState({ view, strategyId: targetStrategy?.id }, '', targetPath);
+      } else {
+        window.history.pushState({ view, strategyId: targetStrategy?.id }, '', targetPath);
+      }
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSelectStrategy = (strategy: AlgoStrategy) => {
+    navigateTo('detail', strategy);
+  };
+
+  const handleOpenBacktest = (strategy: AlgoStrategy) => {
+    navigateTo('backtest', strategy);
+  };
+
+  const handleAddStrategy = (newStrategy: AlgoStrategy) => {
+    const updated = storeAddStrategy(newStrategy);
+    setStrategies(updated);
+    setSelectedStrategy(newStrategy);
+  };
+
+  const handleUpdateStrategy = (updatedStrategy: AlgoStrategy) => {
+    const updated = storeUpdateStrategy(updatedStrategy);
+    setStrategies(updated);
+    if (selectedStrategy && selectedStrategy.id === updatedStrategy.id) {
+      setSelectedStrategy(updatedStrategy);
     }
   };
 
-  const handleOpenTerminal = () => {
-    quantSound.playClick();
-    setIsTerminalOpen(true);
-  };
-
-  const handleExplorePhilosophy = () => {
-    quantSound.playClick();
-    const el = document.getElementById('philosophy');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+  const handleDeleteStrategy = (id: string) => {
+    const updated = storeDeleteStrategy(id);
+    setStrategies(updated);
+    if (selectedStrategy && selectedStrategy.id === id) {
+      setSelectedStrategy(updated[0] || null);
     }
   };
 
   return (
-    <div className="relative min-h-screen bg-white text-[#0A0A0D] selection:bg-[#FF5500] selection:text-white">
-      {/* Precision Custom Reticle Cursor */}
-      <CustomCursor />
-
-      {/* Top HUD Navigation Bar */}
-      <Navbar
-        onOpenTerminal={handleOpenTerminal}
-        soundEnabled={soundEnabled}
-        onToggleSound={handleToggleSound}
-      />
-
-      {/* Main Content Area */}
-      <main className="relative">
-        {/* Section 00: Hero Section with 3D Globe + Matsya Astrolabe Motion Canvas */}
-        <HeroSection
-          onOpenTerminal={handleOpenTerminal}
-          onExplorePhilosophy={handleExplorePhilosophy}
-          motionAsset1Url="/assets/matsya-target.mp4"
+    <div className="min-h-screen bg-[#F5F5F7] text-[#151515] flex flex-col font-sans selection:bg-black selection:text-white antialiased">
+      {/* Main Navigation Bar (Clean Light-Grey Institutional UI) */}
+      {activeView !== 'landing' && activeView !== 'auth' && (
+        <DhanNavbar
+          activeView={activeView}
+          setActiveView={(view) => navigateTo(view)}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          selectedInstrument={selectedInstrument}
+          setSelectedInstrument={setSelectedInstrument}
         />
+      )}
 
-        {/* Section 01: The Matsya-Vedha Quant Architecture Framework */}
-        <MatsyaPhilosophy
-          motionAsset2Url="/assets/data-strike.mp4"
-        />
+      {/* Main View Router */}
+      <main className="flex-1">
+        {activeView === 'landing' && (
+          <LandingPage
+            onNavigateToView={(view) => navigateTo(view)}
+            onSelectStrategy={(id) => {
+              const match = strategies.find((s) => s.id === id);
+              if (match) {
+                navigateTo('detail', match);
+              } else {
+                navigateTo('marketplace');
+              }
+            }}
+            customStrategies={strategies}
+          />
+        )}
 
-        {/* Section 02: Interactive NSE Strategy Backtest Sandbox & Calibration */}
-        <BacktestSandbox />
+        {activeView === 'auth' && (
+          <AuthPage
+            onNavigateHome={() => navigateTo('marketplace')}
+            onAuthSuccess={() => navigateTo('marketplace')}
+          />
+        )}
 
-        {/* Section 03: Visual Strategy Studio & Natural Language Prompting */}
-        <VisualFlowShowcase />
+        {activeView === 'marketplace' && (
+          <DhanMarketplace
+            strategies={strategies}
+            onSelectStrategy={handleSelectStrategy}
+            onOpenBacktest={handleOpenBacktest}
+            onNavigateToAdmin={() => navigateTo('admin')}
+          />
+        )}
 
-        {/* Section 04: Microstructure Telemetry: Level 2 Depth & News Sentiment Core */}
-        <OrderBookTelemetry />
+        {activeView === 'admin' && (
+          <AdminStrategyPortal
+            strategies={strategies}
+            onAddStrategy={handleAddStrategy}
+            onUpdateStrategy={handleUpdateStrategy}
+            onDeleteStrategy={handleDeleteStrategy}
+            onTestBacktest={(strat) => {
+              navigateTo('backtest', strat);
+            }}
+          />
+        )}
 
-        {/* Section 05: Institutional Verification Standards & Feature Grid */}
-        <InstitutionalFeatures />
+        {activeView === 'detail' && selectedStrategy && (
+          <DhanStrategyDetail
+            strategy={selectedStrategy}
+            allStrategies={strategies}
+            onSelectStrategy={handleSelectStrategy}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onBack={() => navigateTo('marketplace')}
+          />
+        )}
+
+        {activeView === 'detail' && !selectedStrategy && (
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-16 text-center space-y-4">
+            <h2 className="text-xl font-bold text-[#0A0A0D]">No Strategy Selected</h2>
+            <p className="text-sm text-gray-500">All mock strategies have been removed. Build or calibrate a strategy in Backtest Studio.</p>
+            <button
+              onClick={() => navigateTo('marketplace')}
+              className="px-4 py-2 bg-black text-white rounded-xl text-xs font-bold shadow-xs hover:bg-neutral-800 transition-all"
+            >
+              Browse Marketplace
+            </button>
+          </div>
+        )}
+
+        {activeView === 'backtest' && (
+          <div className="w-full px-3 sm:px-6 lg:px-8 py-6">
+            <BacktestStudio
+              onStrategyUpdated={handleUpdateStrategy}
+              initialSymbol={selectedInstrument}
+            />
+          </div>
+        )}
+
+        {activeView === 'flow' && (
+          <div className="w-full px-3 sm:px-6 lg:px-8 py-6">
+            <VisualFlowStudio initialStockSymbol={selectedInstrument} />
+          </div>
+        )}
+
+        {activeView === 'insights' && (
+          <div className="w-full px-3 sm:px-6 lg:px-8 py-6">
+            <MarketPulseInsights
+              onSelectStockForBacktest={(symbol) => {
+                setSelectedInstrument(symbol);
+                navigateTo('backtest');
+              }}
+              onOpenFlowWithStock={(symbol) => {
+                setSelectedInstrument(symbol);
+                navigateTo('flow');
+              }}
+            />
+          </div>
+        )}
       </main>
 
-      {/* Footer & Compliance Stamp + ARJUN Hindi Bottom Section */}
-      <Footer onOpenTerminal={handleOpenTerminal} />
-
-      {/* Terminal Shell Modal */}
-      <TerminalModal
-        isOpen={isTerminalOpen}
-        onClose={() => setIsTerminalOpen(false)}
+      {/* Upstox API Settings & Key Manager Modal */}
+      <UpstoxSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
       />
+
+      {/* Footer Minimal Notice for internal views */}
+      {activeView !== 'landing' && activeView !== 'auth' && (
+        <footer className="border-t border-gray-200 bg-white py-6 text-center text-xs text-gray-500 font-medium">
+          <div className="w-full px-6 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 font-mono">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span>Real Bar-by-Bar Vectorized Quantitative Backtesting</span>
+            </div>
+            <div>
+              Institutional Systematic Strategy Engineering · Multi-Asset Portfolio Allocation
+            </div>
+            <div>
+              Apex Quant Research Workstation
+            </div>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }

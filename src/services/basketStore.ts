@@ -1,7 +1,8 @@
 import { StrategyBasket, BasketItem } from '../types/basket';
 import { POPULAR_NSE_STOCKS } from './nseStocks';
 
-const STORAGE_KEY = 'arjuna_saved_baskets_v3';
+const STORAGE_KEY = 'arjuna_saved_baskets_v4';
+const LEGACY_BASKET_KEYS = ['arjuna_saved_baskets_v1', 'arjuna_saved_baskets_v2', 'arjuna_saved_baskets_v3'];
 
 const getStock = (symbol: string) => {
   const found = POPULAR_NSE_STOCKS.find((s) => s.symbol === symbol);
@@ -93,7 +94,7 @@ export const DEFAULT_PRESET_BASKETS: StrategyBasket[] = [
       },
       {
         id: 'item-g3',
-        stock: getStock('NIFTY 50'),
+        stock: getStock('BHARTIARTL'),
         strategyType: 'PSAR_SMA100',
         timeframe: '1d',
         riskPerTradePct: 1.0,
@@ -147,15 +148,39 @@ export const DEFAULT_PRESET_BASKETS: StrategyBasket[] = [
 
 export function getSavedBaskets(): StrategyBasket[] {
   try {
+    // Purge legacy storage keys
+    LEGACY_BASKET_KEYS.forEach((k) => {
+      try {
+        localStorage.removeItem(k);
+      } catch (_) {}
+    });
+
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
       saveBaskets(DEFAULT_PRESET_BASKETS);
       return DEFAULT_PRESET_BASKETS;
     }
-    const parsed = JSON.parse(raw);
+    const parsed: StrategyBasket[] = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
+      // Ensure all items in baskets are genuine equities (strictly no indices or trend pullback indices)
+      const sanitized = parsed
+        .map((basket) => ({
+          ...basket,
+          items: basket.items
+            .filter((item) => item.stock?.symbol !== 'NIFTY 50' && !item.stock?.isIndex && item.stock?.category !== 'INDEX')
+            .map((item) => ({
+              ...item,
+              stock: getStock(item.stock?.symbol || 'RELIANCE'),
+            })),
+        }))
+        .filter((b) => b.items.length > 0);
+
+      if (sanitized.length > 0) {
+        saveBaskets(sanitized);
+        return sanitized;
+      }
     }
+    saveBaskets(DEFAULT_PRESET_BASKETS);
     return DEFAULT_PRESET_BASKETS;
   } catch (err) {
     console.error('Failed to parse saved baskets:', err);
