@@ -2,6 +2,13 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
+const BROWSER_USER_AGENTS = [
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+];
+
 // Proxy plugin ensuring zero CORS and automatic failover for Yahoo Finance & Upstox
 function quantMarketProxyPlugin() {
   const handler = async (req: any, res: any, next: any) => {
@@ -13,25 +20,26 @@ function quantMarketProxyPlugin() {
       ];
 
       for (const targetUrl of endpoints) {
-        try {
-          const apiRes = await fetch(targetUrl, {
-            headers: {
-              'User-Agent':
-                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-              Accept: 'application/json, text/plain, */*',
-            },
-          });
+        for (const ua of BROWSER_USER_AGENTS) {
+          try {
+            const apiRes = await fetch(targetUrl, {
+              headers: {
+                'User-Agent': ua,
+                Accept: 'application/json, text/plain, */*',
+              },
+            });
 
-          if (apiRes.ok) {
-            const data = await apiRes.text();
-            res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Access-Control-Allow-Origin', '*');
-            res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-            res.statusCode = 200;
-            res.end(data);
-            return;
-          }
-        } catch (_) {}
+            if (apiRes.ok) {
+              const data = await apiRes.text();
+              res.setHeader('Content-Type', 'application/json');
+              res.setHeader('Access-Control-Allow-Origin', '*');
+              res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+              res.statusCode = 200;
+              res.end(data);
+              return;
+            }
+          } catch (_) {}
+        }
       }
 
       res.statusCode = 502;

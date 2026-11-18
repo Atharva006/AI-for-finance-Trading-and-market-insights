@@ -243,7 +243,7 @@ export const BasketPortfolioStudio: React.FC = () => {
   };
 
   const filteredStocks = allStocks
-    .filter((s) => !s.isIndex && s.category !== 'INDEX' && s.symbol !== 'NIFTY 50' && s.symbol !== 'BANKNIFTY')
+    .filter((s) => !s.isIndex && s.category !== 'INDEX' && !s.symbol.toUpperCase().includes('NIFTY') && s.symbol !== 'BANKNIFTY' && !s.symbol.startsWith('^') && !s.name.toUpperCase().includes('INDEX'))
     .filter(
       (s) =>
         s.symbol.toLowerCase().includes(addStockSearch.toLowerCase()) ||

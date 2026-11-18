@@ -165,10 +165,11 @@ export async function fetchLiveQuotes(instrumentKeys: string[]): Promise<Record<
   const token = getUpstoxToken();
   const joinedKeys = instrumentKeys.map((k) => encodeURIComponent(k)).join(',');
 
-  const urls = [
-    `${UPSTOX_BASE_PROXY}/market-quote/quotes?instrument_key=${joinedKeys}`,
-    `${UPSTOX_DIRECT_BASE}/market-quote/quotes?instrument_key=${joinedKeys}`,
-  ];
+  const urls: string[] = [];
+  if (typeof window !== 'undefined') {
+    urls.push(`${UPSTOX_BASE_PROXY}/market-quote/quotes?instrument_key=${joinedKeys}`);
+  }
+  urls.push(`${UPSTOX_DIRECT_BASE}/market-quote/quotes?instrument_key=${joinedKeys}`);
 
   for (const url of urls) {
     try {
@@ -241,10 +242,11 @@ export async function fetchUpstoxCandles(params: FetchCandlesParams): Promise<Ca
   const rawCandlesMap = new Map<string, any>();
 
   // 1. Fetch 30-day historical candles first (gives all 20+ trading days!)
-  const historicalUrls = [
-    `${UPSTOX_BASE_PROXY}/historical-candle/${encodedKey}/${interval}/${toDate}/${fromDate}`,
-    `${UPSTOX_DIRECT_BASE}/historical-candle/${encodedKey}/${interval}/${toDate}/${fromDate}`,
-  ];
+  const historicalUrls: string[] = [];
+  if (typeof window !== 'undefined') {
+    historicalUrls.push(`${UPSTOX_BASE_PROXY}/historical-candle/${encodedKey}/${interval}/${toDate}/${fromDate}`);
+  }
+  historicalUrls.push(`${UPSTOX_DIRECT_BASE}/historical-candle/${encodedKey}/${interval}/${toDate}/${fromDate}`);
 
   for (const url of historicalUrls) {
     try {
@@ -265,10 +267,11 @@ export async function fetchUpstoxCandles(params: FetchCandlesParams): Promise<Ca
 
   // 2. For intraday, also fetch today's live session and merge
   if (isIntraday) {
-    const intradayUrls = [
-      `${UPSTOX_BASE_PROXY}/historical-candle/intraday/${encodedKey}/${interval}`,
-      `${UPSTOX_DIRECT_BASE}/historical-candle/intraday/${encodedKey}/${interval}`,
-    ];
+    const intradayUrls: string[] = [];
+    if (typeof window !== 'undefined') {
+      intradayUrls.push(`${UPSTOX_BASE_PROXY}/historical-candle/intraday/${encodedKey}/${interval}`);
+    }
+    intradayUrls.push(`${UPSTOX_DIRECT_BASE}/historical-candle/intraday/${encodedKey}/${interval}`);
 
     for (const url of intradayUrls) {
       try {

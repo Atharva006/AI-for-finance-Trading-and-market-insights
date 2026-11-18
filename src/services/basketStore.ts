@@ -1,8 +1,13 @@
 import { StrategyBasket, BasketItem } from '../types/basket';
 import { POPULAR_NSE_STOCKS } from './nseStocks';
 
-const STORAGE_KEY = 'arjuna_saved_baskets_v4';
-const LEGACY_BASKET_KEYS = ['arjuna_saved_baskets_v1', 'arjuna_saved_baskets_v2', 'arjuna_saved_baskets_v3'];
+const STORAGE_KEY = 'arjuna_saved_baskets_v5';
+const LEGACY_BASKET_KEYS = [
+  'arjuna_saved_baskets_v1',
+  'arjuna_saved_baskets_v2',
+  'arjuna_saved_baskets_v3',
+  'arjuna_saved_baskets_v4',
+];
 
 const getStock = (symbol: string) => {
   const found = POPULAR_NSE_STOCKS.find((s) => s.symbol === symbol);
@@ -20,8 +25,8 @@ const getStock = (symbol: string) => {
 export const DEFAULT_PRESET_BASKETS: StrategyBasket[] = [
   {
     id: 'basket-kuber-navratna',
-    name: 'Nifty Bluechip Wealth Basket',
-    description: 'Institutional compounding basket combining benchmark market leaders across IT, Energy, and Private Banking with conservative 1% RPT.',
+    name: 'Large-Cap Bluechip Core Basket',
+    description: 'Institutional compounding basket combining premier market leaders across IT, Energy, and Private Banking with conservative 1% RPT.',
     initialCapital: 100000,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -162,12 +167,19 @@ export function getSavedBaskets(): StrategyBasket[] {
     }
     const parsed: StrategyBasket[] = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
+      const isIndexOrNifty = (sym = '', name = '') => {
+        const s = sym.toUpperCase();
+        const n = name.toUpperCase();
+        return s.includes('NIFTY') || s.startsWith('^') || s === 'BANKNIFTY' || n.includes('NIFTY') || n.includes('INDEX');
+      };
+
       // Ensure all items in baskets are genuine equities (strictly no indices or trend pullback indices)
       const sanitized = parsed
         .map((basket) => ({
           ...basket,
+          name: basket.name.replace(/nifty/gi, 'Bluechip').trim(),
           items: basket.items
-            .filter((item) => item.stock?.symbol !== 'NIFTY 50' && !item.stock?.isIndex && item.stock?.category !== 'INDEX')
+            .filter((item) => !isIndexOrNifty(item.stock?.symbol, item.stock?.name) && !item.stock?.isIndex && item.stock?.category !== 'INDEX')
             .map((item) => ({
               ...item,
               stock: getStock(item.stock?.symbol || 'RELIANCE'),
