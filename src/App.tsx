@@ -14,6 +14,9 @@ import { AuthPage } from './components/AuthPage';
 import { ForexPortal } from './components/ForexPortal';
 import { PaperTradingSection } from './components/PaperTradingSection';
 import { TradingViewHeatmapSection } from './components/TradingViewHeatmapSection';
+import { ArthatixSidebar } from './components/ArthatixSidebar';
+import { ArthatixTopHeader } from './components/ArthatixTopHeader';
+import { ArthatixOverviewDashboard } from './components/ArthatixOverviewDashboard';
 import { AlgoStrategy } from './types/algoMarketplace';
 import {
   getStoredStrategies,
@@ -112,6 +115,7 @@ export function App() {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedInstrument, setSelectedInstrument] = useState<string>('NIFTY 50');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Synchronize browser history and popstate events
   useEffect(() => {
@@ -177,166 +181,167 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-on-surface flex flex-col font-sans selection:bg-secondary selection:text-white antialiased">
-      {/* High-frequency Quants Live Ticker Header & Nav unified in fixed header */}
-      <header className="fixed top-0 w-full z-50">
-        <QuantTerminalHeader
-          onOpenForex={() => navigateTo('forex')}
+    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex font-sans selection:bg-[#2563EB] selection:text-white antialiased">
+      {/* ── 1. Minimalist Arthatix Left Sidebar ── */}
+      <ArthatixSidebar
+        activeView={activeView}
+        onNavigate={(view) => navigateTo(view)}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+      />
+
+      {/* ── 2. Fluid Right Workspace ── */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen bg-[#F8FAFC]">
+        {/* Top Minimal Header */}
+        <ArthatixTopHeader
           activeView={activeView}
-        />
-        <DhanNavbar
-          activeView={activeView}
-          setActiveView={(view) => navigateTo(view)}
+          onNavigate={(view) => navigateTo(view)}
           onOpenSettings={() => setIsSettingsOpen(true)}
           selectedInstrument={selectedInstrument}
           setSelectedInstrument={setSelectedInstrument}
         />
-      </header>
 
-      {/* Main View Router (pt-[98px] accounts for the 98px combined fixed header + borders) */}
-      <main className={`w-full pt-[98px] bg-background flex-1 flex flex-col ${activeView === 'papertrading' ? 'px-0' : 'px-margin'}`}>
-        {activeView === 'landing' && (
-          <LandingPage
-            onNavigateToView={(view) => navigateTo(view)}
-            onSelectStrategy={(id) => {
-              const match = strategies.find((s) => s.id === id);
-              if (match) {
-                navigateTo('detail', match);
-              } else {
-                navigateTo('marketplace');
-              }
-            }}
-            customStrategies={strategies}
-          />
-        )}
+        {/* Main View Router */}
+        <main className={`flex-1 flex flex-col w-full ${activeView === 'papertrading' ? 'p-0' : 'p-4 sm:p-6'}`}>
+          {activeView === 'landing' && (
+            <ArthatixOverviewDashboard
+              onNavigate={(view) => navigateTo(view)}
+              onSelectInstrument={(symbol) => {
+                setSelectedInstrument(symbol);
+                navigateTo('backtest');
+              }}
+            />
+          )}
 
-        {/* First-Class Live Paper Trading Desk (Direct simulation - zero landing page) */}
-        {activeView === 'papertrading' && (
-          <PaperTradingSection />
-        )}
+          {/* First-Class Live Paper Trading Desk (Direct simulation - zero landing page) */}
+          {activeView === 'papertrading' && (
+            <PaperTradingSection />
+          )}
 
-        {/* Live TradingView <tv-heatmap> Web Component Section */}
-        {activeView === 'heatmap' && (
-          <TradingViewHeatmapSection
-            onNavigateToBacktest={(symbol) => {
-              if (symbol) setSelectedInstrument(symbol);
-              navigateTo('backtest');
-            }}
-            onNavigateToFVGAlgo={() => {
-              navigateTo('forex');
-            }}
-          />
-        )}
+          {/* Live TradingView <tv-heatmap> Web Component Section */}
+          {activeView === 'heatmap' && (
+            <TradingViewHeatmapSection
+              onNavigateToBacktest={(symbol) => {
+                if (symbol) setSelectedInstrument(symbol);
+                navigateTo('backtest');
+              }}
+              onNavigateToFVGAlgo={() => {
+                navigateTo('forex');
+              }}
+            />
+          )}
 
-        {activeView === 'auth' && (
-          <AuthPage
-            onNavigateHome={() => navigateTo('marketplace')}
-            onAuthSuccess={() => navigateTo('marketplace')}
-          />
-        )}
+          {activeView === 'auth' && (
+            <AuthPage
+              onNavigateHome={() => navigateTo('marketplace')}
+              onAuthSuccess={() => navigateTo('marketplace')}
+            />
+          )}
 
-        {activeView === 'marketplace' && (
-          <DhanMarketplace
-            strategies={strategies}
-            onSelectStrategy={handleSelectStrategy}
-            onOpenBacktest={handleOpenBacktest}
-            onNavigateToAdmin={() => navigateTo('admin')}
-            onNavigateToBacktestWithSymbol={(symbol) => {
-              if (symbol) setSelectedInstrument(symbol);
-              navigateTo('backtest');
-            }}
-            onNavigateToFVG={() => navigateTo('forex')}
-          />
-        )}
+          {activeView === 'marketplace' && (
+            <DhanMarketplace
+              strategies={strategies}
+              onSelectStrategy={handleSelectStrategy}
+              onOpenBacktest={handleOpenBacktest}
+              onNavigateToAdmin={() => navigateTo('admin')}
+              onNavigateToBacktestWithSymbol={(symbol) => {
+                if (symbol) setSelectedInstrument(symbol);
+                navigateTo('backtest');
+              }}
+              onNavigateToFVG={() => navigateTo('forex')}
+            />
+          )}
 
-        {activeView === 'admin' && (
-          <AdminStrategyPortal
-            strategies={strategies}
-            onAddStrategy={handleAddStrategy}
-            onUpdateStrategy={handleUpdateStrategy}
-            onDeleteStrategy={handleDeleteStrategy}
-            onTestBacktest={(strat) => {
-              navigateTo('backtest', strat);
-            }}
-          />
-        )}
+          {activeView === 'admin' && (
+            <AdminStrategyPortal
+              strategies={strategies}
+              onAddStrategy={handleAddStrategy}
+              onUpdateStrategy={handleUpdateStrategy}
+              onDeleteStrategy={handleDeleteStrategy}
+              onTestBacktest={(strat) => {
+                navigateTo('backtest', strat);
+              }}
+            />
+          )}
 
-        {activeView === 'detail' && selectedStrategy && (
-          <DhanStrategyDetail
-            strategy={selectedStrategy}
-            allStrategies={strategies}
-            onSelectStrategy={handleSelectStrategy}
-            onOpenSettings={() => setIsSettingsOpen(true)}
-            onBack={() => navigateTo('marketplace')}
-          />
-        )}
+          {activeView === 'detail' && selectedStrategy && (
+            <DhanStrategyDetail
+              strategy={selectedStrategy}
+              allStrategies={strategies}
+              onSelectStrategy={handleSelectStrategy}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+              onBack={() => navigateTo('marketplace')}
+            />
+          )}
 
-        {activeView === 'detail' && !selectedStrategy && (
-          <div className="w-full py-16 text-center space-y-4">
-            <h2 className="text-xl font-bold text-primary font-headline">No Strategy Selected</h2>
-            <p className="text-sm text-text-muted">Select an audited quantitative strategy from the algorithm marketplace.</p>
-            <button
-              onClick={() => navigateTo('marketplace')}
-              className="px-4 py-2 bg-primary text-white rounded-lg font-label-md text-label-md shadow-xs hover:bg-secondary transition-all"
-            >
-              Browse Marketplace
-            </button>
+          {activeView === 'detail' && !selectedStrategy && (
+            <div className="w-full py-16 text-center space-y-4">
+              <h2 className="text-xl font-bold text-primary font-headline">No Strategy Selected</h2>
+              <p className="text-sm text-text-muted">Select an audited quantitative strategy from the algorithm marketplace.</p>
+              <button
+                onClick={() => navigateTo('marketplace')}
+                className="px-4 py-2 bg-primary text-white rounded-lg font-label-md text-label-md shadow-xs hover:bg-secondary transition-all"
+              >
+                Browse Marketplace
+              </button>
+            </div>
+          )}
+
+          {activeView === 'backtest' && (
+            <BacktestStudio
+              onStrategyUpdated={handleUpdateStrategy}
+              initialSymbol={selectedInstrument}
+            />
+          )}
+
+          {activeView === 'flow' && (
+            <VisualFlowStudio initialStockSymbol={selectedInstrument} />
+          )}
+
+          {activeView === 'insights' && (
+            <MarketPulseInsights
+              onSelectStockForBacktest={(symbol) => {
+                setSelectedInstrument(symbol);
+                navigateTo('backtest');
+              }}
+              onOpenFlowWithStock={(symbol) => {
+                setSelectedInstrument(symbol);
+                navigateTo('flow');
+              }}
+            />
+          )}
+
+          {activeView === 'forex' && (
+            <ForexPortal
+              onBackToMain={() => navigateTo('marketplace')}
+            />
+          )}
+        </main>
+
+        {/* Footer Minimal Notice */}
+        <footer className="w-full bg-white border-t border-[#E2E8F0] px-6 py-3 select-none">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-2 font-mono text-[11px] text-[#64748B]">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
+              <span className="text-[#0F172A] font-semibold">Arthatix Quant Workstation</span>
+              <span>· Live Virtual &amp; Algorithmic Desks</span>
+            </div>
+            <div>
+              Institutional Systematic Strategy Engineering · Multi-Asset Portfolio Allocation
+            </div>
+            <div className="text-[#2563EB] font-medium">
+              Minimalist Clean Institutional Slate
+            </div>
           </div>
-        )}
-
-        {activeView === 'backtest' && (
-          <BacktestStudio
-            onStrategyUpdated={handleUpdateStrategy}
-            initialSymbol={selectedInstrument}
-          />
-        )}
-
-        {activeView === 'flow' && (
-          <VisualFlowStudio initialStockSymbol={selectedInstrument} />
-        )}
-
-        {activeView === 'insights' && (
-          <MarketPulseInsights
-            onSelectStockForBacktest={(symbol) => {
-              setSelectedInstrument(symbol);
-              navigateTo('backtest');
-            }}
-            onOpenFlowWithStock={(symbol) => {
-              setSelectedInstrument(symbol);
-              navigateTo('flow');
-            }}
-          />
-        )}
-
-        {activeView === 'forex' && (
-          <ForexPortal
-            onBackToMain={() => navigateTo('marketplace')}
-          />
-        )}
-      </main>
+        </footer>
+      </div>
 
       {/* Upstox API Settings & Key Manager Modal */}
       <UpstoxSettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />
-
-      {/* Footer Minimal Notice */}
-      <footer className="w-full bg-white border-t border-border-subtle px-margin py-space-sm select-none">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-space-sm font-mono-sm text-mono-sm text-text-muted">
-          <div className="flex items-center gap-space-sm">
-            <span className="w-2 h-2 rounded-full bg-bullish" />
-            <span className="text-primary font-semibold">Apex Quant Trading Workstation</span>
-            <span>· Live Virtual &amp; Algorithmic Desks</span>
-          </div>
-          <div>
-            Institutional Systematic Strategy Engineering · Multi-Asset Portfolio Allocation
-          </div>
-          <div className="text-primary font-medium">
-            FundingPips Light Institutional Theme
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
