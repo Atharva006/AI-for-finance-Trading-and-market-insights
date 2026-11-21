@@ -380,6 +380,25 @@ if not inNy and inNy[1]
   const candleW = Math.max(3, Math.min(10, chartW / visibleCandles.length - 3));
 
   // Identify session ranges within the visible 60 bars
+  const getContiguousBlocks = (indices: number[]) => {
+    if (indices.length === 0) return [];
+    const sorted = [...indices].sort((a, b) => a - b);
+    const blocks: { start: number; end: number }[] = [];
+    let curStart = sorted[0];
+    let curEnd = sorted[0];
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i] === curEnd + 1) {
+        curEnd = sorted[i];
+      } else {
+        blocks.push({ start: curStart, end: curEnd });
+        curStart = sorted[i];
+        curEnd = sorted[i];
+      }
+    }
+    blocks.push({ start: curStart, end: curEnd });
+    return blocks;
+  };
+
   const sessionRanges = useMemo(() => {
     const asiaBars: number[] = [];
     const londonBars: number[] = [];
@@ -388,7 +407,7 @@ if not inNy and inNy[1]
     visibleCandles.forEach((c, idx) => {
       const d = new Date(c.time);
       const h = d.getUTCHours();
-      if (h >= 18 || h < 0) asiaBars.push(idx);
+      if (h >= 18) asiaBars.push(idx);
       if (h >= 0 && h < 6) londonBars.push(idx);
       if (h >= 13 && h < 22) nyBars.push(idx);
     });
@@ -415,9 +434,9 @@ if not inNy and inNy[1]
     });
 
     return {
-      asiaBars,
-      londonBars,
-      nyBars,
+      asiaBlocks: getContiguousBlocks(asiaBars),
+      londonBlocks: getContiguousBlocks(londonBars),
+      nyBlocks: getContiguousBlocks(nyBars),
       asiaHigh: asiaHigh > -Infinity ? asiaHigh : null,
       asiaLow: asiaLow < Infinity ? asiaLow : null,
       lonHigh: lonHigh > -Infinity ? lonHigh : null,
@@ -657,441 +676,521 @@ if not inNy and inNy[1]
 
       {/* 3. The Live Candlestick & Drawing Overlay SVG */}
       <div className="relative w-full overflow-x-auto bg-[#FAFAFA] rounded-xl border border-gray-200 p-2">
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          className="w-full h-auto block select-none"
-        >
-          <defs>
-            <linearGradient id="forexPriceGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#006780" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#006780" stopOpacity="0.0" />
-            </linearGradient>
-          </defs>
+        {candles.length === 0 ? (
+          <div className="w-full h-80 flex flex-col items-center justify-center text-text-muted font-mono-sm gap-2">
+            <div className="w-6 h-6 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+            <span>Loading authentic 15m session feed for {pairName}...</span>
+          </div>
+        ) : (
+          <svg
+            viewBox={`0 0 ${width} ${height}`}
+            className="w-full h-auto block select-none cursor-crosshair"
+            onMouseMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const mouseX = ((e.clientX - rect.left) / rect.width) * width;
+              const clampedX = Math.max(padding.left, Math.min(width - padding.right, mouseX));
+              const ratio = (clampedX - padding.left) / chartW;
+              const targetIdx = Math.round(ratio * (visibleCandles.length - 1));
+              setHoverBarIndex(Math.max(0, Math.min(visibleCandles.length - 1, targetIdx)));
+            }}
+            onMouseLeave={() => setHoverBarIndex(null)}
+          >
+            <defs>
+              <linearGradient id="forexPriceGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#006780" stopOpacity="0.25" />
+                <stop offset="100%" stopColor="#006780" stopOpacity="0.0" />
+              </linearGradient>
+            </defs>
 
-          {/* 1. SESSION BACKGROUND BOXES (One Frame Context matching Stitch Screen 8) */}
-          {/* Asia Session Background Zone (18:00 - 00:00 UTC) */}
-          {sessionRanges.asiaBars.length > 0 && (
-            <g>
-              <rect
-                x={getX(sessionRanges.asiaBars[0]) - candleW}
-                y={padding.top}
-                width={Math.max(20, getX(sessionRanges.asiaBars[sessionRanges.asiaBars.length - 1]) - getX(sessionRanges.asiaBars[0]) + candleW * 2)}
-                height={chartH}
-                fill="#eeeef0"
-                fillOpacity="0.70"
-                stroke="#E5E7EB"
-                strokeWidth="1"
-                rx="4"
-              />
-              <text
-                x={getX(sessionRanges.asiaBars[0]) + 4}
-                y={padding.top + 14}
-                fontSize="9"
-                fontWeight="bold"
-                fill="#6B7280"
-                fontFamily="JetBrains Mono, monospace"
-              >
-                ASIA 18:00–00:00 UTC
-              </text>
-            </g>
-          )}
-
-          {/* London Session Background Zone (00:00 - 06:00 UTC) */}
-          {sessionRanges.londonBars.length > 0 && (
-            <g>
-              <rect
-                x={getX(sessionRanges.londonBars[0]) - candleW}
-                y={padding.top}
-                width={Math.max(20, getX(sessionRanges.londonBars[sessionRanges.londonBars.length - 1]) - getX(sessionRanges.londonBars[0]) + candleW * 2)}
-                height={chartH}
-                fill="#ECFEFF"
-                fillOpacity="0.85"
-                stroke="#006780"
-                strokeWidth="1"
-                rx="4"
-              />
-              <text
-                x={getX(sessionRanges.londonBars[0]) + 4}
-                y={padding.top + 14}
-                fontSize="9"
-                fontWeight="bold"
-                fill="#006780"
-                fontFamily="JetBrains Mono, monospace"
-              >
-                LONDON SWEEP 00:00–06:00 UTC
-              </text>
-            </g>
-          )}
-
-          {/* New York Session Background Zone (13:00 - 22:00 UTC) */}
-          {sessionRanges.nyBars.length > 0 && (
-            <g>
-              <rect
-                x={getX(sessionRanges.nyBars[0]) - candleW}
-                y={padding.top}
-                width={Math.max(20, getX(sessionRanges.nyBars[sessionRanges.nyBars.length - 1]) - getX(sessionRanges.nyBars[0]) + candleW * 2)}
-                height={chartH}
-                fill="#f3f3f5"
-                fillOpacity="0.75"
-                stroke="#E5E7EB"
-                strokeWidth="1"
-                rx="4"
-              />
-              <text
-                x={getX(sessionRanges.nyBars[0]) + 4}
-                y={padding.top + 14}
-                fontSize="9"
-                fontWeight="bold"
-                fill="#47464b"
-                fontFamily="JetBrains Mono, monospace"
-              >
-                NEW YORK 13:00–22:00 UTC
-              </text>
-            </g>
-          )}
-
-          {/* Horizontal Price Grid Lines */}
-          {[0, 0.25, 0.5, 0.75, 1.0].map((ratio) => {
-            const price = minPrice + (1 - ratio) * priceRange;
-            const y = padding.top + ratio * chartH;
-            return (
-              <g key={ratio}>
-                <line
-                  x1={padding.left}
-                  y1={y}
-                  x2={width - padding.right}
-                  y2={y}
-                  stroke="#E5E7EB"
-                  strokeDasharray="3 3"
-                />
-                <text
-                  x={width - padding.right + 8}
-                  y={y + 3}
-                  fontSize="10"
-                  fill="#9CA3AF"
-                  fontFamily="monospace"
-                >
-                  {price.toFixed(4)}
-                </text>
-              </g>
-            );
-          })}
-
-          {/* DRAWINGS & ON-CHART COMMENTS (when showAnnotations is true) */}
-          {showAnnotations && (
-            <g>
-              {/* Asia High Line & Comment */}
-              {sessionRanges.asiaHigh !== null && (
-                <g>
-                  <line
-                    x1={padding.left}
-                    y1={getY(sessionRanges.asiaHigh)}
-                    x2={width - padding.right}
-                    y2={getY(sessionRanges.asiaHigh)}
-                    stroke="#D97706"
-                    strokeWidth="1.5"
-                    strokeDasharray="4 4"
-                  />
-                  {/* Drawing Callout Tag */}
-                  <rect
-                    x={padding.left + 8}
-                    y={getY(sessionRanges.asiaHigh) - 18}
-                    width="190"
-                    height="16"
-                    fill="#eeeef0"
-                    stroke="#c8c5cb"
-                    strokeWidth="0.8"
-                    rx="3"
-                  />
-                  <text
-                    x={padding.left + 14}
-                    y={getY(sessionRanges.asiaHigh) - 6}
-                    fontSize="9"
-                    fontWeight="bold"
-                    fill="#47464b"
-                    fontFamily="JetBrains Mono, monospace"
-                  >
-                    ★ ASIA HIGH (Buy-side Liquidity Pool)
-                  </text>
-                </g>
-              )}
-
-              {/* Asia Low Line & Comment */}
-              {sessionRanges.asiaLow !== null && (
-                <g>
-                  <line
-                    x1={padding.left}
-                    y1={getY(sessionRanges.asiaLow)}
-                    x2={width - padding.right}
-                    y2={getY(sessionRanges.asiaLow)}
-                    stroke="#47464b"
-                    strokeWidth="1.5"
-                    strokeDasharray="4 4"
-                  />
-                  <rect
-                    x={padding.left + 8}
-                    y={getY(sessionRanges.asiaLow) + 4}
-                    width="195"
-                    height="16"
-                    fill="#eeeef0"
-                    stroke="#c8c5cb"
-                    strokeWidth="0.8"
-                    rx="3"
-                  />
-                  <text
-                    x={padding.left + 14}
-                    y={getY(sessionRanges.asiaLow) + 16}
-                    fontSize="9"
-                    fontWeight="bold"
-                    fill="#47464b"
-                    fontFamily="JetBrains Mono, monospace"
-                  >
-                    ★ ASIA LOW (Sell-side Liquidity Pool)
-                  </text>
-                </g>
-              )}
-
-              {/* Trade Stop-Loss & Take-Profit Visual Projection Lines */}
-              {visibleTrades.map((t) => {
-                const candleIdx = visibleCandles.findIndex((c) => c.time === t.entryTime);
-                if (candleIdx === -1) return null;
-                const startX = getX(candleIdx);
-                const endX = Math.min(width - padding.right, startX + 90);
-                const entryY = getY(t.entryPrice);
-                const slY = getY(t.stopLoss);
-                const tpY = getY(t.takeProfit);
-
-                return (
-                  <g key={`lines-${t.id}`}>
-                    {/* Entry dashed line */}
-                    <line
-                      x1={startX}
-                      y1={entryY}
-                      x2={endX}
-                      y2={entryY}
-                      stroke="#006780"
-                      strokeWidth="1.2"
-                      strokeDasharray="2 2"
-                    />
-                    {/* Take-Profit target line */}
-                    <line
-                      x1={startX}
-                      y1={tpY}
-                      x2={endX}
-                      y2={tpY}
-                      stroke="#059669"
-                      strokeWidth="1.2"
-                      strokeDasharray="6 4"
-                    />
-                    <text
-                      x={endX + 4}
-                      y={tpY + 3}
-                      fontSize="8"
-                      fontWeight="bold"
-                      fill="#059669"
-                      fontFamily="JetBrains Mono, monospace"
-                    >
-                      TP (1:2.0)
-                    </text>
-
-                    {/* Stop-Loss line */}
-                    <line
-                      x1={startX}
-                      y1={slY}
-                      x2={endX}
-                      y2={slY}
-                      stroke="#E11D48"
-                      strokeWidth="1.2"
-                      strokeDasharray="6 4"
-                    />
-                    <text
-                      x={endX + 4}
-                      y={slY + 3}
-                      fontSize="8"
-                      fontWeight="bold"
-                      fill="#E11D48"
-                      fontFamily="JetBrains Mono, monospace"
-                    >
-                      SL
-                    </text>
-                  </g>
-                );
-              })}
-            </g>
-          )}
-
-          {/* 3. PRICE RENDERING: LINE CHART MODE VS CANDLESTICK MODE */}
-          {chartMode === 'line' ? (
-            <g>
-              {/* Gradient Area Fill under Line */}
-              <path
-                d={lineAreaPath}
-                fill="url(#forexPriceGrad)"
-              />
-              {/* Primary Price Trend Line (Matching Stitch Screen 8 #006780) */}
-              <path
-                d={linePath}
-                fill="none"
-                stroke="#006780"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              {/* Interactive Hover Nodes */}
-              {visibleCandles.map((c, idx) => {
-                const x = getX(idx);
-                const y = getY(c.close);
-                const isHovered = hoverBarIndex === idx;
-                return (
-                  <circle
-                    key={c.time}
-                    cx={x}
-                    cy={y}
-                    r={isHovered ? 5 : 2}
-                    fill={isHovered ? '#2563EB' : '#FFFFFF'}
-                    stroke="#2563EB"
-                    strokeWidth={isHovered ? 2.5 : 1.2}
-                    onMouseEnter={() => setHoverBarIndex(idx)}
-                    onMouseLeave={() => setHoverBarIndex(null)}
-                    className="cursor-crosshair"
-                  />
-                );
-              })}
-            </g>
-          ) : (
-            /* Candlestick Rendering */
-            visibleCandles.map((c, idx) => {
-              const x = getX(idx);
-              const isBull = c.close >= c.open;
-              const openY = getY(c.open);
-              const closeY = getY(c.close);
-              const highY = getY(c.high);
-              const lowY = getY(c.low);
-              const bodyTop = Math.min(openY, closeY);
-              const bodyHeight = Math.max(1.5, Math.abs(closeY - openY));
-              const color = isBull ? '#16A34A' : '#DC2626';
-
+            {/* 1. SESSION BACKGROUND BOXES (Contiguous Session Blocks) */}
+            {/* Asia Session Background Blocks (18:00 - 00:00 UTC) */}
+            {sessionRanges.asiaBlocks.map((blk, i) => {
+              const startX = getX(blk.start) - candleW;
+              const endX = getX(blk.end) + candleW;
+              const blkW = Math.max(candleW * 2, endX - startX);
               return (
-                <g
-                  key={c.time}
-                  onMouseEnter={() => setHoverBarIndex(idx)}
-                  onMouseLeave={() => setHoverBarIndex(null)}
-                  className="cursor-crosshair"
-                >
-                  {/* Wick */}
-                  <line
-                    x1={x}
-                    y1={highY}
-                    x2={x}
-                    y2={lowY}
-                    stroke={color}
-                    strokeWidth="1.2"
-                  />
-                  {/* Body */}
+                <g key={`asia-blk-${i}`}>
                   <rect
-                    x={x - candleW / 2}
-                    y={bodyTop}
-                    width={candleW}
-                    height={bodyHeight}
-                    fill={isBull ? '#16A34A' : '#DC2626'}
-                    rx="1"
+                    x={startX}
+                    y={padding.top}
+                    width={blkW}
+                    height={chartH}
+                    fill="#eeeef0"
+                    fillOpacity="0.70"
+                    stroke="#E5E7EB"
+                    strokeWidth="1"
+                    rx="4"
                   />
+                  <text
+                    x={startX + 4}
+                    y={padding.top + 14}
+                    fontSize="9"
+                    fontWeight="bold"
+                    fill="#6B7280"
+                    fontFamily="JetBrains Mono, monospace"
+                  >
+                    ASIA 18:00–00:00 UTC
+                  </text>
                 </g>
               );
-            })
-          )}
+            })}
 
-          {/* Trade Execution Markers & Annotation Callouts */}
-          {visibleTrades.map((t) => {
-            const candleIdx = visibleCandles.findIndex((c) => c.time === t.entryTime);
-            if (candleIdx === -1) return null;
-            const x = getX(candleIdx);
-            const y = getY(t.entryPrice);
-            const isBuy = t.type === 'BUY';
+            {/* London Session Background Blocks (00:00 - 06:00 UTC) */}
+            {sessionRanges.londonBlocks.map((blk, i) => {
+              const startX = getX(blk.start) - candleW;
+              const endX = getX(blk.end) + candleW;
+              const blkW = Math.max(candleW * 2, endX - startX);
+              return (
+                <g key={`lon-blk-${i}`}>
+                  <rect
+                    x={startX}
+                    y={padding.top}
+                    width={blkW}
+                    height={chartH}
+                    fill="#ECFEFF"
+                    fillOpacity="0.85"
+                    stroke="#006780"
+                    strokeWidth="1"
+                    rx="4"
+                  />
+                  <text
+                    x={startX + 4}
+                    y={padding.top + 14}
+                    fontSize="9"
+                    fontWeight="bold"
+                    fill="#006780"
+                    fontFamily="JetBrains Mono, monospace"
+                  >
+                    LONDON SWEEP 00:00–06:00 UTC
+                  </text>
+                </g>
+              );
+            })}
 
-            return (
-              <g key={t.id}>
-                {/* Entry Dot */}
-                <circle
-                  cx={x}
-                  cy={y}
-                  r="5"
-                  fill={isBuy ? '#059669' : '#E11D48'}
-                  stroke="#FFFFFF"
-                  strokeWidth="2"
-                />
+            {/* New York Session Background Blocks (13:00 - 22:00 UTC) */}
+            {sessionRanges.nyBlocks.map((blk, i) => {
+              const startX = getX(blk.start) - candleW;
+              const endX = getX(blk.end) + candleW;
+              const blkW = Math.max(candleW * 2, endX - startX);
+              return (
+                <g key={`ny-blk-${i}`}>
+                  <rect
+                    x={startX}
+                    y={padding.top}
+                    width={blkW}
+                    height={chartH}
+                    fill="#f3f3f5"
+                    fillOpacity="0.75"
+                    stroke="#E5E7EB"
+                    strokeWidth="1"
+                    rx="4"
+                  />
+                  <text
+                    x={startX + 4}
+                    y={padding.top + 14}
+                    fontSize="9"
+                    fontWeight="bold"
+                    fill="#47464b"
+                    fontFamily="JetBrains Mono, monospace"
+                  >
+                    NEW YORK 13:00–22:00 UTC
+                  </text>
+                </g>
+              );
+            })}
 
-                {/* Hand-drawn style Callout Box with comment */}
-                {showAnnotations && (
+            {/* Horizontal Price Grid Lines */}
+            {[0, 0.25, 0.5, 0.75, 1.0].map((ratio) => {
+              const price = minPrice + (1 - ratio) * priceRange;
+              const y = padding.top + ratio * chartH;
+              return (
+                <g key={ratio}>
+                  <line
+                    x1={padding.left}
+                    y1={y}
+                    x2={width - padding.right}
+                    y2={y}
+                    stroke="#E5E7EB"
+                    strokeDasharray="3 3"
+                  />
+                  <text
+                    x={width - padding.right + 8}
+                    y={y + 3}
+                    fontSize="10"
+                    fill="#9CA3AF"
+                    fontFamily="monospace"
+                  >
+                    {price.toFixed(symbol.includes('GC') || symbol.includes('SI') ? 2 : 4)}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* DRAWINGS & ON-CHART COMMENTS (when showAnnotations is true) */}
+            {showAnnotations && (
+              <g>
+                {/* Asia High Line & Clamped Comment */}
+                {sessionRanges.asiaHigh !== null && (
                   <g>
-                    <path
-                      d={`M ${x} ${isBuy ? y + 6 : y - 6} L ${x + 12} ${isBuy ? y + 22 : y - 22} L ${x + 120} ${isBuy ? y + 22 : y - 22}`}
-                      stroke={isBuy ? '#059669' : '#E11D48'}
-                      strokeWidth="1"
-                      fill="none"
+                    <line
+                      x1={padding.left}
+                      y1={getY(sessionRanges.asiaHigh)}
+                      x2={width - padding.right}
+                      y2={getY(sessionRanges.asiaHigh)}
+                      stroke="#D97706"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 4"
                     />
                     <rect
-                      x={x + 10}
-                      y={isBuy ? y + 14 : y - 36}
-                      width="135"
-                      height="20"
-                      fill={isBuy ? '#ECFDF5' : '#FFF1F2'}
-                      stroke={isBuy ? '#059669' : '#E11D48'}
+                      x={padding.left + 8}
+                      y={Math.max(padding.top + 2, Math.min(padding.top + chartH - 20, getY(sessionRanges.asiaHigh) - 18))}
+                      width="190"
+                      height="16"
+                      fill="#eeeef0"
+                      stroke="#c8c5cb"
                       strokeWidth="0.8"
                       rx="3"
                     />
                     <text
-                      x={x + 16}
-                      y={isBuy ? y + 28 : y - 22}
+                      x={padding.left + 14}
+                      y={Math.max(padding.top + 14, Math.min(padding.top + chartH - 8, getY(sessionRanges.asiaHigh) - 6))}
                       fontSize="9"
                       fontWeight="bold"
-                      fill={isBuy ? '#059669' : '#E11D48'}
+                      fill="#47464b"
                       fontFamily="JetBrains Mono, monospace"
                     >
-                      {isBuy ? '▲ FVG Inversion Long' : '▼ FVG Inversion Short'}
+                      ★ ASIA HIGH (Buy-side Liquidity Pool)
                     </text>
                   </g>
                 )}
+
+                {/* Asia Low Line & Clamped Comment */}
+                {sessionRanges.asiaLow !== null && (
+                  <g>
+                    <line
+                      x1={padding.left}
+                      y1={getY(sessionRanges.asiaLow)}
+                      x2={width - padding.right}
+                      y2={getY(sessionRanges.asiaLow)}
+                      stroke="#47464b"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 4"
+                    />
+                    <rect
+                      x={padding.left + 8}
+                      y={Math.max(padding.top + 2, Math.min(padding.top + chartH - 20, getY(sessionRanges.asiaLow) + 4))}
+                      width="195"
+                      height="16"
+                      fill="#eeeef0"
+                      stroke="#c8c5cb"
+                      strokeWidth="0.8"
+                      rx="3"
+                    />
+                    <text
+                      x={padding.left + 14}
+                      y={Math.max(padding.top + 14, Math.min(padding.top + chartH - 8, getY(sessionRanges.asiaLow) + 16))}
+                      fontSize="9"
+                      fontWeight="bold"
+                      fill="#47464b"
+                      fontFamily="JetBrains Mono, monospace"
+                    >
+                      ★ ASIA LOW (Sell-side Liquidity Pool)
+                    </text>
+                  </g>
+                )}
+
+                {/* Trade Stop-Loss & Take-Profit Visual Projection Lines */}
+                {visibleTrades.map((t) => {
+                  const candleIdx = visibleCandles.findIndex((c) => c.time === t.entryTime);
+                  if (candleIdx === -1) return null;
+                  const startX = getX(candleIdx);
+                  const endX = Math.min(width - padding.right - 10, startX + 90);
+                  const entryY = getY(t.entryPrice);
+                  const slY = getY(t.stopLoss);
+                  const tpY = getY(t.takeProfit);
+
+                  return (
+                    <g key={`lines-${t.id}`}>
+                      {/* Entry dashed line */}
+                      <line
+                        x1={startX}
+                        y1={entryY}
+                        x2={endX}
+                        y2={entryY}
+                        stroke="#006780"
+                        strokeWidth="1.2"
+                        strokeDasharray="2 2"
+                      />
+                      {/* Take-Profit target line */}
+                      <line
+                        x1={startX}
+                        y1={tpY}
+                        x2={endX}
+                        y2={tpY}
+                        stroke="#059669"
+                        strokeWidth="1.2"
+                        strokeDasharray="6 4"
+                      />
+                      <text
+                        x={startX + 6}
+                        y={tpY - 4}
+                        fontSize="8"
+                        fontWeight="bold"
+                        fill="#059669"
+                        fontFamily="JetBrains Mono, monospace"
+                      >
+                        TP (1:2.0) · {t.takeProfit.toFixed(symbol.includes('GC') || symbol.includes('SI') ? 2 : 4)}
+                      </text>
+
+                      {/* Stop-Loss line */}
+                      <line
+                        x1={startX}
+                        y1={slY}
+                        x2={endX}
+                        y2={slY}
+                        stroke="#E11D48"
+                        strokeWidth="1.2"
+                        strokeDasharray="6 4"
+                      />
+                      <text
+                        x={startX + 6}
+                        y={slY - 4}
+                        fontSize="8"
+                        fontWeight="bold"
+                        fill="#E11D48"
+                        fontFamily="JetBrains Mono, monospace"
+                      >
+                        SL · {t.stopLoss.toFixed(symbol.includes('GC') || symbol.includes('SI') ? 2 : 4)}
+                      </text>
+                    </g>
+                  );
+                })}
               </g>
-            );
-          })}
+            )}
 
-          {/* Time Labels on X axis */}
-          {visibleCandles.map((c, idx) => {
-            if (idx % 10 !== 0 && idx !== visibleCandles.length - 1) return null;
-            const x = getX(idx);
-            const timeStr = new Date(c.time).toLocaleTimeString('en-US', {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false,
-              timeZone: 'UTC',
-            });
-            return (
-              <text
-                key={c.time}
-                x={x}
-                y={height - 10}
-                textAnchor="middle"
-                fontSize="9"
-                fill="#9CA3AF"
-                fontFamily="monospace"
-              >
-                {timeStr}
-              </text>
-            );
-          })}
-        </svg>
+            {/* 3. PRICE RENDERING: LINE CHART MODE VS CANDLESTICK MODE */}
+            {chartMode === 'line' ? (
+              <g>
+                {/* Gradient Area Fill under Line */}
+                <path
+                  d={lineAreaPath}
+                  fill="url(#forexPriceGrad)"
+                />
+                {/* Primary Price Trend Line (Matching Stitch Screen 8 #006780) */}
+                <path
+                  d={linePath}
+                  fill="none"
+                  stroke="#006780"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                {/* Interactive Hover Nodes */}
+                {visibleCandles.map((c, idx) => {
+                  const x = getX(idx);
+                  const y = getY(c.close);
+                  const isHovered = hoverBarIndex === idx;
+                  return (
+                    <circle
+                      key={c.time}
+                      cx={x}
+                      cy={y}
+                      r={isHovered ? 5 : 2}
+                      fill={isHovered ? '#006780' : '#FFFFFF'}
+                      stroke="#006780"
+                      strokeWidth={isHovered ? 2.5 : 1.2}
+                      className="transition-all duration-75"
+                    />
+                  );
+                })}
+              </g>
+            ) : (
+              /* Candlestick Rendering */
+              visibleCandles.map((c, idx) => {
+                const x = getX(idx);
+                const isBull = c.close >= c.open;
+                const openY = getY(c.open);
+                const closeY = getY(c.close);
+                const highY = getY(c.high);
+                const lowY = getY(c.low);
+                const bodyTop = Math.min(openY, closeY);
+                const bodyHeight = Math.max(1.5, Math.abs(closeY - openY));
+                const color = isBull ? '#16A34A' : '#DC2626';
 
-        {/* Hover Inspector Tooltip */}
+                return (
+                  <g key={c.time}>
+                    {/* Wick */}
+                    <line
+                      x1={x}
+                      y1={highY}
+                      x2={x}
+                      y2={lowY}
+                      stroke={color}
+                      strokeWidth="1.2"
+                    />
+                    {/* Body */}
+                    <rect
+                      x={x - candleW / 2}
+                      y={bodyTop}
+                      width={candleW}
+                      height={bodyHeight}
+                      fill={color}
+                      rx="1"
+                    />
+                  </g>
+                );
+              })
+            )}
+
+            {/* Trade Execution Markers & Annotation Callouts (Clamped & Non-Clipping) */}
+            {visibleTrades.map((t) => {
+              const candleIdx = visibleCandles.findIndex((c) => c.time === t.entryTime);
+              if (candleIdx === -1) return null;
+              const x = getX(candleIdx);
+              const y = getY(t.entryPrice);
+              const isBuy = t.type === 'BUY';
+
+              const boxW = 140;
+              const boxH = 20;
+              const isNearRight = x + boxW + 15 > width - padding.right;
+              const boxX = isNearRight ? x - boxW - 8 : x + 8;
+              const targetY = isBuy ? y + 16 : y - 36;
+              const boxY = Math.max(padding.top + 4, Math.min(padding.top + chartH - 24, targetY));
+              const textY = boxY + 14;
+
+              const pointerPath = isNearRight
+                ? `M ${x} ${isBuy ? y + 5 : y - 5} L ${x - 8} ${boxY + 10} L ${boxX + boxW} ${boxY + 10}`
+                : `M ${x} ${isBuy ? y + 5 : y - 5} L ${x + 8} ${boxY + 10} L ${boxX} ${boxY + 10}`;
+
+              return (
+                <g key={t.id}>
+                  {/* Entry Dot */}
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r="5"
+                    fill={isBuy ? '#059669' : '#E11D48'}
+                    stroke="#FFFFFF"
+                    strokeWidth="2"
+                  />
+
+                  {/* Hand-drawn style Callout Box with comment */}
+                  {showAnnotations && (
+                    <g>
+                      <path
+                        d={pointerPath}
+                        stroke={isBuy ? '#059669' : '#E11D48'}
+                        strokeWidth="1"
+                        fill="none"
+                      />
+                      <rect
+                        x={boxX}
+                        y={boxY}
+                        width={boxW}
+                        height={boxH}
+                        fill={isBuy ? '#ECFDF5' : '#FFF1F2'}
+                        stroke={isBuy ? '#059669' : '#E11D48'}
+                        strokeWidth="0.8"
+                        rx="3"
+                      />
+                      <text
+                        x={boxX + 6}
+                        y={textY}
+                        fontSize="9"
+                        fontWeight="bold"
+                        fill={isBuy ? '#059669' : '#E11D48'}
+                        fontFamily="JetBrains Mono, monospace"
+                      >
+                        {isBuy ? '▲ FVG Inversion Long' : '▼ FVG Inversion Short'}
+                      </text>
+                    </g>
+                  )}
+                </g>
+              );
+            })}
+
+            {/* Dynamic Crosshair Guide on Hover */}
+            {hoverBarIndex !== null && visibleCandles[hoverBarIndex] && (
+              <g>
+                <line
+                  x1={getX(hoverBarIndex)}
+                  y1={padding.top}
+                  x2={getX(hoverBarIndex)}
+                  y2={height - padding.bottom}
+                  stroke="#006780"
+                  strokeWidth="1"
+                  strokeDasharray="3 3"
+                  opacity="0.5"
+                />
+                <line
+                  x1={padding.left}
+                  y1={getY(visibleCandles[hoverBarIndex].close)}
+                  x2={width - padding.right}
+                  y2={getY(visibleCandles[hoverBarIndex].close)}
+                  stroke="#006780"
+                  strokeWidth="1"
+                  strokeDasharray="3 3"
+                  opacity="0.5"
+                />
+                {/* Price tag badge on right axis */}
+                <rect
+                  x={width - padding.right + 2}
+                  y={getY(visibleCandles[hoverBarIndex].close) - 8}
+                  width={56}
+                  height={16}
+                  fill="#006780"
+                  rx="3"
+                />
+                <text
+                  x={width - padding.right + 6}
+                  y={getY(visibleCandles[hoverBarIndex].close) + 4}
+                  fill="#FFFFFF"
+                  fontSize="9"
+                  fontFamily="JetBrains Mono, monospace"
+                  fontWeight="bold"
+                >
+                  {visibleCandles[hoverBarIndex].close.toFixed(symbol.includes('GC') || symbol.includes('SI') ? 2 : 4)}
+                </text>
+              </g>
+            )}
+
+            {/* Time Labels on X axis */}
+            {visibleCandles.map((c, idx) => {
+              if (idx % 10 !== 0 && idx !== visibleCandles.length - 1) return null;
+              const x = getX(idx);
+              const timeStr = new Date(c.time).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+                timeZone: 'UTC',
+              });
+              return (
+                <text
+                  key={c.time}
+                  x={x}
+                  y={height - 10}
+                  textAnchor="middle"
+                  fontSize="9"
+                  fill="#9CA3AF"
+                  fontFamily="monospace"
+                >
+                  {timeStr}
+                </text>
+              );
+            })}
+          </svg>
+        )}
+
+        {/* Hover Inspector Tooltip (100% Light Theme) */}
         {hoverBarIndex !== null && visibleCandles[hoverBarIndex] && (
-          <div className="absolute top-4 left-4 bg-black/90 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-[10px] font-mono shadow-md border border-neutral-700 flex items-center gap-3">
-            <span>
-              Time: {new Date(visibleCandles[hoverBarIndex].time).toISOString().replace('T', ' ').slice(0, 16)} UTC
+          <div className="absolute top-4 left-4 bg-surface-card/95 backdrop-blur-md text-on-surface px-3 py-1.5 rounded-lg text-[10px] font-mono shadow-md border border-border-subtle flex items-center gap-3 z-10">
+            <span className="font-semibold text-secondary">
+              {new Date(visibleCandles[hoverBarIndex].time).toISOString().replace('T', ' ').slice(0, 16)} UTC
             </span>
-            <span>O: {visibleCandles[hoverBarIndex].open.toFixed(4)}</span>
-            <span>H: {visibleCandles[hoverBarIndex].high.toFixed(4)}</span>
-            <span>L: {visibleCandles[hoverBarIndex].low.toFixed(4)}</span>
-            <span>C: {visibleCandles[hoverBarIndex].close.toFixed(4)}</span>
+            <span className="text-text-secondary">O: <strong className="text-on-surface">{visibleCandles[hoverBarIndex].open.toFixed(symbol.includes('GC') || symbol.includes('SI') ? 2 : 4)}</strong></span>
+            <span className="text-text-secondary">H: <strong className="text-on-surface">{visibleCandles[hoverBarIndex].high.toFixed(symbol.includes('GC') || symbol.includes('SI') ? 2 : 4)}</strong></span>
+            <span className="text-text-secondary">L: <strong className="text-on-surface">{visibleCandles[hoverBarIndex].low.toFixed(symbol.includes('GC') || symbol.includes('SI') ? 2 : 4)}</strong></span>
+            <span className="text-text-secondary">C: <strong className={visibleCandles[hoverBarIndex].close >= visibleCandles[hoverBarIndex].open ? 'text-bullish' : 'text-bearish'}>{visibleCandles[hoverBarIndex].close.toFixed(symbol.includes('GC') || symbol.includes('SI') ? 2 : 4)}</strong></span>
           </div>
         )}
       </div>

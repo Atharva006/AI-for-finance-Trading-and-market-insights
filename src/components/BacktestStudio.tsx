@@ -563,19 +563,19 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
   // 2. Calculate SVG points for Underwater Drawdown (viewBox 0 0 600 50 matching Stitch Screen 4)
   const drawdownSvgData = useMemo(() => {
     if (!result || !result.equityCurve || result.equityCurve.length === 0) {
-      return { line: '', polygon: '' };
+      return { line: '', polygon: '', maxDdVal: 0 };
     }
-    const dds = result.equityCurve.map((p) => p.drawdownPct);
-    const minDd = Math.min(...dds, -0.01);
+    const dds = result.equityCurve.map((p) => Math.abs(p.drawdownPct));
+    const maxDd = Math.max(0.1, ...dds);
     const linePoints: string[] = [];
     result.equityCurve.forEach((p, idx) => {
       const x = (idx / (result.equityCurve.length - 1 || 1)) * 600;
-      const y = 2 + (Math.abs(p.drawdownPct) / Math.abs(minDd)) * 44;
+      const y = 2 + (Math.abs(p.drawdownPct) / maxDd) * 44;
       linePoints.push(`${x.toFixed(1)},${y.toFixed(1)}`);
     });
     const line = linePoints.join(' ');
-    const polygon = `0,2 ${line} 600,2`;
-    return { line, polygon };
+    const polygon = `0,2 ${line} 600,2 Z`;
+    return { line, polygon, maxDdVal: maxDd };
   }, [result]);
 
   // 3. Trade dots on equity curve
@@ -585,18 +585,23 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
     const min = Math.min(...values);
     const max = Math.max(...values);
     const range = max - min || 1;
-    const step = Math.max(1, Math.floor(result.trades.length / 15));
-    return result.trades.filter((_, i) => i % step === 0).map((t, idx, arr) => {
-      const ratio = idx / (arr.length - 1 || 1);
-      const curveIdx = Math.min(values.length - 1, Math.floor(ratio * (values.length - 1)));
+    const curveLen = result.equityCurve.length;
+
+    return result.trades.map((t) => {
+      let curveIdx = result.equityCurve.findIndex((p) => p.time === t.exitTime || p.time === t.entryTime);
+      if (curveIdx === -1) {
+        const tIdx = result.trades.indexOf(t);
+        curveIdx = Math.min(curveLen - 1, Math.floor((tIdx / Math.max(1, result.trades.length - 1)) * (curveLen - 1)));
+      }
       const val = values[curveIdx];
-      const x = (curveIdx / (values.length - 1 || 1)) * 600;
+      const x = (curveIdx / Math.max(1, curveLen - 1)) * 600;
       const y = 140 - ((val - min) / range) * 120;
       return {
-        x: x.toFixed(1),
-        y: y.toFixed(1),
+        x: Number(x.toFixed(1)),
+        y: Number(y.toFixed(1)),
         isProfit: t.pnl >= 0,
         id: t.id,
+        pnl: t.pnl,
       };
     });
   }, [result]);
@@ -1914,51 +1919,70 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
 
             <div className="w-full flex flex-col gap-space-sm">
               {/* Top Equity Curve: Black Line with Trade Markers */}
-              <div className="relative w-full h-48 bg-surface-container-low/50 rounded-lg p-2">
-                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 600 150">
-                  <line stroke="#E5E7EB" strokeDasharray="3 3" strokeWidth="1" x1="0" x2="600" y1="30" y2="30" />
-                  <line stroke="#E5E7EB" strokeDasharray="3 3" strokeWidth="1" x1="0" x2="600" y1="75" y2="75" />
-                  <line stroke="#E5E7EB" strokeDasharray="3 3" strokeWidth="1" x1="0" x2="600" y1="120" y2="120" />
-                  {equitySvgPoints ? (
-                    <polyline
-                      fill="none"
-                      points={equitySvgPoints}
-                      stroke="#000000"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  ) : (
-                    <polyline
-                      fill="none"
-                      points="0,132 40,126 80,129 120,112 160,104 200,109 240,92 280,78 320,84 360,64 400,52 440,56 480,38 520,28 560,22 600,12"
-                      stroke="#000000"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  )}
-                  {tradeDots.map((d, i) => (
-                    <circle key={i} cx={d.x} cy={d.y} r="3.5" fill={d.isProfit ? '#059669' : '#E11D48'} />
-                  ))}
-                </svg>
+              <div className="relative w-full bg-surface-container-low/50 rounded-lg p-2.5 flex flex-col gap-1.5">
+                <div className="flex items-center justify-between text-[11px] font-mono text-text-muted px-1">
+                  <span>BASE: ₹{params.initialCapital.toLocaleString('en-IN')}</span>
+                  <span className="text-bullish font-semibold">
+                    PEAK: ₹{Math.round(Math.max(...(result?.equityCurve.map((p) => p.equity) || [params.initialCapital]))).toLocaleString('en-IN')}
+                  </span>
+                  <span className={result && result.metrics.totalReturn >= 0 ? 'text-bullish font-bold' : 'text-bearish font-bold'}>
+                    FINAL: ₹{Math.round(result?.equityCurve[result.equityCurve.length - 1]?.equity || params.initialCapital).toLocaleString('en-IN')}
+                  </span>
+                </div>
+                <div className="relative w-full h-44">
+                  <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 600 150">
+                    <line stroke="#E5E7EB" strokeDasharray="3 3" strokeWidth="1" x1="0" x2="600" y1="30" y2="30" />
+                    <line stroke="#E5E7EB" strokeDasharray="3 3" strokeWidth="1" x1="0" x2="600" y1="75" y2="75" />
+                    <line stroke="#E5E7EB" strokeDasharray="3 3" strokeWidth="1" x1="0" x2="600" y1="120" y2="120" />
+                    {equitySvgPoints ? (
+                      <polyline
+                        fill="none"
+                        points={equitySvgPoints}
+                        stroke="#000000"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    ) : (
+                      <polyline
+                        fill="none"
+                        points="0,132 40,126 80,129 120,112 160,104 200,109 240,92 280,78 320,84 360,64 400,52 440,56 480,38 520,28 560,22 600,12"
+                        stroke="#000000"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    )}
+                    {tradeDots.map((d, i) => (
+                      <circle key={i} cx={d.x} cy={d.y} r="3.5" fill={d.isProfit ? '#059669' : '#E11D48'} />
+                    ))}
+                  </svg>
+                </div>
               </div>
 
               {/* Bottom Underwater Drawdown: Bearish Tint Shading */}
-              <div className="relative w-full h-16 bg-surface-container-low/50 rounded-lg p-2">
-                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 600 50">
-                  <line stroke="#E5E7EB" strokeWidth="1" x1="0" x2="600" y1="2" y2="2" />
-                  {drawdownSvgData.polygon ? (
-                    <polygon fill="#FFF1F2" points={drawdownSvgData.polygon} />
-                  ) : (
-                    <polygon fill="#FFF1F2" points="0,2 60,2 80,18 100,2 140,2 170,12 200,2 240,2 280,32 300,16 340,2 380,2 420,24 450,2 520,2 550,14 600,2" />
-                  )}
-                  {drawdownSvgData.line ? (
-                    <polyline fill="none" points={drawdownSvgData.line} stroke="#E11D48" strokeWidth="1.5" />
-                  ) : (
-                    <polyline fill="none" points="0,2 60,2 80,18 100,2 140,2 170,12 200,2 240,2 280,32 300,16 340,2 380,2 420,24 450,2 520,2 550,14 600,2" stroke="#E11D48" strokeWidth="1.5" />
-                  )}
-                </svg>
+              <div className="relative w-full bg-surface-container-low/50 rounded-lg p-2.5 flex flex-col gap-1">
+                <div className="flex items-center justify-between text-[10px] font-mono text-text-muted px-1">
+                  <span>UNDERWATER DRAWDOWN (%)</span>
+                  <span className="text-bearish font-semibold">
+                    MAX DD: -{(result?.metrics.maxDrawdownPct ?? drawdownSvgData.maxDdVal).toFixed(2)}%
+                  </span>
+                </div>
+                <div className="relative w-full h-14">
+                  <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 600 50">
+                    <line stroke="#E5E7EB" strokeWidth="1" x1="0" x2="600" y1="2" y2="2" />
+                    {drawdownSvgData.polygon ? (
+                      <polygon fill="#FFF1F2" points={drawdownSvgData.polygon} />
+                    ) : (
+                      <polygon fill="#FFF1F2" points="0,2 60,2 80,18 100,2 140,2 170,12 200,2 240,2 280,32 300,16 340,2 380,2 420,24 450,2 520,2 550,14 600,2 Z" />
+                    )}
+                    {drawdownSvgData.line ? (
+                      <polyline fill="none" points={drawdownSvgData.line} stroke="#E11D48" strokeWidth="1.5" />
+                    ) : (
+                      <polyline fill="none" points="0,2 60,2 80,18 100,2 140,2 170,12 200,2 240,2 280,32 300,16 340,2 380,2 420,24 450,2 520,2 550,14 600,2" stroke="#E11D48" strokeWidth="1.5" />
+                    )}
+                  </svg>
+                </div>
               </div>
             </div>
           </div>

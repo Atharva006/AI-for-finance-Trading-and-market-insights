@@ -238,7 +238,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </section>
 
         {/* 3. SECTION: 02 // Algorithms & Baskets */}
-        <section className="w-full py-space-xl flex flex-col gap-space-lg" id="algorithms-section">
+        <section className="w-full py-space-xl flex flex-col gap-space-lg scroll-mt-28" id="algorithms-section">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
             <div className="flex flex-col gap-space-xs">
               <span className="font-mono-sm text-mono-sm text-text-muted uppercase">

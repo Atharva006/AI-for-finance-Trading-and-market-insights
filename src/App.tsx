@@ -181,8 +181,8 @@ export function App() {
         />
       </header>
 
-      {/* Main View Router (pt-24 accounts for the 96px fixed header) */}
-      <main className="w-full pt-24 px-margin bg-background flex-1 flex flex-col">
+      {/* Main View Router (pt-[98px] accounts for the 98px combined fixed header + borders) */}
+      <main className="w-full pt-[98px] px-margin bg-background flex-1 flex flex-col">
         {activeView === 'landing' && (
           <LandingPage
             onNavigateToView={(view) => navigateTo(view)}

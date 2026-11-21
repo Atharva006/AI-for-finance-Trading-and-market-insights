@@ -104,7 +104,7 @@ export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
     const h = 36;
     const path = points
       .map((p, i) => {
-        const x = (i / (points.length - 1)) * w;
+        const x = (i / Math.max(1, points.length - 1)) * w;
         const y = h - ((p - min) / (max - min || 1)) * (h - 8) - 4;
         return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
       })
@@ -347,7 +347,7 @@ export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
                     <div>
                       <div className="font-label-sm text-label-sm text-text-muted">Sharpe</div>
                       <div className="font-mono-md text-mono-md text-on-surface font-bold tabular-nums">
-                        2.41
+                        {algo.sharpeRatio.toFixed(2)}
                       </div>
                     </div>
                     <div>

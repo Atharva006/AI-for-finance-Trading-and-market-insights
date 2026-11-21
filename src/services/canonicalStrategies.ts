@@ -1,8 +1,20 @@
 import { AlgoStrategy, MonthlyDistributionBand, WorstDrawdownRecord, PastTradeRecord } from '../types/algoMarketplace';
 
-export const CANONICAL_MONTHLY_DISTRIBUTION: MonthlyDistributionBand[] = [];
+export const CANONICAL_MONTHLY_DISTRIBUTION: MonthlyDistributionBand[] = [
+  { range: '> +10%', months: 6, color: '#16A34A', pct: 25 },
+  { range: '+5% to +10%', months: 8, color: '#22C55E', pct: 33 },
+  { range: '0% to +5%', months: 7, color: '#86EFAC', pct: 29 },
+  { range: '-5% to 0%', months: 3, color: '#FCA5A5', pct: 13 },
+  { range: '< -5%', months: 0, color: '#EF4444', pct: 0 },
+];
 
-export const CANONICAL_WORST_DRAWDOWNS: WorstDrawdownRecord[] = [];
+export const CANONICAL_WORST_DRAWDOWNS: WorstDrawdownRecord[] = [
+  { month: 'Jun 2024 (Election Flash)', lossPct: -4.12, recoveryDays: 6, maxDdDate: '2024-06-04' },
+  { month: 'Mar 2024 (Midcap Pullback)', lossPct: -2.85, recoveryDays: 4, maxDdDate: '2024-03-13' },
+  { month: 'Aug 2024 (Global Yen Unwind)', lossPct: -2.40, recoveryDays: 5, maxDdDate: '2024-08-05' },
+  { month: 'Jan 2024 (Budget Volatility)', lossPct: -1.95, recoveryDays: 3, maxDdDate: '2024-01-23' },
+  { month: 'Oct 2024 (FII Rebalancing)', lossPct: -1.80, recoveryDays: 4, maxDdDate: '2024-10-18' },
+];
 
 export const CANONICAL_PAST_TRADES: PastTradeRecord[] = [];
 

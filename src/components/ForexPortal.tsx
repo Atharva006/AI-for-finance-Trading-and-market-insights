@@ -406,28 +406,38 @@ fixedRiskUSD   = input.float(100.0, "Fixed Risk per Trade ($)", step=10.0)
             <div className="p-space-sm rounded-lg bg-surface-container-low border border-border-subtle flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <span className="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Session Pipeline Telemetry</span>
-                <span className="font-mono-sm text-mono-sm text-secondary font-semibold">STATE: READY</span>
+                <span className="font-mono-sm text-mono-sm text-secondary font-semibold">
+                  STATE: {currentUtcHour >= 18 ? 'ASIA RANGE' : currentUtcHour < 6 ? 'LONDON ACTIVE' : currentUtcHour < 13 ? 'INTER-SESSION' : currentUtcHour < 22 ? 'NY ACTIVE' : 'HOLD'}
+                </span>
               </div>
               <div className="grid grid-cols-4 gap-1 text-[11px] font-mono">
-                <div className="p-1.5 rounded bg-surface-card border border-border-subtle text-center">
-                  <div className="text-text-muted text-[9px] uppercase font-bold">Phase 1</div>
-                  <div className="font-semibold text-on-surface truncate">Asia Range</div>
+                <div className={`p-1.5 rounded border text-center transition-all ${
+                  currentUtcHour >= 18 ? 'bg-amber-50 border-amber-300 text-amber-900 font-bold' : 'bg-surface-card border-border-subtle'
+                }`}>
+                  <div className={`text-[9px] uppercase font-bold ${currentUtcHour >= 18 ? 'text-amber-700' : 'text-text-muted'}`}>Phase 1</div>
+                  <div className="font-semibold truncate">Asia Range</div>
                   <div className="text-[9px] text-text-muted">18:00–00:00</div>
                 </div>
-                <div className="p-1.5 rounded bg-forex-tint border border-secondary text-center">
-                  <div className="text-secondary text-[9px] uppercase font-bold">Phase 2</div>
-                  <div className="font-semibold text-secondary truncate">London Sweep</div>
-                  <div className="text-[9px] text-secondary">00:00–06:00</div>
+                <div className={`p-1.5 rounded border text-center transition-all ${
+                  currentUtcHour >= 0 && currentUtcHour < 6 ? 'bg-forex-tint border-secondary text-secondary font-bold' : 'bg-surface-card border-border-subtle'
+                }`}>
+                  <div className={`text-[9px] uppercase font-bold ${currentUtcHour >= 0 && currentUtcHour < 6 ? 'text-secondary' : 'text-text-muted'}`}>Phase 2</div>
+                  <div className="font-semibold truncate">London Sweep</div>
+                  <div className="text-[9px] text-text-muted">00:00–06:00</div>
                 </div>
-                <div className="p-1.5 rounded bg-bullish-tint border border-bullish text-center">
-                  <div className="text-bullish text-[9px] uppercase font-bold">Phase 3</div>
-                  <div className="font-semibold text-bullish truncate">FVG Inversion</div>
-                  <div className="text-[9px] text-bullish">Limit Fill</div>
+                <div className={`p-1.5 rounded border text-center transition-all ${
+                  currentUtcHour >= 6 && currentUtcHour < 13 ? 'bg-bullish-tint border-bullish text-bullish font-bold' : 'bg-surface-card border-border-subtle'
+                }`}>
+                  <div className={`text-[9px] uppercase font-bold ${currentUtcHour >= 6 && currentUtcHour < 13 ? 'text-bullish' : 'text-text-muted'}`}>Phase 3</div>
+                  <div className="font-semibold truncate">FVG Inversion</div>
+                  <div className="text-[9px] text-text-muted">06:00–13:00</div>
                 </div>
-                <div className="p-1.5 rounded bg-surface-card border border-border-subtle text-center">
-                  <div className="text-text-muted text-[9px] uppercase font-bold">Phase 4</div>
-                  <div className="font-semibold text-on-surface truncate">1:2 R:R Exit</div>
-                  <div className="text-[9px] text-text-muted">Dynamic Sizing</div>
+                <div className={`p-1.5 rounded border text-center transition-all ${
+                  currentUtcHour >= 13 && currentUtcHour < 22 ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold' : 'bg-surface-card border-border-subtle'
+                }`}>
+                  <div className={`text-[9px] uppercase font-bold ${currentUtcHour >= 13 && currentUtcHour < 22 ? 'text-blue-700' : 'text-text-muted'}`}>Phase 4</div>
+                  <div className="font-semibold truncate">1:2 R:R Exit</div>
+                  <div className="text-[9px] text-text-muted">13:00–22:00</div>
                 </div>
               </div>
             </div>
@@ -629,20 +639,16 @@ fixedRiskUSD   = input.float(100.0, "Fixed Risk per Trade ($)", step=10.0)
 
             {/* Equity Curve & Trade Ledger */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-              <div className="lg:col-span-6 bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-sm">
-                <h3 className="font-title-md text-title-md text-on-surface font-semibold mb-3">
-                  Account Equity Growth (USD)
-                </h3>
+              <div className="lg:col-span-6">
                 <EquityLineChart
                   equityCurve={backtestResult.equityCurve}
                   initialCapital={accountCapitalUSD}
+                  currency={currencyMode}
+                  title={currencyMode === 'INR' ? 'Account Equity Growth (INR)' : 'Account Equity Growth (USD)'}
                 />
               </div>
 
-              <div className="lg:col-span-6 bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-sm">
-                <h3 className="font-title-md text-title-md text-on-surface font-semibold mb-3">
-                  Drawdown Recovery Matrix
-                </h3>
+              <div className="lg:col-span-6">
                 <QuantUnderwaterChart
                   trades={backtestResult.trades}
                   initialCapital={accountCapitalUSD}

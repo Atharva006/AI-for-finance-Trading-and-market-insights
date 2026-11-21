@@ -725,7 +725,7 @@ export const StrategyQuantAudit: React.FC<StrategyQuantAuditProps> = ({
                 fill="url(#underwaterGrad)"
               />
               <text x="260" y="105" fontSize="9" fontFamily="monospace" fill="#EF4444" textAnchor="middle" fontWeight="bold">
-                -4.12% (Election Dip)
+                {strategy.maxDrawdown}% (Peak Drawdown)
               </text>
             </svg>
 

@@ -9,6 +9,7 @@ interface EquityLineChartProps {
   subtitle?: string;
   strokeColor?: string;
   fillGradStart?: string;
+  currency?: 'USD' | 'INR' | string;
 }
 
 export const EquityLineChart: React.FC<EquityLineChartProps> = ({
@@ -18,6 +19,7 @@ export const EquityLineChart: React.FC<EquityLineChartProps> = ({
   subtitle,
   strokeColor = '#16A34A',
   fillGradStart = '#16A34A',
+  currency = 'INR',
 }) => {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
@@ -28,6 +30,10 @@ export const EquityLineChart: React.FC<EquityLineChartProps> = ({
       </div>
     );
   }
+
+  const isUSD = currency === 'USD';
+  const sym = isUSD ? '$' : '₹';
+  const locale = isUSD ? 'en-US' : 'en-IN';
 
   const values = equityCurve.map((e) => e.equity);
   const minVal = Math.min(...values);
@@ -71,13 +77,13 @@ export const EquityLineChart: React.FC<EquityLineChartProps> = ({
         <div className="flex items-center gap-4 text-xs font-mono">
           <div className="text-right">
             <span className="text-[10px] text-gray-400 block font-semibold uppercase">Initial Margin</span>
-            <span className="font-bold text-gray-700">₹{initialCapital.toLocaleString('en-IN')}</span>
+            <span className="font-bold text-gray-700">{sym}{initialCapital.toLocaleString(locale, { maximumFractionDigits: isUSD ? 2 : 0 })}</span>
           </div>
           <div className="text-right">
             <span className="text-[10px] text-gray-400 block font-semibold uppercase">Final Equity</span>
             <span className={`font-bold flex items-center justify-end gap-1 ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
               {isPositive ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
-              ₹{lastVal.toLocaleString('en-IN', { maximumFractionDigits: 0 })} ({isPositive ? '+' : ''}{netPct}%)
+              {sym}{lastVal.toLocaleString(locale, { maximumFractionDigits: isUSD ? 2 : 0 })} ({isPositive ? '+' : ''}{netPct}%)
             </span>
           </div>
         </div>
@@ -127,7 +133,7 @@ export const EquityLineChart: React.FC<EquityLineChartProps> = ({
                   fontFamily="monospace"
                   textAnchor="start"
                 >
-                  ₹{Math.round(val).toLocaleString('en-IN')}
+                  {sym}{Math.round(val).toLocaleString(locale)}
                 </text>
               </g>
             );
@@ -194,7 +200,7 @@ export const EquityLineChart: React.FC<EquityLineChartProps> = ({
           >
             <div className="text-[10px] text-text-muted font-semibold">{hoveredPoint.pt.time}</div>
             <div className="font-bold text-sm text-on-surface">
-              ₹{hoveredPoint.pt.equity.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+              {sym}{hoveredPoint.pt.equity.toLocaleString(locale, { maximumFractionDigits: 2 })}
             </div>
             <div className="text-[11px] flex items-center justify-between gap-3 pt-0.5">
               <span className="text-text-muted">Return:</span>
@@ -204,7 +210,7 @@ export const EquityLineChart: React.FC<EquityLineChartProps> = ({
               </span>
             </div>
             {hoveredPoint.pt.drawdownPct > 0 && (
-              <div className="text-[10px] text-rose-300">
+              <div className="text-[10px] text-rose-500 font-semibold">
                 Drawdown: -{hoveredPoint.pt.drawdownPct}%
               </div>
             )}

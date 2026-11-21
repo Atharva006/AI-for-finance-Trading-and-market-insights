@@ -539,14 +539,14 @@ export const DhanStrategyDetail: React.FC<DhanStrategyDetailProps> = ({
     if (!backtestResult?.equityCurve || backtestResult.equityCurve.length < 2) {
       return {
         line: 'M0,10 L60,10 L100,24 L140,10 L210,10 L240,48 L280,18 L320,10 L440,10 L480,68 L520,28 L560,10 L640,10 L670,22 L720,10',
-        area: 'M0,10 L60,10 L100,24 L140,10 L210,10 L240,48 L280,18 L320,10 L440,10 L480,68 L520,28 L560,10 L640,10 L670,22 L720,10 L720,10 Z',
+        area: 'M0,10 L60,10 L100,24 L140,10 L210,10 L240,48 L280,18 L320,10 L440,10 L480,68 L520,28 L560,10 L640,10 L670,22 L720,10 L720,10 L0,10 Z',
         maxDd: backtestResult?.metrics.maxDrawdownPct ?? 6.42,
       };
     }
     const curve = backtestResult.equityCurve;
     const maxDdVal = Math.max(0.1, ...curve.map((p) => p.drawdownPct));
     const points = curve.map((p, i) => {
-      const x = (i / (curve.length - 1)) * 720;
+      const x = (i / Math.max(1, curve.length - 1)) * 720;
       const y = 10 + (p.drawdownPct / maxDdVal) * 70;
       return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
     });
@@ -2055,10 +2055,6 @@ class NiftyAlphaV4(bt.Strategy):
                 <div className="bg-white rounded-xl border border-gray-200 p-3 overflow-hidden">
                   {candles.length > 0 ? (
                     <svg viewBox="0 0 800 240" className="w-full h-auto max-h-[260px] select-none cursor-crosshair">
-                      {[0.25, 0.5, 0.75].map((r) => (
-                        <line key={r} x1="0" y1={240 * r} x2="800" y2={240 * r} stroke="#F1F5F9" strokeDasharray="2 4" />
-                      ))}
-
                       {(() => {
                         const slice = candles.slice(-50);
                         let min = Math.min(...slice.map((c) => c.low));
@@ -2078,7 +2074,8 @@ class NiftyAlphaV4(bt.Strategy):
                         }
 
                         const range = max - min || 1;
-                        const w = 800 / slice.length;
+                        const chartW = 720;
+                        const w = chartW / slice.length;
 
                         // Build SMA line path
                         const smaPoints = isPsarStrategy
@@ -2095,6 +2092,20 @@ class NiftyAlphaV4(bt.Strategy):
 
                         return (
                           <>
+                            {/* Horizontal gridlines & Y-axis price labels */}
+                            {[0.1, 0.5, 0.9].map((r) => {
+                              const y = 220 - r * 200;
+                              const priceVal = min + r * range;
+                              return (
+                                <g key={r}>
+                                  <line x1="0" y1={y} x2={chartW} y2={y} stroke="#F1F5F9" strokeDasharray="3 3" />
+                                  <text x={chartW + 6} y={y + 3} fontSize="9" fill="#94A3B8" fontFamily="monospace">
+                                    ₹{Math.round(priceVal).toLocaleString('en-IN')}
+                                  </text>
+                                </g>
+                              );
+                            })}
+
                             {slice.map((c, i) => {
                               const x = i * w + w / 2;
                               const isGreen = c.close >= c.open;
@@ -2112,7 +2123,7 @@ class NiftyAlphaV4(bt.Strategy):
                               return (
                                 <g key={i}>
                                   <line x1={x} y1={highY} x2={x} y2={lowY} stroke={isGreen ? '#16A34A' : '#DC2626'} strokeWidth="1" />
-                                  <rect x={x - 4} y={topY} width="8" height={bodyH} fill={isGreen ? '#16A34A' : '#DC2626'} rx="1" />
+                                  <rect x={x - Math.max(2, w * 0.35)} y={topY} width={Math.max(3, w * 0.7)} height={bodyH} fill={isGreen ? '#16A34A' : '#DC2626'} rx="1" />
                                   {/* PSAR Dot */}
                                   {isPsarStrategy && psarY !== null && (
                                     <circle cx={x} cy={psarY} r="2.5" fill="#475569" opacity="0.85" />
