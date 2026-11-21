@@ -11,7 +11,8 @@ import {
 import { Trade } from '../types/backtest';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const DEFAULT_MODEL = 'openai/gpt-oss-120b';
+export const PROMPT_GUARD_MODEL = 'meta-llama/llama-prompt-guard-2-86m';
+const DEFAULT_GENERATION_MODEL = 'openai/gpt-oss-120b';
 
 export function getGroqApiKey(): string {
   const envKey = import.meta.env.VITE_GROQ_API_KEY;
@@ -21,6 +22,58 @@ export function getGroqApiKey(): string {
 
 export function setGroqApiKey(key: string): void {
   localStorage.setItem('arjuna_groq_api_key', key.trim());
+}
+
+export function getGroqModel(): string {
+  const envModel = import.meta.env.VITE_GROQ_MODEL;
+  const localModel = localStorage.getItem('arjuna_groq_model');
+  return (localModel || envModel || PROMPT_GUARD_MODEL).trim();
+}
+
+export function setGroqModel(model: string): void {
+  localStorage.setItem('arjuna_groq_model', model.trim());
+}
+
+/**
+ * Run input through Meta's Llama Prompt Guard 2 (86M) on Groq
+ * Evaluates prompt injection, jailbreak attempts, and security risk.
+ * Returns risk score (0.00 to 1.00) and whether the input is safe (< 0.50).
+ */
+export async function groqCheckPromptGuard(
+  prompt: string
+): Promise<{ score: number; isSafe: boolean; raw: string }> {
+  const apiKey = getGroqApiKey();
+  if (!apiKey) {
+    return { score: 0, isSafe: true, raw: '0.0' };
+  }
+
+  try {
+    const response = await fetch(GROQ_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: PROMPT_GUARD_MODEL,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn('Groq Prompt Guard call returned status:', response.status);
+      return { score: 0, isSafe: true, raw: '0.0' };
+    }
+
+    const data = await response.json();
+    const rawContent = data?.choices?.[0]?.message?.content || '0.0';
+    const parsedScore = parseFloat(rawContent.trim());
+    const score = isNaN(parsedScore) ? 0 : parsedScore;
+    return { score, isSafe: score < 0.5, raw: rawContent };
+  } catch (err) {
+    console.warn('Groq Prompt Guard check error:', err);
+    return { score: 0, isSafe: true, raw: '0.0' };
+  }
 }
 
 /**
@@ -36,7 +89,14 @@ async function callGroqChat(
     throw new Error('Groq API Key not configured. Please provide a valid key.');
   }
 
-  const candidateModels = [DEFAULT_MODEL, 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
+  const configuredModel = getGroqModel();
+  
+  // If the configured model is Prompt Guard, use it directly for scoring requests,
+  // or fall through to high-speed LPU reasoning models for rich analytical completions
+  const candidateModels = configuredModel === PROMPT_GUARD_MODEL
+    ? [PROMPT_GUARD_MODEL, DEFAULT_GENERATION_MODEL, 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b']
+    : [configuredModel, DEFAULT_GENERATION_MODEL, 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
+    
   let lastError: any = null;
 
   for (const model of candidateModels) {
@@ -52,7 +112,7 @@ async function callGroqChat(
           messages,
           max_tokens: maxTokens,
           temperature: 0.2,
-          ...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
+          ...(jsonMode && model !== PROMPT_GUARD_MODEL ? { response_format: { type: 'json_object' } } : {}),
         }),
       });
 
