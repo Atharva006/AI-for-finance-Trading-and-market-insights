@@ -269,68 +269,75 @@ export const BasketPortfolioStudio: React.FC = () => {
         className="hidden"
       />
 
-      {/* Basket Manager Top Header */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#0A0A0D] flex items-center justify-center text-white shadow-sm">
-              <Briefcase className="w-5 h-5 text-emerald-400" />
+      {/* Basket Manager Top Header (Stitch Screen 5) */}
+      <section className="bg-surface-card rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md border border-border-subtle">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md pb-space-sm border-b border-border-subtle">
+          <div className="flex flex-col gap-space-xs">
+            <span className="font-label-sm text-label-sm uppercase text-text-muted">01 / BASKET MANAGER</span>
+            <div className="flex items-center gap-space-sm">
+              <h2 className="font-headline-sm text-headline-sm text-on-surface">Multi-Asset Portfolio Allocation Studio</h2>
+              <span className="inline-flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-bullish-tint text-bullish font-mono-sm text-mono-sm font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-bullish"></span>
+                ACTIVE BASKET
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono">
-                  Multi-Asset Portfolio Basket
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  Combined Equity & RPT Engine
-                </span>
-              </div>
-              {/* Editable Basket Name */}
-              <input
-                type="text"
-                value={currentBasket.name}
-                onChange={(e) => handleNameChange(e.target.value)}
-                placeholder="Enter Basket Name..."
-                className="text-xl sm:text-2xl font-extrabold text-[#0A0A0D] tracking-tight bg-transparent border-b border-transparent hover:border-gray-300 focus:border-black focus:outline-none transition-all w-full max-w-xl"
-              />
-            </div>
+            {/* Editable Basket Name */}
+            <input
+              type="text"
+              value={currentBasket.name}
+              onChange={(e) => handleNameChange(e.target.value)}
+              placeholder="Enter Basket Name..."
+              className="text-lg font-bold text-on-surface tracking-tight bg-transparent border-b border-transparent hover:border-border-subtle focus:border-primary focus:outline-none transition-all w-full max-w-xl"
+            />
           </div>
 
           {/* Action Buttons: Save, Upload JSON, Export JSON, Run */}
-          <div className="flex flex-wrap items-center gap-2">
+          {/* Action Buttons: New, Import JSON, Export JSON, Run */}
+          <div className="flex flex-wrap items-center gap-space-sm">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="inline-flex items-center gap-space-xs px-space-sm py-space-sm rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container font-label-md text-label-md transition-colors cursor-pointer"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[16px]">add_box</span>
+              <span>Add Constituent</span>
+            </button>
+
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
-              title="Upload Basket JSON"
+              className="inline-flex items-center gap-space-xs px-space-sm py-space-sm rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container font-label-md text-label-md transition-colors cursor-pointer"
+              type="button"
             >
-              <Upload className="w-3.5 h-3.5 text-blue-600" />
-              <span>Upload Basket</span>
+              <span className="material-symbols-outlined text-[16px]">upload_file</span>
+              <span>Import JSON</span>
             </button>
 
             <button
               onClick={handleExportJson}
-              className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
-              title="Export Current Basket as JSON"
+              className="inline-flex items-center gap-space-xs px-space-sm py-space-sm rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container font-label-md text-label-md transition-colors cursor-pointer"
+              type="button"
             >
-              <Download className="w-3.5 h-3.5 text-gray-600" />
+              <span className="material-symbols-outlined text-[16px]">download</span>
               <span>Export JSON</span>
             </button>
 
             <button
               onClick={handleSaveBasket}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-[#0A0A0D] rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
+              className="inline-flex items-center gap-space-xs px-space-sm py-space-sm rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container font-label-md text-label-md transition-colors cursor-pointer"
+              type="button"
             >
-              <Save className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="material-symbols-outlined text-[16px]">save</span>
               <span>Save Basket</span>
             </button>
 
             <button
               onClick={() => executeBasketBacktest()}
               disabled={isRunning}
-              className="flex items-center gap-2 px-5 py-2 bg-[#0A0A0D] hover:bg-neutral-800 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50"
+              className="inline-flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors cursor-pointer disabled:opacity-50"
+              type="button"
             >
-              <Play className="w-3.5 h-3.5 fill-white" />
-              <span>{isRunning ? 'Calculating Basket...' : 'Run Basket Backtest'}</span>
+              <span className="material-symbols-outlined text-[16px]">{isRunning ? 'refresh' : 'play_arrow'}</span>
+              <span>{isRunning ? 'Calculating...' : 'Run Basket Backtest'}</span>
             </button>
           </div>
         </div>
@@ -338,17 +345,17 @@ export const BasketPortfolioStudio: React.FC = () => {
         {/* Saved Baskets Quick Switcher & Portfolio Capital */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider shrink-0 font-mono">
-              Baskets:
+            <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider shrink-0 font-mono">
+              Saved Baskets:
             </span>
             {baskets.map((b) => (
               <button
                 key={b.id}
                 onClick={() => handleSelectBasket(b)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${
                   currentBasket.id === b.id
-                    ? 'bg-[#0A0A0D] text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-600 hover:text-black hover:bg-gray-200'
+                    ? 'bg-primary text-on-primary shadow-xs'
+                    : 'bg-surface-container-low text-text-secondary hover:text-on-surface'
                 }`}
               >
                 {b.name}
@@ -357,28 +364,20 @@ export const BasketPortfolioStudio: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-xl text-xs font-mono">
-              <span className="text-gray-500 font-semibold">Portfolio Capital:</span>
-              <span className="font-bold text-[#0A0A0D]">₹</span>
+            <div className="flex items-center gap-2 bg-surface-container-low border border-border-subtle px-3 py-1.5 rounded-lg text-xs font-mono">
+              <span className="text-text-muted font-semibold">Portfolio Capital:</span>
+              <span className="font-bold text-on-surface">₹</span>
               <input
                 type="number"
                 step="10000"
                 value={currentBasket.initialCapital}
                 onChange={(e) => handleCapitalChange(Number(e.target.value) || 100000)}
-                className="w-24 bg-transparent font-bold text-[#0A0A0D] focus:outline-none"
+                className="w-24 bg-transparent font-bold text-on-surface focus:outline-none"
               />
             </div>
-
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Stock & System</span>
-            </button>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Progress Bar when running */}
       {isRunning && (

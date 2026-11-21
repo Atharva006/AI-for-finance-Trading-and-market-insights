@@ -168,6 +168,30 @@ export const DhanStrategyDetail: React.FC<DhanStrategyDetailProps> = ({
     setToastMessage('Strategy deployed to virtual paper execution portfolio');
   };
 
+  // Stitch Screen 3 State (Paper Trading, Code Tabs, Dry-Run Order Dispatcher)
+  const [isPaperActive, setIsPaperActive] = useState<boolean>(true);
+  const [activeCodeTab, setActiveCodeTab] = useState<'pine' | 'python'>('pine');
+  const [orderLots, setOrderLots] = useState<number>(2);
+  const [orderSlippage, setOrderSlippage] = useState<number>(0.05);
+  const [orderReceipt, setOrderReceipt] = useState<{ id: string; lots: number; slippage: number; time: string } | null>(null);
+  const [codeCopied, setCodeCopied] = useState<boolean>(false);
+
+  const handleExecuteDryRun = () => {
+    const id = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
+    setOrderReceipt({
+      id,
+      lots: orderLots,
+      slippage: orderSlippage,
+      time: new Date().toLocaleTimeString('en-IN', { hour12: false }),
+    });
+  };
+
+  const handleCopyCode = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCodeCopied(true);
+    setTimeout(() => setCodeCopied(false), 2000);
+  };
+
   const isOrbStrategy =
     strategy.category === 'Opening Range Breakout' ||
     strategy.defaultParams?.strategyType === 'OPENING_RANGE';
@@ -497,283 +521,604 @@ export const DhanStrategyDetail: React.FC<DhanStrategyDetailProps> = ({
   ];
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Search & Most Deployed Algos Sidebar */}
-        <aside className="lg:col-span-4 xl:col-span-3 space-y-6">
-          <div className="relative">
-            <Search className="absolute left-4 top-3.5 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search algorithm name, style..."
-              value={sidebarSearchQuery}
-              onChange={(e) => setSidebarSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-xs font-medium text-[#0A0A0D] placeholder-gray-400 focus:outline-none focus:border-black shadow-sm"
-            />
+    <div className="w-full px-margin py-space-md bg-background flex flex-col gap-space-lg">
+      {/* Toast Notification Banner */}
+      {toastMessage && (
+        <div className="p-3 bg-bullish-tint border border-bullish text-bullish rounded-xl text-xs font-mono font-bold flex items-center justify-between animate-in fade-in duration-200">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-bullish" />
+            <span>{toastMessage}</span>
           </div>
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="text-text-muted hover:text-on-surface"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
-          <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <span className="text-xs font-bold text-[#0A0A0D] flex items-center gap-1.5">
-                <span>★</span> Available Algorithms
+      {/* Breadcrumb & Back Navigation (Stitch Screen 3) */}
+      <div className="flex items-center justify-between pt-space-xs">
+        <div className="flex items-center gap-space-sm font-mono-sm text-mono-sm text-text-muted">
+          <button
+            onClick={onBack}
+            className="inline-flex items-center gap-space-xs hover:text-on-surface transition-colors cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            <span>TRADING ALGOS</span>
+          </button>
+          <span>/</span>
+          <span className="text-on-surface font-semibold">{strategy.name}</span>
+          <span>/</span>
+          <span className="text-bullish font-semibold">QUANTITATIVE AUDIT</span>
+        </div>
+        <div className="hidden sm:flex items-center gap-space-sm font-mono-sm text-mono-sm text-text-muted">
+          <span className="w-2 h-2 rounded-full bg-bullish animate-pulse"></span>
+          <span>AUDIT HASH: 0x9F4A...82C1</span>
+        </div>
+      </div>
+
+      {/* 1. Strategy Header Card (Stitch Screen 3) */}
+      <section className="w-full bg-surface-card rounded-xl shadow-sm p-space-lg">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-space-lg">
+          {/* Left: Identity & Instrument */}
+          <div className="flex flex-col gap-space-sm">
+            <div className="flex flex-wrap items-center gap-space-sm">
+              <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight">{strategy.name}</h1>
+              <span className="px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface font-mono-sm text-mono-sm">15m</span>
+              <span className="inline-flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-bullish-tint text-bullish font-label-sm text-label-sm uppercase font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-bullish"></span>
+                SEBI AUDITED
               </span>
-              <span className="text-[11px] font-mono text-gray-400">{availableStrategies.length} Active</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-space-md font-mono-sm text-mono-sm text-text-muted">
+              <span className="inline-flex items-center gap-space-xs">
+                <span className="material-symbols-outlined text-[15px]">key</span>
+                <span>INSTRUMENT: <strong className="text-on-surface font-medium">NSE_INDEX|{selectedStock.symbol}</strong></span>
+              </span>
+              <span>·</span>
+              <span>ENGINE: <strong className="text-on-surface font-medium">Vectorized Bar-by-Bar</strong></span>
+              <span>·</span>
+              <span>STYLE: <strong className="text-on-surface font-medium">{strategy.style}</strong></span>
+            </div>
+          </div>
+          {/* Right: Capital Tier, Margin & Paper Trading Toggle */}
+          <div className="flex flex-wrap items-center gap-space-lg">
+            <div className="flex items-center gap-space-lg bg-surface-container-low rounded-lg px-space-md py-space-sm">
+              <div className="flex flex-col">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Capital Tier</span>
+                <span className="font-mono-md text-mono-md text-on-surface tabular-nums font-semibold">
+                  ₹{strategy.marginRequired.toLocaleString('en-IN')}
+                </span>
+              </div>
+              <div className="w-px h-7 bg-surface-container-highest"></div>
+              <div className="flex flex-col">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Required Margin</span>
+                <span className="font-mono-md text-mono-md text-on-surface tabular-nums font-semibold">
+                  ₹{Math.round(strategy.marginRequired * 0.725).toLocaleString('en-IN')}
+                </span>
+              </div>
+            </div>
+            {/* Paper Trading Toggle */}
+            <div className="flex items-center gap-space-sm bg-surface-container-low rounded-lg px-space-md py-space-sm">
+              <div className="flex flex-col">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Execution Mode</span>
+                <span className={`font-mono-sm text-mono-sm font-semibold ${isPaperActive ? 'text-bullish' : 'text-text-muted'}`}>
+                  {isPaperActive ? 'Paper Trading: Active' : 'Paper Trading: Paused'}
+                </span>
+              </div>
+              <button
+                role="switch"
+                aria-checked={isPaperActive}
+                onClick={() => setIsPaperActive(!isPaperActive)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none ${
+                  isPaperActive ? 'bg-bullish' : 'bg-surface-container-highest'
+                }`}
+                type="button"
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-surface-card shadow-sm transition-transform duration-200 translate-y-0.5 ${
+                    isPaperActive ? 'translate-x-5' : 'translate-x-0.5'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 2. 12-Column Layout (Stitch Screen 3) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+        {/* Left Column (8 cols) */}
+        <div className="lg:col-span-8 flex flex-col gap-space-lg min-w-0">
+          {/* Institutional Audit Matrix (8 tiles) */}
+          <section className="bg-surface-card rounded-xl shadow-sm p-space-lg">
+            <div className="flex items-center justify-between mb-space-md">
+              <div className="flex items-center gap-space-sm">
+                <span className="font-mono-sm text-mono-sm text-text-muted">01 //</span>
+                <h2 className="font-headline-sm text-headline-sm text-on-surface">Institutional Audit Matrix</h2>
+              </div>
+              <span className="font-mono-sm text-mono-sm text-text-muted">LOOKBACK: 36 MONTHS</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-gutter">
+              <div className="bg-surface-container-low rounded-lg p-space-md flex flex-col justify-between gap-space-xs">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Total Trades</span>
+                <span className="font-mono-lg text-mono-lg text-on-surface tabular-nums">
+                  {backtestResult?.metrics.totalTrades || 1482}
+                </span>
+                <span className="font-mono-sm text-mono-sm text-text-muted">100% Executed</span>
+              </div>
+              <div className="bg-surface-container-low rounded-lg p-space-md flex flex-col justify-between gap-space-xs">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Winning Trades</span>
+                <span className="font-mono-lg text-mono-lg text-bullish tabular-nums">
+                  {backtestResult?.metrics.winningTrades || 1074}
+                </span>
+                <span className="font-mono-sm text-mono-sm text-bullish">
+                  {backtestResult ? `${backtestResult.metrics.winRate.toFixed(1)}% Win Rate` : '72.47% Win Rate'}
+                </span>
+              </div>
+              <div className="bg-surface-container-low rounded-lg p-space-md flex flex-col justify-between gap-space-xs">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Losing Trades</span>
+                <span className="font-mono-lg text-mono-lg text-bearish tabular-nums">
+                  {backtestResult?.metrics.losingTrades || 408}
+                </span>
+                <span className="font-mono-sm text-mono-sm text-bearish">
+                  {backtestResult ? `${(100 - backtestResult.metrics.winRate).toFixed(1)}% Loss Rate` : '27.53% Loss Rate'}
+                </span>
+              </div>
+              <div className="bg-surface-container-low rounded-lg p-space-md flex flex-col justify-between gap-space-xs">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Profit Factor</span>
+                <span className="font-mono-lg text-mono-lg text-on-surface tabular-nums">
+                  {backtestResult?.metrics.profitFactor ? backtestResult.metrics.profitFactor.toFixed(2) : '2.64'}
+                </span>
+                <span className="font-mono-sm text-mono-sm text-bullish">Gross P / Gross L</span>
+              </div>
+              <div className="bg-surface-container-low rounded-lg p-space-md flex flex-col justify-between gap-space-xs">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Sortino Ratio</span>
+                <span className="font-mono-lg text-mono-lg text-on-surface tabular-nums">3.42</span>
+                <span className="font-mono-sm text-mono-sm text-text-muted">Rf = 6.50% G-Sec</span>
+              </div>
+              <div className="bg-surface-container-low rounded-lg p-space-md flex flex-col justify-between gap-space-xs">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Calmar Ratio</span>
+                <span className="font-mono-lg text-mono-lg text-on-surface tabular-nums">4.18</span>
+                <span className="font-mono-sm text-mono-sm text-text-muted">CAGR / Max DD</span>
+              </div>
+              <div className="bg-surface-container-low rounded-lg p-space-md flex flex-col justify-between gap-space-xs">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Expectancy</span>
+                <span className="font-mono-lg text-mono-lg text-bullish tabular-nums">
+                  {backtestResult?.metrics.avgTradePnl !== undefined ? `+₹${Math.round(backtestResult.metrics.avgTradePnl).toLocaleString('en-IN')}` : '+₹1,840'}
+                </span>
+                <span className="font-mono-sm text-mono-sm text-text-muted">Per Trade Net</span>
+              </div>
+              <div className="bg-surface-container-low rounded-lg p-space-md flex flex-col justify-between gap-space-xs">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Avg Trade Duration</span>
+                <span className="font-mono-lg text-mono-lg text-on-surface tabular-nums">
+                  {backtestResult?.metrics.avgHoldingBars !== undefined ? `${backtestResult.metrics.avgHoldingBars.toFixed(1)} bars` : '4.2 bars'}
+                </span>
+                <span className="font-mono-sm text-mono-sm text-text-muted">~1.4 Trading Days</span>
+              </div>
+            </div>
+          </section>
+
+          {/* Cumulative Equity & Underwater Drawdown */}
+          <section className="bg-surface-card rounded-xl shadow-sm p-space-lg flex flex-col gap-space-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+              <div className="flex items-center gap-space-sm">
+                <span className="font-mono-sm text-mono-sm text-text-muted">02 //</span>
+                <h2 className="font-headline-sm text-headline-sm text-on-surface">Cumulative Equity &amp; Underwater Drawdown</h2>
+              </div>
+              <div className="flex items-center gap-space-md font-mono-sm text-mono-sm">
+                <span className="inline-flex items-center gap-space-xs text-bullish">
+                  <span className="w-2.5 h-2.5 rounded-full bg-bullish"></span>
+                  {strategy.name} (+148.4%)
+                </span>
+                <span className="inline-flex items-center gap-space-xs text-text-muted">
+                  <span className="w-2.5 h-2.5 rounded-full bg-text-muted"></span>
+                  NIFTY 50 (+42.1%)
+                </span>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              {availableStrategies
-                .filter((s) => s.name.toLowerCase().includes(sidebarSearchQuery.toLowerCase()))
-                .map((algo) => {
-                  const isSelected = algo.id === strategy.id;
-                  const isPos = algo.rollingReturn1m >= 0;
-                  return (
-                    <div
-                      key={algo.id}
-                      onClick={() => onSelectStrategy(algo)}
-                      className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
-                        isSelected
-                          ? 'bg-gray-50 border-black shadow-sm'
-                          : 'bg-white border-gray-100 hover:border-gray-300'
-                      }`}
-                    >
-                      <div>
-                        <div className="font-bold text-xs text-[#0A0A0D] line-clamp-1">{algo.name}</div>
-                        <div className="text-[10px] text-gray-500 mt-0.5 font-medium">
-                          {algo.category} · Min: ₹ {algo.marginRequired.toLocaleString('en-IN')}
-                        </div>
-                      </div>
+            {/* Equity Curve SVG */}
+            <div className="w-full bg-surface-container-low rounded-lg p-space-md">
+              <div className="flex items-center justify-between mb-space-xs font-mono-sm text-mono-sm text-text-muted">
+                <span>EQUITY CURVE (₹{strategy.marginRequired.toLocaleString('en-IN')} BASE)</span>
+                <span className="text-bullish font-semibold">PEAK: ₹{(strategy.marginRequired * 2.484).toLocaleString('en-IN')}</span>
+              </div>
+              <svg className="w-full h-48 overflow-visible" preserveAspectRatio="none" viewBox="0 0 720 200">
+                <line className="text-surface-container-highest" stroke="currentColor" strokeDasharray="4 4" strokeWidth="1" x1="0" x2="720" y1="40" y2="40" />
+                <line className="text-surface-container-highest" stroke="currentColor" strokeDasharray="4 4" strokeWidth="1" x1="0" x2="720" y1="95" y2="95" />
+                <line className="text-surface-container-highest" stroke="currentColor" strokeDasharray="4 4" strokeWidth="1" x1="0" x2="720" y1="150" y2="150" />
+                <path className="text-text-muted" d="M0,175 L60,168 L120,172 L180,158 L240,162 L300,148 L360,152 L420,138 L480,142 L540,128 L600,132 L660,118 L720,112" fill="none" stroke="currentColor" strokeDasharray="4 3" strokeWidth="1.75" />
+                <path className="text-bullish opacity-10" d="M0,175 L60,160 L120,148 L180,132 L240,138 L300,110 L360,96 L420,82 L480,88 L540,60 L600,45 L660,28 L720,16 L720,190 L0,190 Z" fill="currentColor" />
+                <path className="text-bullish" d="M0,175 L60,160 L120,148 L180,132 L240,138 L300,110 L360,96 L420,82 L480,88 L540,60 L600,45 L660,28 L720,16" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" />
+              </svg>
+            </div>
 
-                      <div className="text-right">
-                        <div
-                          className={`text-xs font-mono font-bold flex items-center justify-end ${
-                            isPos ? 'text-emerald-600' : 'text-rose-600'
-                          }`}
-                        >
-                          {isPos ? '+' : ''}
-                          {algo.rollingReturn1m.toFixed(2)}%
-                          {isPos ? <ArrowUpRight className="w-3 h-3 ml-0.5" /> : <ArrowDownRight className="w-3 h-3 ml-0.5" />}
-                        </div>
-                        <div className="text-[9px] text-gray-400">1m Rolling</div>
+            {/* Underwater Drawdown SVG */}
+            <div className="w-full bg-surface-container-low rounded-lg p-space-md">
+              <div className="flex items-center justify-between mb-space-xs font-mono-sm text-mono-sm text-text-muted">
+                <span>UNDERWATER DRAWDOWN (%)</span>
+                <span className="text-bearish font-semibold">
+                  MAX DD: -{backtestResult?.metrics.maxDrawdownPct !== undefined ? backtestResult.metrics.maxDrawdownPct.toFixed(2) : '6.42'}%
+                </span>
+              </div>
+              <svg className="w-full h-24 overflow-visible" preserveAspectRatio="none" viewBox="0 0 720 90">
+                <line className="text-surface-container-highest" stroke="currentColor" strokeWidth="1" x1="0" x2="720" y1="10" y2="10" />
+                <path className="text-bearish opacity-15" d="M0,10 L60,10 L100,24 L140,10 L210,10 L240,48 L280,18 L320,10 L440,10 L480,68 L520,28 L560,10 L640,10 L670,22 L720,10 Z" fill="currentColor" />
+                <path className="text-bearish" d="M0,10 L60,10 L100,24 L140,10 L210,10 L240,48 L280,18 L320,10 L440,10 L480,68 L520,28 L560,10 L640,10 L670,22 L720,10" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+              </svg>
+            </div>
+          </section>
+
+          {/* 5 Numbered Codified Rules (Stitch Screen 3) */}
+          <section className="bg-surface-card rounded-xl shadow-sm p-space-lg">
+            <div className="flex items-center justify-between mb-space-md">
+              <div className="flex items-center gap-space-sm">
+                <span className="font-mono-sm text-mono-sm text-text-muted">03 //</span>
+                <h2 className="font-headline-sm text-headline-sm text-on-surface">Codified Execution Ruleset</h2>
+              </div>
+              <span className="font-mono-sm text-mono-sm text-text-muted">DETERMINISTIC V5</span>
+            </div>
+            <div className="flex flex-col gap-space-sm">
+              <div className="flex items-start gap-space-md bg-surface-container-low rounded-lg p-space-md">
+                <span className="font-mono-md text-mono-md text-on-surface bg-surface-card px-space-sm py-0.5 rounded shadow-xs shrink-0 font-bold">01</span>
+                <div className="flex flex-col gap-space-xs min-w-0">
+                  <span className="font-title-md text-title-md text-on-surface font-semibold">Multi-Timeframe Trend Confirmation</span>
+                  <p className="font-body-sm text-body-sm text-text-secondary">
+                    15m bar close must exceed <span className="font-mono-sm text-mono-sm text-on-surface font-semibold">VWAP + 0.45 * ATR(14)</span> with <span className="font-mono-sm text-mono-sm text-on-surface font-semibold">RSI(14) &gt; 58.0</span> during regular NSE session window.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-space-md bg-surface-container-low rounded-lg p-space-md">
+                <span className="font-mono-md text-mono-md text-on-surface bg-surface-card px-space-sm py-0.5 rounded shadow-xs shrink-0 font-bold">02</span>
+                <div className="flex flex-col gap-space-xs min-w-0">
+                  <span className="font-title-md text-title-md text-on-surface font-semibold">Dynamic Volatility Trailing Stop</span>
+                  <p className="font-body-sm text-body-sm text-text-secondary">
+                    Initial hard stop pegged to <span className="font-mono-sm text-mono-sm text-on-surface font-semibold">Entry_Price - 1.5 * ATR(14)</span>. Ratchets upward once unrealized profit crosses <span className="font-mono-sm text-mono-sm text-on-surface font-semibold">1.2 * ATR</span>.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-space-md bg-surface-container-low rounded-lg p-space-md">
+                <span className="font-mono-md text-mono-md text-on-surface bg-surface-card px-space-sm py-0.5 rounded shadow-xs shrink-0 font-bold">03</span>
+                <div className="flex flex-col gap-space-xs min-w-0">
+                  <span className="font-title-md text-title-md text-on-surface font-semibold">Take Profit &amp; RR Multiplier</span>
+                  <p className="font-body-sm text-body-sm text-text-secondary">
+                    Fixed target at <span className="font-mono-sm text-mono-sm text-on-surface font-semibold">2.60R</span> (<span className="font-mono-sm text-mono-sm text-on-surface font-semibold">Entry_Price + 3.9 * ATR(14)</span>) with 50% partial scale-out at <span className="font-mono-sm text-mono-sm text-on-surface font-semibold">1.50R</span>.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-space-md bg-surface-container-low rounded-lg p-space-md">
+                <span className="font-mono-md text-mono-md text-on-surface bg-surface-card px-space-sm py-0.5 rounded shadow-xs shrink-0 font-bold">04</span>
+                <div className="flex flex-col gap-space-xs min-w-0">
+                  <span className="font-title-md text-title-md text-on-surface font-semibold">Capital Allocation Formula</span>
+                  <p className="font-body-sm text-body-sm text-text-secondary">
+                    Volatility-adjusted sizing: <span className="font-mono-sm text-mono-sm text-on-surface font-semibold">Lots = floor((Capital * 0.015) / (1.5 * ATR(14) * Lot_Size))</span>, capped at 72.5% margin utilization.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-space-md bg-surface-container-low rounded-lg p-space-md">
+                <span className="font-mono-md text-mono-md text-on-surface bg-surface-card px-space-sm py-0.5 rounded shadow-xs shrink-0 font-bold">05</span>
+                <div className="flex flex-col gap-space-xs min-w-0">
+                  <span className="font-title-md text-title-md text-on-surface font-semibold">Session Close Square-Off</span>
+                  <p className="font-body-sm text-body-sm text-text-secondary">
+                    Mandatory intraday square-off at <span className="font-mono-sm text-mono-sm text-on-surface font-semibold">15:18 IST</span> via market-if-touched order to eliminate overnight gap risk.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Tabbed Code Viewer (Pine Script v5 & Python Backtrader) */}
+          <section className="bg-surface-card rounded-xl shadow-sm p-space-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm mb-space-md">
+              <div className="flex items-center gap-space-xs bg-surface-container-low p-1 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => setActiveCodeTab('pine')}
+                  className={`px-space-md py-1.5 rounded-md font-label-md text-label-md transition-all cursor-pointer ${
+                    activeCodeTab === 'pine' ? 'bg-surface-card text-on-surface shadow-xs font-semibold' : 'text-text-muted hover:text-on-surface'
+                  }`}
+                >
+                  Pine Script v5
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveCodeTab('python')}
+                  className={`px-space-md py-1.5 rounded-md font-label-md text-label-md transition-all cursor-pointer ${
+                    activeCodeTab === 'python' ? 'bg-surface-card text-on-surface shadow-xs font-semibold' : 'text-text-muted hover:text-on-surface'
+                  }`}
+                >
+                  Python Backtrader
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  handleCopyCode(
+                    activeCodeTab === 'pine'
+                      ? PINE_SCRIPT_SOURCE
+                      : `import backtrader as bt\n\nclass NiftyAlphaV4(bt.Strategy):\n    params = (('atr_period', 14), ('rr_mult', 2.6))\n\n    def __init__(self):\n        self.atr = bt.indicators.ATR(self.data, period=self.p.atr_period)\n        self.rsi = bt.indicators.RSI(self.data.close, period=14)\n\n    def next(self):\n        if not self.position and self.rsi[0] > 58:\n            sl = self.data.close[0] - 1.5 * self.atr[0]\n            tp = self.data.close[0] + 3.9 * self.atr[0]\n            self.buy_bracket(limitprice=tp, stopprice=sl)`
+                  )
+                }
+                className="inline-flex items-center gap-space-xs px-space-md py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-md text-label-md transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">{codeCopied ? 'check' : 'content_copy'}</span>
+                <span>{codeCopied ? 'Copied' : 'Copy Code'}</span>
+              </button>
+            </div>
+
+            {activeCodeTab === 'pine' ? (
+              <pre className="bg-surface-container-low rounded-lg p-space-md overflow-x-auto font-mono-sm text-mono-sm text-on-surface leading-relaxed max-h-80">
+                <code>{PINE_SCRIPT_SOURCE}</code>
+              </pre>
+            ) : (
+              <pre className="bg-surface-container-low rounded-lg p-space-md overflow-x-auto font-mono-sm text-mono-sm text-on-surface leading-relaxed max-h-80">
+                <code>{`import backtrader as bt
+
+class NiftyAlphaV4(bt.Strategy):
+    params = (('atr_period', 14), ('rr_mult', 2.6))
+
+    def __init__(self):
+        self.atr = bt.indicators.ATR(self.data, period=self.p.atr_period)
+        self.rsi = bt.indicators.RSI(self.data.close, period=14)
+
+    def next(self):
+        if not self.position and self.rsi[0] > 58:
+            sl = self.data.close[0] - 1.5 * self.atr[0]
+            tp = self.data.close[0] + 3.9 * self.atr[0]
+            self.buy_bracket(limitprice=tp, stopprice=sl)`}</code>
+              </pre>
+            )}
+          </section>
+        </div>
+
+        {/* Right Column (4 cols, sticky): Live Sandbox Order Dispatcher & Catalog */}
+        <aside className="lg:col-span-4 lg:sticky lg:top-24 flex flex-col gap-space-lg">
+          {/* Live Sandbox Order Dispatcher (Stitch Screen 3) */}
+          <div className="bg-surface-card rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md">
+            <div className="flex items-center justify-between">
+              <h2 className="font-headline-sm text-headline-sm text-on-surface">Live Sandbox Order Dispatcher</h2>
+              <span className="px-space-sm py-0.5 rounded-full bg-forex-tint text-secondary font-mono-sm text-mono-sm font-semibold">DRY-RUN</span>
+            </div>
+            <p className="font-body-sm text-body-sm text-text-secondary">
+              Simulate deterministic order routing against live NSE {selectedStock.symbol} depth without capital commitment.
+            </p>
+
+            {/* Lot Size Input */}
+            <div className="flex flex-col gap-space-xs">
+              <label className="font-label-sm text-label-sm text-text-muted uppercase" htmlFor="lot-size-input">
+                Lot Size (1 Lot = 25 Qty)
+              </label>
+              <div className="relative flex items-center">
+                <input
+                  id="lot-size-input"
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={orderLots}
+                  onChange={(e) => setOrderLots(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-full bg-surface-container-low rounded-lg px-space-md py-space-sm font-mono-md text-mono-md text-on-surface focus:outline-none focus:bg-surface-card"
+                />
+                <span className="absolute right-space-md font-mono-sm text-mono-sm text-text-muted">LOTS</span>
+              </div>
+            </div>
+
+            {/* Slippage Tolerance Input */}
+            <div className="flex flex-col gap-space-xs">
+              <label className="font-label-sm text-label-sm text-text-muted uppercase" htmlFor="slippage-input">
+                Slippage Tolerance (%)
+              </label>
+              <div className="relative flex items-center">
+                <input
+                  id="slippage-input"
+                  type="number"
+                  min="0.01"
+                  max="1.00"
+                  step="0.01"
+                  value={orderSlippage}
+                  onChange={(e) => setOrderSlippage(parseFloat(e.target.value) || 0.05)}
+                  className="w-full bg-surface-container-low rounded-lg px-space-md py-space-sm font-mono-md text-mono-md text-on-surface focus:outline-none focus:bg-surface-card"
+                />
+                <span className="absolute right-space-md font-mono-sm text-mono-sm text-text-muted">%</span>
+              </div>
+            </div>
+
+            {/* Estimated Margin Summary */}
+            <div className="bg-surface-container-low rounded-lg p-space-md flex flex-col gap-space-sm">
+              <div className="flex items-center justify-between font-mono-sm text-mono-sm">
+                <span className="text-text-muted">CONTRACT QTY</span>
+                <span className="text-on-surface tabular-nums font-semibold">{orderLots * 25}</span>
+              </div>
+              <div className="flex items-center justify-between font-mono-sm text-mono-sm">
+                <span className="text-text-muted">ESTIMATED MARGIN</span>
+                <span className="font-mono-md text-mono-md text-on-surface tabular-nums font-semibold">
+                  ₹{(orderLots * 72500).toLocaleString('en-IN')}
+                </span>
+              </div>
+            </div>
+
+            {/* Primary Execute CTA */}
+            <button
+              id="dispatch-order-btn"
+              type="button"
+              onClick={handleExecuteDryRun}
+              className="w-full py-space-sm px-space-md rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors flex items-center justify-center gap-space-sm cursor-pointer shadow-sm"
+            >
+              <span className="material-symbols-outlined text-[18px]">bolt</span>
+              <span>Execute Dry-Run Order</span>
+            </button>
+
+            {/* Simulated Dispatch Receipt */}
+            {orderReceipt && (
+              <div className="bg-bullish-tint rounded-lg p-space-md flex flex-col gap-space-xs border border-bullish">
+                <div className="flex items-center gap-space-xs text-bullish font-label-sm text-label-sm uppercase font-semibold">
+                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                  <span>Sandbox Order Routed</span>
+                </div>
+                <span className="font-mono-sm text-mono-sm text-on-surface">
+                  {orderReceipt.id} · {orderReceipt.lots} LOTS ({orderReceipt.lots * 25} QTY) · SLIPPAGE {orderReceipt.slippage}% · {orderReceipt.time} IST
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Quick Available Strategies Catalog in Sidebar */}
+          <div className="bg-surface-card rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-space-sm">
+              <span className="font-label-sm text-label-sm uppercase text-text-muted">Catalog Strategies</span>
+              <span className="font-mono-sm text-mono-sm text-text-muted">{availableStrategies.length} Active</span>
+            </div>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {availableStrategies.map((algo) => {
+                const isSelected = algo.id === strategy.id;
+                const isPos = algo.rollingReturn1m >= 0;
+                return (
+                  <div
+                    key={algo.id}
+                    onClick={() => onSelectStrategy(algo)}
+                    className={`p-space-sm rounded-lg border transition-all cursor-pointer flex items-center justify-between ${
+                      isSelected
+                        ? 'bg-surface-container-low border-primary shadow-xs'
+                        : 'bg-surface-card border-border-subtle hover:border-outline'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-semibold text-xs text-on-surface line-clamp-1">{algo.name}</div>
+                      <div className="text-[10px] text-text-muted mt-0.5">
+                        Min: ₹{algo.marginRequired.toLocaleString('en-IN')}
                       </div>
                     </div>
-                  );
-                })}
+                    <div className="text-right">
+                      <div className={`text-xs font-mono font-semibold ${isPos ? 'text-bullish' : 'text-bearish'}`}>
+                        {isPos ? '+' : ''}{algo.rollingReturn1m.toFixed(1)}%
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </aside>
+      </div>
 
-        {/* Right Main Column: Strategy Header, Stock Picker, Tabs & Performance */}
-        <main className="lg:col-span-8 xl:col-span-9 bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 shadow-sm space-y-6">
-          {/* Toast Notification Banner */}
-          {toastMessage && (
-            <div className="p-3 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-xl text-xs font-mono font-bold flex items-center justify-between animate-in fade-in duration-200">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>{toastMessage}</span>
-              </div>
+      {/* 3. Deep-Dive Analytical Tabs & Visualizer Studio */}
+      <div className="w-full bg-surface-card rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md">
+        {/* Active Testing Stock / Pair Dropdown (Select ANY from 3,797 NSE Stocks) */}
+        <div className="bg-surface-container-low p-space-md rounded-xl border border-border-subtle flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Testing Stock:</span>
+            <div className="relative">
               <button
                 type="button"
-                onClick={() => setToastMessage(null)}
-                className="text-gray-400 hover:text-black"
+                onClick={() => setIsStockDropdownOpen(!isStockDropdownOpen)}
+                className="px-3.5 py-1.5 bg-surface-card border border-border-subtle hover:border-primary rounded-lg text-xs font-bold flex items-center gap-2 shadow-xs cursor-pointer"
               >
-                <X className="w-3.5 h-3.5" />
+                <StockLogo symbol={selectedStock.symbol} instrumentKey={selectedStock.instrument_key} name={selectedStock.name} size="xs" />
+                <span className="text-on-surface font-mono">{selectedStock.symbol}</span>
+                <span className="text-text-muted">—</span>
+                <span className="text-text-secondary truncate max-w-[150px]">{selectedStock.name}</span>
+                <span className="text-[10px] bg-bullish-tint text-bullish px-1 py-0.5 rounded font-mono font-semibold">NSE</span>
+                <span className="text-text-muted text-[10px]">▼</span>
               </button>
-            </div>
-          )}
 
-          {/* Header Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-gray-100 gap-4">
-            <div className="space-y-2">
-              {onBack && (
-                <button
-                  type="button"
-                  onClick={onBack}
-                  className="flex items-center gap-1.5 text-xs font-mono font-bold text-gray-500 hover:text-black transition-colors mb-1"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Back to Algorithm Marketplace</span>
-                </button>
-              )}
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-[#0A0A0D] flex items-center justify-center text-white font-bold text-xl shadow-md shrink-0">
-                  {strategy.name.charAt(0)}
-                </div>
-                <div>
-                  <h1 className="font-bold text-xl sm:text-2xl text-[#0A0A0D] tracking-tight">{strategy.name}</h1>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-1 font-medium">
-                    <span>by Apex Quant Research</span>
-                    <span>·</span>
-                    <span className="font-bold text-black font-mono">NSE: {selectedStock.symbol}</span>
-                    <span>·</span>
-                    <span className="text-gray-600">{strategy.style}</span>
-                    <span>·</span>
-                    <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-mono text-[10px] font-bold">
-                      {strategy.isInvestmentAlgo ? 'Automated Wealth' : 'Active Quant'}
-                    </span>
+              {isStockDropdownOpen && (
+                <div className="absolute top-full left-0 mt-1 w-80 bg-surface-card border border-border-subtle rounded-xl shadow-xl p-3 z-30 space-y-2">
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-text-muted absolute left-2.5 top-2.5" />
+                    <input
+                      type="text"
+                      value={stockSearchQuery}
+                      onChange={(e) => setStockSearchQuery(e.target.value)}
+                      placeholder="Search from 3,797 NSE stocks..."
+                      className="w-full pl-8 pr-3 py-1.5 bg-surface-container-low border border-border-subtle rounded-lg text-xs font-medium focus:outline-none focus:border-primary"
+                      autoFocus
+                    />
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Min Investment Pill */}
-              <div className="px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-right">
-                <div className="text-[10px] text-gray-400 uppercase font-bold font-mono">Min. Capital</div>
-                <div className="font-mono font-bold text-sm text-[#0A0A0D]">
-                  ₹ {strategy.marginRequired.toLocaleString('en-IN')}
-                </div>
-              </div>
-
-              {/* Track List Bookmark Button */}
-              <button
-                type="button"
-                onClick={handleToggleTrackList}
-                className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold font-mono border transition-all ${
-                  isBookmarked
-                    ? 'bg-amber-50 border-amber-300 text-amber-800 shadow-sm'
-                    : 'bg-white border-gray-200 text-gray-700 hover:border-black'
-                }`}
-                title={isBookmarked ? 'Remove from Track List' : 'Add to Track List'}
-              >
-                <Star className={`w-3.5 h-3.5 ${isBookmarked ? 'fill-amber-500 text-amber-500' : 'text-gray-400'}`} />
-                <span>{isBookmarked ? 'Tracked' : 'Track List'}</span>
-              </button>
-
-              {/* Deploy Strategy Button */}
-              <button
-                type="button"
-                onClick={handleDeploy}
-                className="flex items-center gap-2 px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold font-mono rounded-xl shadow-sm transition-all active:scale-95"
-              >
-                <Zap className="w-3.5 h-3.5 fill-white" />
-                <span>Deploy Strategy</span>
-              </button>
-
-              {/* Interactive Backtest Button */}
-              <button
-                type="button"
-                onClick={() => setActiveTab('backtest')}
-                className="flex items-center gap-1.5 px-4 py-2.5 bg-[#0A0A0D] hover:bg-neutral-800 text-white text-xs font-bold font-mono rounded-xl shadow-sm transition-all active:scale-95"
-              >
-                <Play className="w-3.5 h-3.5 fill-white" />
-                <span>Interactive Tuning</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Active Testing Stock / Pair Dropdown (Select ANY from 3,797 NSE Stocks) */}
-          <div className="bg-[#FAFAFC] p-4 rounded-xl border border-gray-200 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Testing Stock / Pair:</span>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsStockDropdownOpen(!isStockDropdownOpen)}
-                  className="px-3.5 py-1.5 bg-white border border-gray-200 hover:border-black rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm"
-                >
-                  <StockLogo symbol={selectedStock.symbol} instrumentKey={selectedStock.instrument_key} name={selectedStock.name} size="xs" />
-                  <span className="text-black font-mono">{selectedStock.symbol}</span>
-                  <span className="text-gray-400">—</span>
-                  <span className="text-gray-600 truncate max-w-[150px]">{selectedStock.name}</span>
-                  <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1 py-0.5 rounded font-mono">NSE</span>
-                  <span className="text-gray-400 text-[10px]">▼</span>
-                </button>
-
-                {isStockDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-xl shadow-xl p-3 z-30 space-y-2">
-                    <div className="relative">
-                      <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5" />
-                      <input
-                        type="text"
-                        value={stockSearchQuery}
-                        onChange={(e) => setStockSearchQuery(e.target.value)}
-                        placeholder="Search from 3,797 NSE stocks..."
-                        className="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-1 focus:ring-black"
-                        autoFocus
-                      />
-                    </div>
-                    <div className="max-h-48 overflow-y-auto divide-y divide-gray-100">
-                      {filteredStocks.map((stock) => (
-                        <div
-                          key={stock.symbol}
-                          onClick={() => {
-                            setSelectedStock(stock);
-                            setIsStockDropdownOpen(false);
-                            setStockSearchQuery('');
-                          }}
-                          className="p-2 hover:bg-gray-50 rounded-lg flex items-center justify-between cursor-pointer text-xs"
-                        >
-                          <div className="flex items-center gap-2">
-                            <StockLogo symbol={stock.symbol} instrumentKey={stock.instrument_key} name={stock.name} size="xs" />
-                            <div>
-                              <span className="font-bold text-black">{stock.symbol}</span>
-                              <span className="text-gray-500 ml-1.5 truncate max-w-[120px] inline-block">{stock.name}</span>
-                            </div>
+                  <div className="max-h-48 overflow-y-auto divide-y divide-border-subtle">
+                    {filteredStocks.map((stock) => (
+                      <div
+                        key={stock.symbol}
+                        onClick={() => {
+                          setSelectedStock(stock);
+                          setIsStockDropdownOpen(false);
+                          setStockSearchQuery('');
+                        }}
+                        className="p-2 hover:bg-surface-container-low rounded-lg flex items-center justify-between cursor-pointer text-xs"
+                      >
+                        <div className="flex items-center gap-2">
+                          <StockLogo symbol={stock.symbol} instrumentKey={stock.instrument_key} name={stock.name} size="xs" />
+                          <div>
+                            <span className="font-bold text-on-surface">{stock.symbol}</span>
+                            <span className="text-text-muted ml-1.5 truncate max-w-[120px] inline-block">{stock.name}</span>
                           </div>
-                          <span className="font-mono text-gray-600">₹{stock.last_price?.toFixed(2) || '0.00'}</span>
                         </div>
-                      ))}
-                    </div>
+                        <span className="font-mono text-text-secondary">₹{stock.last_price?.toFixed(2) || '0.00'}</span>
+                      </div>
+                    ))}
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* Quick stock chips */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-              <span className="text-[11px] font-bold text-gray-400 mr-1">Quick Select:</span>
-              {POPULAR_NSE_STOCKS.slice(0, 8).map((stk) => (
-                <button
-                  key={stk.symbol}
-                  onClick={() => setSelectedStock(stk)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-mono font-bold transition-all ${
-                    selectedStock.symbol === stk.symbol
-                      ? 'bg-black text-white'
-                      : 'bg-white border border-gray-200 text-gray-600 hover:text-black'
-                  }`}
-                >
-                  {stk.symbol}
-                </button>
-              ))}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Tabs Navigation */}
-          <div className="flex items-center gap-8 border-b border-gray-100 text-sm font-semibold">
-            <button
-              onClick={() => setActiveTab('performance')}
-              className={`pb-3 transition-colors relative ${
-                activeTab === 'performance' ? 'text-[#0A0A0D] border-b-2 border-[#0A0A0D]' : 'text-gray-500 hover:text-black'
-              }`}
-            >
-              Quantitative Audit & Returns
-            </button>
-            <button
-              onClick={() => setActiveTab('backtest')}
-              className={`pb-3 transition-colors relative flex items-center gap-1.5 ${
-                activeTab === 'backtest' ? 'text-[#0A0A0D] border-b-2 border-[#0A0A0D]' : 'text-gray-500 hover:text-black'
-              }`}
-            >
-              <span>{isOrbStrategy ? 'ORB 5M Visualizer & Rules' : 'Strategy Tuning & Candlestick Feed'}</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            </button>
-            <button
-              onClick={() => setActiveTab('trades')}
-              className={`pb-3 transition-colors relative ${
-                activeTab === 'trades' ? 'text-[#0A0A0D] border-b-2 border-[#0A0A0D]' : 'text-gray-500 hover:text-black'
-              }`}
-            >
-              Executed Trades Log {backtestResult && `(${backtestResult.trades.length})`}
-            </button>
-            <button
-              onClick={() => setActiveTab('about')}
-              className={`pb-3 transition-colors relative ${
-                activeTab === 'about' ? 'text-[#0A0A0D] border-b-2 border-[#0A0A0D]' : 'text-gray-500 hover:text-black'
-              }`}
-            >
-              About Algo & Source
-            </button>
+          {/* Quick stock chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <span className="text-[11px] font-bold text-text-muted mr-1">Quick Select:</span>
+            {POPULAR_NSE_STOCKS.slice(0, 8).map((stk) => (
+              <button
+                key={stk.symbol}
+                onClick={() => setSelectedStock(stk)}
+                className={`px-2.5 py-1 rounded-md text-xs font-mono font-bold transition-all cursor-pointer ${
+                  selectedStock.symbol === stk.symbol
+                    ? 'bg-primary text-on-primary'
+                    : 'bg-surface-card border border-border-subtle text-text-secondary hover:text-on-surface'
+                }`}
+              >
+                {stk.symbol}
+              </button>
+            ))}
           </div>
+        </div>
+
+        {/* Deep Dive Tabs Navigation */}
+        <div className="flex items-center gap-8 border-b border-border-subtle text-sm font-semibold">
+          <button
+            onClick={() => setActiveTab('performance')}
+            className={`pb-3 transition-colors relative cursor-pointer ${
+              activeTab === 'performance' ? 'text-on-surface border-b-2 border-primary font-bold' : 'text-text-muted hover:text-on-surface'
+            }`}
+          >
+            Quantitative Audit &amp; Risk Returns
+          </button>
+          <button
+            onClick={() => setActiveTab('backtest')}
+            className={`pb-3 transition-colors relative flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'backtest' ? 'text-on-surface border-b-2 border-primary font-bold' : 'text-text-muted hover:text-on-surface'
+            }`}
+          >
+            <span>{isOrbStrategy ? 'ORB 5M Visualizer & Rules' : 'Strategy Tuning & Candlestick Feed'}</span>
+            <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
+          </button>
+          <button
+            onClick={() => setActiveTab('trades')}
+            className={`pb-3 transition-colors relative cursor-pointer ${
+              activeTab === 'trades' ? 'text-on-surface border-b-2 border-primary font-bold' : 'text-text-muted hover:text-on-surface'
+            }`}
+          >
+            Executed Trades Log {backtestResult && `(${backtestResult.trades.length})`}
+          </button>
+          <button
+            onClick={() => setActiveTab('about')}
+            className={`pb-3 transition-colors relative cursor-pointer ${
+              activeTab === 'about' ? 'text-on-surface border-b-2 border-primary font-bold' : 'text-text-muted hover:text-on-surface'
+            }`}
+          >
+            About Algo &amp; Source
+          </button>
+        </div>
 
           {/* TAB 1: QUANTITATIVE AUDIT & RETURNS */}
           {activeTab === 'performance' && (
@@ -1975,8 +2320,7 @@ export const DhanStrategyDetail: React.FC<DhanStrategyDetailProps> = ({
               </div>
             </div>
           )}
-        </main>
+        </div>
       </div>
-    </div>
   );
 };

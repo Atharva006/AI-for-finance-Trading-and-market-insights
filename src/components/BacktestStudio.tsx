@@ -750,47 +750,50 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
         </div>
       </div>
 
-      {/* Studio Mode Switcher: Single Backtest vs Multi-Asset Basket */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-2 bg-white rounded-2xl border border-gray-200 shadow-xs">
-        <div className="flex items-center gap-1.5 p-1 bg-gray-100 rounded-xl">
+      {/* Studio Mode Switcher: Single Asset vs Multi-Asset Basket (Stitch Screen 4 & 5) */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md pt-space-xs">
+        <div className="inline-flex items-center p-1 rounded-xl bg-surface-container w-fit shadow-xs">
           <button
             onClick={() => setStudioTab('SINGLE')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`px-space-md py-space-sm rounded-lg font-label-md text-label-md transition-all cursor-pointer ${
               studioTab === 'SINGLE'
-                ? 'bg-[#0A0A0D] text-white shadow-sm'
-                : 'text-gray-600 hover:text-black'
+                ? 'bg-surface-card text-on-surface shadow-xs font-semibold'
+                : 'text-on-surface-variant hover:text-on-surface'
             }`}
           >
-            <Sliders className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Single System Backtest</span>
+            Single Asset
           </button>
-
           <button
             onClick={() => setStudioTab('BASKET')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`px-space-md py-space-sm rounded-lg font-label-md text-label-md transition-all cursor-pointer ${
               studioTab === 'BASKET'
-                ? 'bg-[#0A0A0D] text-white shadow-sm'
-                : 'text-gray-600 hover:text-black'
+                ? 'bg-surface-card text-on-surface shadow-xs font-semibold'
+                : 'text-on-surface-variant hover:text-on-surface'
             }`}
           >
-            <Briefcase className="w-3.5 h-3.5 text-blue-400" />
-            <span>Multi-System Portfolio Basket</span>
-            <span className="text-[10px] px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-mono font-bold">
-              Combined RPT
-            </span>
+            Basket Portfolio
           </button>
         </div>
 
-        {studioTab === 'SINGLE' && (
-          <button
-            onClick={handleSaveSettingsToMain}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95"
-            title="Save calibrated settings to Main System"
-          >
-            <Save className="w-4 h-4" />
-            <span>Save Settings to Main System</span>
-          </button>
-        )}
+        <div className="flex flex-wrap items-center gap-space-sm">
+          <span className="inline-flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-bullish-tint text-bullish font-mono-sm text-mono-sm font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-bullish"></span>
+            VECTORIZED {studioTab === 'BASKET' ? 'MULTI-ASSET' : 'BACKTEST'} ENGINE
+          </span>
+          <span className="inline-flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-surface-container text-on-surface-variant font-mono-sm text-mono-sm">
+            {studioTab === 'BASKET' ? 'ALLOCATION: 100.0%' : 'YAHOO DAILY & 15M NSE CACHE'}
+          </span>
+          {studioTab === 'SINGLE' && (
+            <button
+              onClick={handleSaveSettingsToMain}
+              className="inline-flex items-center gap-space-xs px-space-sm py-1 bg-surface-card border border-border-subtle hover:bg-surface-container text-on-surface rounded-lg font-label-md text-label-md shadow-xs transition-all cursor-pointer"
+              title="Save calibrated settings to Main System"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span>Save Settings</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {saveToast && (

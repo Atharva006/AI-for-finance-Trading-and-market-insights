@@ -165,15 +165,15 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] text-[#151515] flex flex-col font-sans selection:bg-black selection:text-white antialiased">
+    <div className="min-h-screen bg-background text-on-surface flex flex-col font-sans selection:bg-primary selection:text-on-primary antialiased">
       {/* High-frequency Quants Live Ticker Header */}
       <QuantTerminalHeader
         onOpenForex={() => navigateTo('forex')}
         activeView={activeView}
       />
 
-      {/* Main Navigation Bar (Clean Light-Grey Institutional UI) */}
-      {activeView !== 'landing' && activeView !== 'auth' && (
+      {/* Main Navigation Bar (Clean Institutional UI matching Stitch) */}
+      {activeView !== 'auth' && (
         <DhanNavbar
           activeView={activeView}
           setActiveView={(view) => navigateTo(view)}
@@ -294,12 +294,12 @@ export function App() {
         onClose={() => setIsSettingsOpen(false)}
       />
 
-      {/* Footer Minimal Notice for internal views */}
-      {activeView !== 'landing' && activeView !== 'auth' && (
-        <footer className="border-t border-gray-200 bg-white py-6 text-center text-xs text-gray-500 font-medium">
-          <div className="w-full px-6 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 font-mono">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+      {/* Footer Minimal Notice (Matching Stitch Exactly) */}
+      {activeView !== 'auth' && (
+        <footer className="w-full bg-surface-card border-t border-border-subtle px-margin py-space-sm select-none">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-space-sm font-mono-sm text-mono-sm text-text-muted">
+            <div className="flex items-center gap-space-sm">
+              <span className="w-2 h-2 rounded-full bg-bullish" />
               <span>Real Bar-by-Bar Vectorized Quantitative Backtesting</span>
             </div>
             <div>

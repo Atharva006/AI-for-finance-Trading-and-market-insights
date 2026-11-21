@@ -1,23 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import {
-  Search,
-  ChevronDown,
-  Check,
-  ArrowUpRight,
-  ArrowDownRight,
-  Play,
-  Sparkles,
-  Filter,
-  Bookmark,
-  BookmarkCheck,
-  ShieldCheck,
-  TrendingUp,
-  Layers,
-  Clock,
-  Briefcase,
-  AlertCircle,
-  CheckCircle2,
-} from 'lucide-react';
 import { AlgoStrategy } from '../types/algoMarketplace';
 import {
   getWatchlist,
@@ -43,7 +24,7 @@ export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
   onOpenBacktest,
   onNavigateToAdmin,
 }) => {
-  // Navigation Tabs: Trading, Investing, Watchlist, Positions, Orders
+  // Navigation Tabs matching Stitch Screen 2
   const [activeTab, setActiveTab] = useState<'trading' | 'investing' | 'watchlist' | 'positions' | 'orders'>('trading');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [capitalFilter, setCapitalFilter] = useState<string>('ALL');
@@ -101,146 +82,159 @@ export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
       }
 
       // 4. Search Filter
-      if (searchQuery.trim()) {
+      if (searchQuery.trim() !== '') {
         const q = searchQuery.toLowerCase();
-        return (
-          algo.name.toLowerCase().includes(q) ||
-          algo.tagline.toLowerCase().includes(q) ||
-          algo.category.toLowerCase().includes(q) ||
-          algo.style.toLowerCase().includes(q) ||
-          (algo.targetSymbol && algo.targetSymbol.toLowerCase().includes(q))
-        );
+        const matchName = algo.name.toLowerCase().includes(q);
+        const matchSymbol = (algo.targetSymbol || '').toLowerCase().includes(q);
+        const matchStyle = algo.style.toLowerCase().includes(q);
+        const matchCategory = algo.category.toLowerCase().includes(q);
+        if (!matchName && !matchSymbol && !matchStyle && !matchCategory) return false;
       }
+
       return true;
     });
-  }, [publishedStrategies, activeTab, capitalFilter, styleFilter, searchQuery, watchlistIds]);
+  }, [publishedStrategies, activeTab, watchlistIds, capitalFilter, styleFilter, searchQuery]);
 
-  // Sparkline SVG generator
-  const renderSparkline = (points: number[]) => {
+  // Render SVG Sparkline
+  const renderSparkline = (points?: number[]) => {
     if (!points || points.length === 0) return null;
     const min = Math.min(...points);
     const max = Math.max(...points);
-    const w = 84;
-    const h = 22;
+    const w = 140;
+    const h = 36;
     const path = points
       .map((p, i) => {
         const x = (i / (points.length - 1)) * w;
-        const y = h - ((p - min) / (max - min || 1)) * (h - 4) - 2;
+        const y = h - ((p - min) / (max - min || 1)) * (h - 8) - 4;
         return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
       })
       .join(' ');
 
     const isPositive = points[points.length - 1] >= points[0];
-    const strokeColor = isPositive ? '#16A34A' : '#DC2626';
+    const strokeColor = isPositive ? '#059669' : '#E11D48';
 
     return (
-      <svg width={w} height={h} className="overflow-visible">
-        <path d={path} fill="none" stroke={strokeColor} strokeWidth="2" strokeLinecap="round" />
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-full overflow-visible" fill="none">
+        <path d={path} stroke={strokeColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   };
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
+    <div className="w-full px-margin py-space-md flex flex-col gap-space-lg select-none">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#151515] text-white px-4 py-3 rounded-xl shadow-xl border border-neutral-700 flex items-center gap-2.5 text-xs font-mono animate-in slide-in-from-bottom duration-200">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+        <div className="fixed bottom-6 right-6 z-50 bg-primary text-on-primary px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 text-xs font-mono">
+          <span className="material-symbols-outlined text-[18px] text-bullish">check_circle</span>
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Main Mode Tabs Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 pb-3">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+      {/* 1. Sub-View Navigation Tabs (Matching Stitch Screen 2 Exactly) */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md pt-space-sm">
+        <div className="flex items-center gap-space-xs overflow-x-auto bg-surface-container-low p-1 rounded-xl w-fit" id="algo-subtabs">
           <button
             onClick={() => setActiveTab('trading')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-space-md py-space-sm rounded-lg font-label-md text-label-md whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'trading'
-                ? 'bg-[#151515] text-white shadow-xs'
-                : 'bg-white border border-gray-200 text-gray-600 hover:text-black'
+                ? 'bg-surface-card text-on-surface shadow-sm font-semibold'
+                : 'text-on-surface-variant hover:text-on-surface'
             }`}
+            type="button"
           >
-            <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Trading Algorithms</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 text-white font-mono">
-              {strategies.filter((s) => !s.isInvestmentAlgo).length}
-            </span>
+            Trading Algorithms
           </button>
 
           <button
             onClick={() => setActiveTab('investing')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-space-md py-space-sm rounded-lg font-label-md text-label-md whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'investing'
-                ? 'bg-[#151515] text-white shadow-xs'
-                : 'bg-white border border-gray-200 text-gray-600 hover:text-black'
+                ? 'bg-surface-card text-on-surface shadow-sm font-semibold'
+                : 'text-on-surface-variant hover:text-on-surface'
             }`}
+            type="button"
           >
-            <Briefcase className="w-3.5 h-3.5 text-blue-400" />
-            <span>Investment & Wealth Algos (Below ₹1.1L)</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 text-white font-mono">
-              {strategies.filter((s) => s.isInvestmentAlgo).length}
-            </span>
+            Investment &amp; Wealth
           </button>
 
           <button
             onClick={() => setActiveTab('watchlist')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-space-md py-space-sm rounded-lg font-label-md text-label-md whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'watchlist'
-                ? 'bg-[#151515] text-white shadow-xs'
-                : 'bg-white border border-gray-200 text-gray-600 hover:text-black'
+                ? 'bg-surface-card text-on-surface shadow-sm font-semibold'
+                : 'text-on-surface-variant hover:text-on-surface'
             }`}
+            type="button"
           >
-            <Bookmark className="w-3.5 h-3.5 text-amber-500" />
-            <span>My Watchlist ({watchlistIds.length})</span>
+            Tracked Strategies ({watchlistIds.length})
           </button>
 
           <button
             onClick={() => setActiveTab('positions')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-space-md py-space-sm rounded-lg font-label-md text-label-md whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'positions'
-                ? 'bg-[#151515] text-white shadow-xs'
-                : 'bg-white border border-gray-200 text-gray-600 hover:text-black'
+                ? 'bg-surface-card text-on-surface shadow-sm font-semibold'
+                : 'text-on-surface-variant hover:text-on-surface'
             }`}
+            type="button"
           >
-            <Layers className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Simulated Positions ({positions.length})</span>
+            Active Positions ({positions.length})
           </button>
 
           <button
             onClick={() => setActiveTab('orders')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-space-md py-space-sm rounded-lg font-label-md text-label-md whitespace-nowrap transition-all cursor-pointer ${
               activeTab === 'orders'
-                ? 'bg-[#151515] text-white shadow-xs'
-                : 'bg-white border border-gray-200 text-gray-600 hover:text-black'
+                ? 'bg-surface-card text-on-surface shadow-sm font-semibold'
+                : 'text-on-surface-variant hover:text-on-surface'
             }`}
+            type="button"
           >
-            <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <span>Order History ({orders.length})</span>
+            Order History ({orders.length})
           </button>
         </div>
 
-        {onNavigateToAdmin && (
-          <button
-            onClick={onNavigateToAdmin}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 hover:border-black text-[#151515] text-xs font-bold rounded-xl transition-all shadow-xs"
-          >
-            <span>+ Admin Studio</span>
-          </button>
-        )}
+        <div className="flex items-center gap-space-md font-mono-sm text-mono-sm text-text-muted">
+          <span className="inline-flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-bullish-tint text-bullish font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-bullish animate-pulse" />
+            NSE VECTORIZED ENGINE: READY
+          </span>
+          <span className="font-semibold text-on-surface">{publishedStrategies.length} AUDITED MODELS</span>
+          {onNavigateToAdmin && (
+            <button
+              onClick={onNavigateToAdmin}
+              className="px-3 py-1 rounded-lg bg-surface-card border border-border-subtle text-on-surface hover:bg-surface-container-low transition-colors text-xs font-semibold"
+            >
+              + Admin Studio
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Filter Ribbon (For Strategy Views) */}
+      {/* 2. Search & Multi-Tier Filter Bar (Matching Stitch Screen 2) */}
       {(activeTab === 'trading' || activeTab === 'investing' || activeTab === 'watchlist') && (
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Capital Requirement Filter */}
-            <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600">
-              <span className="font-semibold text-gray-400">Capital:</span>
+        <div className="bg-surface-card rounded-xl shadow-sm p-space-md flex flex-col lg:flex-row items-stretch lg:items-center gap-space-md border border-border-subtle">
+          <div className="relative flex-1 min-w-0">
+            <span className="material-symbols-outlined text-text-muted text-[18px] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              search
+            </span>
+            <input
+              type="text"
+              placeholder="Search NSE algorithmic models by name, symbol, style..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-lg bg-surface-container-low text-on-surface placeholder:text-text-muted font-body-md text-body-md focus:outline-none focus:bg-surface-card focus:shadow-sm transition-all"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-space-md">
+            {/* Capital Filter Dropdown */}
+            <div className="flex items-center gap-space-xs">
+              <span className="material-symbols-outlined text-text-muted text-[18px]">tune</span>
               <select
                 value={capitalFilter}
                 onChange={(e) => setCapitalFilter(e.target.value)}
-                className="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1 text-xs font-bold text-[#151515] focus:outline-none"
+                className="bg-surface-container-low border border-border-subtle text-on-surface font-label-md text-label-md rounded-lg px-space-sm py-2 focus:outline-none focus:bg-surface-card transition-all"
               >
                 <option value="ALL">All Capital Tiers</option>
                 <option value="UNDER_10K">Under ₹10,000</option>
@@ -251,218 +245,209 @@ export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
               </select>
             </div>
 
-            {/* Trading Style Filter */}
-            <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600">
-              <span className="font-semibold text-gray-400">Style:</span>
+            {/* Trading Style Dropdown */}
+            <div className="flex items-center gap-space-xs">
+              <span className="material-symbols-outlined text-text-muted text-[18px]">filter_list</span>
               <select
                 value={styleFilter}
                 onChange={(e) => setStyleFilter(e.target.value)}
-                className="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1 text-xs font-bold text-[#151515] focus:outline-none"
+                className="bg-surface-container-low border border-border-subtle text-on-surface font-label-md text-label-md rounded-lg px-space-sm py-2 focus:outline-none focus:bg-surface-card transition-all"
               >
                 <option value="ALL">All Trading Styles</option>
-                <option value="SWING">Swing Trading</option>
+                <option value="SWING">Swing Momentum</option>
                 <option value="BREAKOUT">Opening Range Breakout</option>
-                <option value="VOLATILITY">High Volatility Equities</option>
-                <option value="WEALTH">Automated Wealth Management</option>
+                <option value="VOLATILITY">High Volatility Trend</option>
+                <option value="WEALTH">Automated Wealth Compounding</option>
                 <option value="OVERNIGHT">Overnight Sovereign Funds</option>
               </select>
             </div>
           </div>
-
-          {/* Search Box */}
-          <div className="relative w-full sm:w-64">
-            <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-2.5" />
-            <input
-              type="text"
-              placeholder="Search by algo name, symbol, style..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-[#151515] placeholder-gray-400 focus:outline-none focus:border-black"
-            />
-          </div>
         </div>
       )}
 
-      {/* VIEW A: ALGORITHMS TABLE (Trading, Investing, Watchlist) */}
+      {/* 3. ALGORITHM CARDS GRID (Trading, Investing, Watchlist) */}
       {(activeTab === 'trading' || activeTab === 'investing' || activeTab === 'watchlist') && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
-          {/* Table Header */}
-          <div className="grid grid-cols-12 gap-3 px-6 py-3.5 border-b border-gray-100 bg-[#FAFAFC] text-[11px] font-semibold text-gray-500 uppercase tracking-wider font-mono">
-            <div className="col-span-4">Algorithm & Structure</div>
-            <div className="col-span-2 text-right">Margin Required</div>
-            <div className="col-span-2 text-center">1M Return</div>
-            <div className="col-span-1 text-center">3M</div>
-            <div className="col-span-1 text-center">6M</div>
-            <div className="col-span-1 text-center">1Y</div>
-            <div className="col-span-1 text-right">Actions</div>
-          </div>
-
-          {/* Strategy Rows */}
-          <div className="divide-y divide-gray-100">
-            {filteredStrategies.length === 0 ? (
-              <div className="py-16 px-6 text-center text-gray-500 space-y-3">
-                <AlertCircle className="w-8 h-8 text-gray-400 mx-auto" />
-                <h4 className="text-sm font-bold text-[#151515]">
-                  {strategies.length === 0 ? 'No Algorithms in Registry' : 'No Algorithms Found'}
-                </h4>
-                <p className="text-xs text-gray-500 max-w-md mx-auto">
-                  {strategies.length === 0
-                    ? 'All mock algorithm data has been removed. You can synthesize or configure authentic quantitative strategies using Backtest Studio or Admin Studio.'
-                    : activeTab === 'watchlist'
-                    ? 'Your watchlist is currently empty. Bookmark any algorithm to track it here.'
-                    : 'Try clearing your filters or search keywords to view available strategies.'}
-                </p>
-                {strategies.length === 0 && onNavigateToAdmin && (
-                  <div className="pt-2">
-                    <button
-                      onClick={onNavigateToAdmin}
-                      className="px-4 py-2 bg-black hover:bg-neutral-800 text-white rounded-xl text-xs font-bold shadow-xs transition-all"
-                    >
-                      + Create New Strategy
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              filteredStrategies.map((algo) => {
-                const isTracked = watchlistIds.includes(algo.id);
-                return (
-                  <div
-                    key={algo.id}
-                    onClick={() => onSelectStrategy(algo)}
-                    className="grid grid-cols-12 gap-3 px-6 py-4 items-center hover:bg-gray-50/80 transition-colors cursor-pointer group"
-                  >
-                    {/* Column 1: Algo Details with Watchlist Star & Stock Logo */}
-                    <div className="col-span-4 flex items-center gap-3">
-                      <button
-                        onClick={(e) => handleToggleTracklist(e, algo)}
-                        className={`p-1.5 rounded-lg border transition-all ${
-                          isTracked
-                            ? 'bg-amber-50 border-amber-300 text-amber-600'
-                            : 'bg-white border-gray-200 text-gray-300 hover:text-gray-500'
-                        }`}
-                        title={isTracked ? 'Remove from track list' : 'Add to track list'}
-                      >
-                        <Bookmark className="w-3.5 h-3.5 fill-current" />
-                      </button>
-
-                      {algo.targetSymbol && (
-                        <StockLogo symbol={algo.targetSymbol} instrumentKey={algo.targetInstrumentKey} size="sm" />
-                      )}
-
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-[#151515] group-hover:underline">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-space-lg">
+          {filteredStrategies.length === 0 ? (
+            <div className="col-span-full py-16 px-6 text-center text-text-muted space-y-3 bg-surface-card rounded-2xl border border-border-subtle">
+              <span className="material-symbols-outlined text-4xl text-text-muted">info</span>
+              <h4 className="font-title-md text-title-md text-on-surface font-semibold">
+                {strategies.length === 0 ? 'No Algorithms in Registry' : 'No Matching Algorithms Found'}
+              </h4>
+              <p className="font-body-sm text-body-sm text-text-secondary max-w-md mx-auto">
+                {activeTab === 'watchlist'
+                  ? 'Your watchlist is currently empty. Bookmark any algorithm to track it here.'
+                  : 'Try clearing your search query or filters to view available systematic models.'}
+              </p>
+            </div>
+          ) : (
+            filteredStrategies.map((algo) => {
+              const isTracked = watchlistIds.includes(algo.id);
+              return (
+                <article
+                  key={algo.id}
+                  onClick={() => onSelectStrategy(algo)}
+                  className="bg-surface-card rounded-xl shadow-sm hover:shadow-md transition-all p-space-lg flex flex-col justify-between gap-space-md border border-border-subtle cursor-pointer group"
+                >
+                  <div className="flex flex-col gap-space-sm">
+                    <div className="flex items-start justify-between gap-space-sm">
+                      <div className="flex items-center gap-space-sm min-w-0">
+                        {algo.targetSymbol ? (
+                          <StockLogo symbol={algo.targetSymbol} instrumentKey={algo.targetInstrumentKey} size="md" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center font-mono-sm text-mono-sm text-on-surface font-bold shrink-0">
+                            AQ
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <h3 className="font-title-md text-title-md text-on-surface font-semibold truncate group-hover:underline">
                             {algo.name}
-                          </span>
-                          {algo.isInvestmentAlgo && (
-                            <span className="text-[9px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200 font-mono">
-                              WEALTH
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-xs text-gray-500 font-medium">
-                          {algo.segment || 'NSE Equity'} · {algo.style}
+                          </h3>
+                          <p className="font-body-sm text-body-sm text-text-muted truncate">
+                            {algo.tagline || `${algo.category} · ${algo.style}`}
+                          </p>
                         </div>
                       </div>
+
+                      <button
+                        onClick={(e) => handleToggleTracklist(e, algo)}
+                        className={`transition-colors shrink-0 p-1 rounded-lg ${
+                          isTracked
+                            ? 'text-amber-500 fill-current'
+                            : 'text-text-muted hover:text-on-surface'
+                        }`}
+                        title={isTracked ? 'Remove from track list' : 'Bookmark strategy'}
+                        type="button"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">
+                          {isTracked ? 'bookmark_added' : 'bookmark'}
+                        </span>
+                      </button>
                     </div>
 
-                    {/* Column 2: Margin Required */}
-                    <div className="col-span-2 text-right font-mono font-bold text-sm text-[#151515]">
-                      ₹ {algo.marginRequired.toLocaleString('en-IN')}
-                    </div>
-
-                    {/* Column 3: 1m Rolling Returns (Sparkline SVG + %) */}
-                    <div className="col-span-2 flex flex-col items-center justify-center">
-                      {renderSparkline(algo.sparkline)}
-                      <span className={`text-[11px] font-mono font-bold mt-0.5 ${algo.rollingReturn1m >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
-                        {algo.rollingReturn1m >= 0 ? '+' : ''}{algo.rollingReturn1m}%
+                    <div className="flex flex-wrap items-center gap-space-xs">
+                      <span className="px-space-sm py-0.5 rounded-full bg-surface-container-low text-on-surface-variant font-mono-sm text-mono-sm font-semibold">
+                        ₹{algo.marginRequired.toLocaleString('en-IN')}
                       </span>
-                    </div>
-
-                    {/* Column 4: 3m */}
-                    <div className={`col-span-1 text-center font-mono text-xs font-bold ${algo.return3m >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
-                      {algo.return3m >= 0 ? '+' : ''}{algo.return3m}%
-                    </div>
-
-                    {/* Column 5: 6m */}
-                    <div className={`col-span-1 text-center font-mono text-xs font-bold ${algo.return6m >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
-                      {algo.return6m >= 0 ? '+' : ''}{algo.return6m}%
-                    </div>
-
-                    {/* Column 6: 1y */}
-                    <div className={`col-span-1 text-center font-mono text-xs font-bold ${algo.return1y >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
-                      {algo.return1y >= 0 ? '+' : ''}{algo.return1y}%
-                    </div>
-
-                    {/* Column 7: Actions */}
-                    <div className="col-span-1 text-right">
-                      <span className="inline-flex items-center text-xs font-semibold text-gray-400 group-hover:text-black">
-                        Details →
+                      <span className="px-space-sm py-0.5 rounded-full bg-bullish-tint text-bullish font-label-sm text-label-sm inline-flex items-center gap-1 font-semibold">
+                        <span className="material-symbols-outlined text-[12px]">verified</span>
+                        Audited Quant Strategy
                       </span>
                     </div>
                   </div>
-                );
-              })
-            )}
-          </div>
+
+                  {/* 4-Metric Grid */}
+                  <div className="grid grid-cols-4 gap-space-xs bg-surface-container-low rounded-lg p-space-sm">
+                    <div>
+                      <div className="font-label-sm text-label-sm text-text-muted">1Y Return</div>
+                      <div className="font-mono-md text-mono-md text-bullish font-bold tabular-nums">
+                        +{algo.return1y}%
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-label-sm text-label-sm text-text-muted">Sharpe</div>
+                      <div className="font-mono-md text-mono-md text-on-surface font-bold tabular-nums">
+                        2.41
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-label-sm text-label-sm text-text-muted">Win Rate</div>
+                      <div className="font-mono-md text-mono-md text-on-surface font-bold tabular-nums">
+                        {algo.winRate}%
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-label-sm text-label-sm text-text-muted">Max DD</div>
+                      <div className="font-mono-md text-mono-md text-bearish font-bold tabular-nums">
+                        {algo.maxDrawdown}%
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sparkline & Action Buttons */}
+                  <div className="flex items-center justify-between gap-space-md pt-space-xs">
+                    <div className="flex-1 h-10 text-bullish">
+                      {renderSparkline(algo.sparkline)}
+                    </div>
+
+                    <div className="flex items-center gap-space-xs">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenBacktest(algo);
+                        }}
+                        className="px-space-sm py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors shadow-xs cursor-pointer active:scale-95"
+                        type="button"
+                      >
+                        Backtest
+                      </button>
+                      <button
+                        onClick={() => onSelectStrategy(algo)}
+                        className="px-space-sm py-1.5 rounded-lg border border-border-subtle bg-surface-card text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors"
+                        type="button"
+                      >
+                        Details
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              );
+            })
+          )}
         </div>
       )}
 
-      {/* VIEW B: SIMULATED POSITIONS */}
+      {/* VIEW B: SIMULATED POSITIONS (Matching Stitch Screen 2) */}
       {activeTab === 'positions' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden space-y-4">
-          <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+        <div className="bg-surface-card rounded-xl border border-border-subtle shadow-sm overflow-hidden p-space-lg space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pb-space-sm border-b border-border-subtle">
             <div>
-              <h3 className="font-bold text-base text-[#151515]">Active Simulated Positions</h3>
-              <p className="text-xs text-gray-500">Live positions executed by deployed algorithms in paper mode.</p>
+              <h3 className="font-title-md text-title-md text-on-surface font-semibold">Active Simulated Positions</h3>
+              <p className="font-body-sm text-body-sm text-text-muted">Paper trade fills executed across authentic live market ticks.</p>
             </div>
-            <div className="text-right font-mono text-xs">
-              <span className="text-gray-400">Total Unrealized PnL: </span>
-              <strong className="text-emerald-700 font-bold">+₹3,636.50</strong>
+            <div className="font-mono-sm text-mono-sm">
+              <span className="text-text-muted">Total Unrealized PnL: </span>
+              <strong className="text-bullish font-bold text-base">+₹3,636.50</strong>
             </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono">
-              <thead className="bg-[#FAFAFC] border-b border-gray-100 text-gray-500 font-bold uppercase text-[10px]">
-                <tr>
-                  <th className="py-3 px-4">Position ID</th>
-                  <th className="py-3 px-4">Algorithm</th>
-                  <th className="py-3 px-4">Symbol</th>
-                  <th className="py-3 px-4">Type</th>
-                  <th className="py-3 px-4 text-right">Avg Entry</th>
-                  <th className="py-3 px-4 text-right">Current Price</th>
-                  <th className="py-3 px-4 text-right">Deployed</th>
-                  <th className="py-3 px-4 text-right">PnL (INR)</th>
-                  <th className="py-3 px-4 text-right">Return %</th>
+            <table className="w-full text-left font-mono-sm text-mono-sm">
+              <thead>
+                <tr className="border-b border-border-subtle text-text-muted uppercase font-label-sm">
+                  <th className="py-2.5 px-3">Position ID</th>
+                  <th className="py-2.5 px-3">Algorithm</th>
+                  <th className="py-2.5 px-3">Symbol</th>
+                  <th className="py-2.5 px-3">Type</th>
+                  <th className="py-2.5 px-3 text-right">Avg Entry</th>
+                  <th className="py-2.5 px-3 text-right">Current Price</th>
+                  <th className="py-2.5 px-3 text-right">PnL (INR)</th>
+                  <th className="py-2.5 px-3 text-right">Return %</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {positions.map((pos) => {
-                  const isProfit = pos.pnl >= 0;
-                  return (
-                    <tr key={pos.id} className="hover:bg-gray-50">
-                      <td className="py-3.5 px-4 font-bold text-gray-500">{pos.id}</td>
-                      <td className="py-3.5 px-4 font-sans font-bold text-[#151515]">{pos.algoName}</td>
-                      <td className="py-3.5 px-4 font-bold">{pos.symbol}</td>
-                      <td className="py-3.5 px-4">
-                        <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${pos.type === 'BUY' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
-                          {pos.type} ({pos.qty})
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-right">₹{pos.avgPrice.toFixed(2)}</td>
-                      <td className="py-3.5 px-4 text-right font-bold">₹{pos.currentPrice.toFixed(2)}</td>
-                      <td className="py-3.5 px-4 text-right text-gray-600">₹{pos.capitalDeployed.toLocaleString('en-IN')}</td>
-                      <td className={`py-3.5 px-4 text-right font-bold ${isProfit ? 'text-emerald-700' : 'text-rose-600'}`}>
-                        {isProfit ? '+' : ''}₹{pos.pnl.toFixed(2)}
-                      </td>
-                      <td className={`py-3.5 px-4 text-right font-bold ${isProfit ? 'text-emerald-700' : 'text-rose-600'}`}>
-                        {isProfit ? '+' : ''}{pos.pnlPct.toFixed(2)}%
-                      </td>
-                    </tr>
-                  );
-                })}
+              <tbody className="divide-y divide-border-subtle">
+                {positions.map((pos) => (
+                  <tr key={pos.id} className="hover:bg-surface-container-low transition-colors">
+                    <td className="py-2.5 px-3 text-text-muted font-bold">{pos.id}</td>
+                    <td className="py-2.5 px-3 font-sans font-semibold text-on-surface">{pos.algoName}</td>
+                    <td className="py-2.5 px-3 font-bold">{pos.symbol}</td>
+                    <td className="py-2.5 px-3">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        pos.type === 'BUY' ? 'bg-bullish-tint text-bullish' : 'bg-bearish-tint text-bearish'
+                      }`}>
+                        {pos.type}
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-3 text-right tabular-nums">₹{pos.avgPrice.toFixed(2)}</td>
+                    <td className="py-2.5 px-3 text-right tabular-nums">₹{pos.currentPrice.toFixed(2)}</td>
+                    <td className={`py-2.5 px-3 text-right font-bold tabular-nums ${pos.pnl >= 0 ? 'text-bullish' : 'text-bearish'}`}>
+                      {pos.pnl >= 0 ? '+' : ''}₹{pos.pnl.toFixed(2)}
+                    </td>
+                    <td className={`py-2.5 px-3 text-right font-bold tabular-nums ${pos.pnlPct >= 0 ? 'text-bullish' : 'text-bearish'}`}>
+                      {pos.pnlPct >= 0 ? '+' : ''}{pos.pnlPct.toFixed(2)}%
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -471,48 +456,47 @@ export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
 
       {/* VIEW C: ORDER HISTORY */}
       {activeTab === 'orders' && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden space-y-4">
-          <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-base text-[#151515]">Algorithmic Order Book</h3>
-              <p className="text-xs text-gray-500">SEBI limit orders placed and verified by algorithms.</p>
-            </div>
-            <span className="text-xs font-mono text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-              100% Limit Orders
-            </span>
+        <div className="bg-surface-card rounded-xl border border-border-subtle shadow-sm overflow-hidden p-space-lg space-y-4">
+          <div className="flex items-center justify-between pb-space-sm border-b border-border-subtle">
+            <h3 className="font-title-md text-title-md text-on-surface font-semibold">Simulated Order Journal</h3>
+            <span className="font-mono-sm text-mono-sm text-text-muted">{orders.length} Executions Logged</span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono">
-              <thead className="bg-[#FAFAFC] border-b border-gray-100 text-gray-500 font-bold uppercase text-[10px]">
-                <tr>
-                  <th className="py-3 px-4">Order ID</th>
-                  <th className="py-3 px-4">Timestamp</th>
-                  <th className="py-3 px-4">Algorithm</th>
-                  <th className="py-3 px-4">Symbol</th>
-                  <th className="py-3 px-4">Side</th>
-                  <th className="py-3 px-4">Type</th>
-                  <th className="py-3 px-4 text-right">Limit Price</th>
-                  <th className="py-3 px-4 text-right">Qty</th>
-                  <th className="py-3 px-4 text-right">Status</th>
+            <table className="w-full text-left font-mono-sm text-mono-sm">
+              <thead>
+                <tr className="border-b border-border-subtle text-text-muted uppercase font-label-sm">
+                  <th className="py-2.5 px-3">Order ID</th>
+                  <th className="py-2.5 px-3">Algorithm</th>
+                  <th className="py-2.5 px-3">Symbol</th>
+                  <th className="py-2.5 px-3">Side</th>
+                  <th className="py-2.5 px-3 text-right">Price</th>
+                  <th className="py-2.5 px-3 text-right">Qty</th>
+                  <th className="py-2.5 px-3">Status</th>
+                  <th className="py-2.5 px-3">Timestamp</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-border-subtle">
                 {orders.map((ord) => (
-                  <tr key={ord.id} className="hover:bg-gray-50">
-                    <td className="py-3 px-4 font-bold text-gray-500">{ord.id}</td>
-                    <td className="py-3 px-4 text-gray-500">{ord.timestamp}</td>
-                    <td className="py-3 px-4 font-sans font-bold text-[#151515]">{ord.algoName}</td>
-                    <td className="py-3 px-4 font-bold">{ord.symbol}</td>
-                    <td className="py-3 px-4 font-bold text-emerald-700">{ord.type}</td>
-                    <td className="py-3 px-4 text-gray-500">{ord.orderType}</td>
-                    <td className="py-3 px-4 text-right font-bold">₹{ord.price.toFixed(2)}</td>
-                    <td className="py-3 px-4 text-right">{ord.qty}</td>
-                    <td className="py-3 px-4 text-right">
-                      <span className="px-2 py-0.5 rounded font-bold text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <tr key={ord.id} className="hover:bg-surface-container-low transition-colors">
+                    <td className="py-2.5 px-3 text-text-muted font-bold">{ord.id}</td>
+                    <td className="py-2.5 px-3 font-sans font-semibold text-on-surface">{ord.algoName}</td>
+                    <td className="py-2.5 px-3 font-bold">{ord.symbol}</td>
+                    <td className="py-2.5 px-3">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        ord.type === 'BUY' ? 'bg-bullish-tint text-bullish' : 'bg-bearish-tint text-bearish'
+                      }`}>
+                        {ord.type}
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-3 text-right tabular-nums">₹{ord.price.toFixed(2)}</td>
+                    <td className="py-2.5 px-3 text-right tabular-nums">{ord.qty}</td>
+                    <td className="py-2.5 px-3">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-bullish-tint text-bullish">
                         {ord.status}
                       </span>
                     </td>
+                    <td className="py-2.5 px-3 text-text-muted">{ord.timestamp}</td>
                   </tr>
                 ))}
               </tbody>

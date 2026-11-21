@@ -204,171 +204,171 @@ export const AdminStrategyPortal: React.FC<AdminStrategyPortalProps> = ({
   };
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8 select-none">
-      {/* Top Banner / Breadcrumb */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-gray-200">
-        <div>
-          <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-            <span>Admin Workspace</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-            <span className="text-[#0A0A0D] font-bold">Strategy Creation Portal</span>
+    <div className="flex flex-col w-full gap-space-lg pb-space-xl px-margin py-space-md select-none bg-background">
+      {/* Top Banner (Stitch Screen 9) */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-stretch">
+        <div className="lg:col-span-5 bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
+          <div className="flex flex-col gap-space-xs">
+            <span className="font-label-sm text-label-sm uppercase text-text-muted">ADMIN // STRATEGY COMPILER</span>
+            <h1 className="font-headline-sm text-headline-sm text-on-surface">Strategy Management &amp; Compiler</h1>
+            <p className="font-body-sm text-body-sm text-text-secondary">
+              Author, test, compile, and configure quantitative algorithms on live NSE bar data with automated SEBI audit trails.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-[#0A0A0D] mt-1 tracking-tight">
-            Algorithmic Strategy Admin Portal
-          </h1>
-          <p className="text-sm text-gray-600 mt-0.5">
-            Create custom algorithmic strategies using prompts and quantitative rules, test on live National Stock Exchange (NSE) data, and deploy to users.
-          </p>
+          <div className="mt-space-md flex items-center gap-space-sm">
+            <span className="inline-flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-bullish-tint text-bullish font-mono-sm text-mono-sm font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-bullish"></span>
+              SEBI LODR COMPLIANT
+            </span>
+            <span className="font-mono-sm text-mono-sm text-text-muted">
+              ROLE: QUANT DESK LEAD
+            </span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full text-xs font-mono font-semibold text-gray-700">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>NSE Equities & Index Only</span>
+        <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-gutter">
+          <div className="bg-surface-card border border-border-subtle rounded-xl p-space-md shadow-sm flex flex-col justify-between">
+            <span className="font-label-sm text-label-sm text-text-muted uppercase">Total Authored</span>
+            <div className="mt-space-sm flex items-baseline justify-between">
+              <span className="font-mono-lg text-mono-lg text-on-surface tabular-nums font-bold">
+                {String(strategies.length).padStart(2, '0')}
+              </span>
+              <span className="font-mono-sm text-mono-sm text-bullish font-semibold">+2 wk</span>
+            </div>
           </div>
-
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#0A0A0D] hover:bg-black text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ Add Algorithm</span>
-          </button>
+          <div className="bg-surface-card border border-border-subtle rounded-xl p-space-md shadow-sm flex flex-col justify-between">
+            <span className="font-label-sm text-label-sm text-text-muted uppercase">Published Live</span>
+            <div className="mt-space-sm flex items-baseline justify-between">
+              <span className="font-mono-lg text-mono-lg text-bullish tabular-nums font-bold">
+                {String(strategies.filter((s) => s.isPublished !== false).length).padStart(2, '0')}
+              </span>
+              <span className="px-space-xs py-0.5 rounded bg-bullish-tint text-bullish font-mono-sm text-mono-sm font-semibold">ACTIVE</span>
+            </div>
+          </div>
+          <div className="bg-surface-card border border-border-subtle rounded-xl p-space-md shadow-sm flex flex-col justify-between">
+            <span className="font-label-sm text-label-sm text-text-muted uppercase">Draft / Staging</span>
+            <div className="mt-space-sm flex items-baseline justify-between">
+              <span className="font-mono-lg text-mono-lg text-on-surface tabular-nums font-bold">
+                {String(strategies.filter((s) => s.isPublished === false).length).padStart(2, '0')}
+              </span>
+              <span className="px-space-xs py-0.5 rounded bg-surface-container text-on-surface-variant font-mono-sm text-mono-sm font-semibold">QA</span>
+            </div>
+          </div>
+          <div className="bg-surface-card border border-border-subtle rounded-xl p-space-md shadow-sm flex flex-col justify-between">
+            <span className="font-label-sm text-label-sm text-text-muted uppercase">Allocated Margin</span>
+            <div className="mt-space-sm flex items-baseline justify-between">
+              <span className="font-mono-lg text-mono-lg text-on-surface tabular-nums font-bold">₹65L</span>
+              <span className="font-mono-sm text-mono-sm text-secondary font-semibold">SEBI OK</span>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* Success Notification Alert */}
       {successMessage && (
-        <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-3 text-sm text-emerald-800">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+        <div className="p-4 bg-bullish-tint border border-bullish rounded-xl flex items-center gap-3 text-sm text-bullish">
+          <CheckCircle2 className="w-5 h-5 text-bullish shrink-0" />
           <span className="font-semibold">{successMessage}</span>
         </div>
       )}
 
-      {/* Strategy Management Roster */}
-      <div className="mt-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-[#0A0A0D] flex items-center gap-2">
-            <span>Configured Strategies</span>
-            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full font-mono">
-              {strategies.length}
-            </span>
-          </h2>
-          <span className="text-xs text-gray-500">
-            Only strategies with "Published" status appear on the public user marketplace.
-          </span>
-        </div>
-
-        {strategies.length === 0 ? (
-          <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center max-w-2xl mx-auto shadow-sm">
-            <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center mx-auto mb-4 text-[#0A0A0D]">
-              <Cpu className="w-8 h-8" />
+      {/* 1. Strategy Catalog Table (Stitch Screen 9) */}
+      <section className="bg-surface-card border border-border-subtle rounded-xl shadow-sm overflow-hidden">
+        <div className="px-space-lg py-space-md border-b border-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+          <div className="flex items-center gap-space-sm">
+            <span className="material-symbols-outlined text-on-surface text-[20px]">table_chart</span>
+            <div>
+              <h3 className="font-title-md text-title-md text-on-surface">Strategy Catalog</h3>
+              <p className="font-body-sm text-body-sm text-text-muted">
+                Toggle live publication status or load any algorithm into the compiler below.
+              </p>
             </div>
-            <h3 className="text-lg font-bold text-[#0A0A0D]">No Algorithms Added Yet</h3>
-            <p className="text-sm text-gray-500 mt-1 max-w-md mx-auto">
-              All placeholder algos have been removed. Click the button below to add your custom algorithm with your exact prompt and rules.
-            </p>
+          </div>
+          <div className="flex items-center gap-space-sm">
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-[#0A0A0D] hover:bg-black text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95"
+              className="inline-flex items-center gap-space-xs px-space-sm py-1.5 rounded-lg bg-surface-container-low border border-border-subtle font-label-md text-label-md text-on-surface hover:bg-surface-container transition-colors cursor-pointer"
+              type="button"
             >
-              <Plus className="w-4 h-4" />
-              <span>+ Add Your First Algorithm</span>
+              <span className="material-symbols-outlined text-[16px]">add</span>
+              <span>New Strategy</span>
             </button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {strategies.map((strat) => (
-              <div
-                key={strat.id}
-                className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center font-bold text-sm text-[#0A0A0D]">
-                        {strat.targetSymbol ? strat.targetSymbol.substring(0, 2) : 'AL'}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-sm text-[#0A0A0D] leading-snug">
-                          {strat.name}
-                        </h4>
-                        <span className="text-[11px] text-gray-500 font-mono">
-                          NSE: {strat.targetSymbol || 'NIFTY 50'} · {strat.timeframe || '15m'}
-                        </span>
-                      </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-surface-container-low border-b border-border-subtle font-label-sm text-label-sm text-text-muted uppercase">
+                <th className="py-3 px-space-lg">Algorithm &amp; ID</th>
+                <th className="py-3 px-space-md">Category</th>
+                <th className="py-3 px-space-md">Target Asset</th>
+                <th className="py-3 px-space-md">Style</th>
+                <th className="py-3 px-space-md text-right">Capital Tier</th>
+                <th className="py-3 px-space-md text-center">Status</th>
+                <th className="py-3 px-space-lg text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border-subtle font-body-sm text-body-sm">
+              {strategies.map((strat) => (
+                <tr key={strat.id} className="hover:bg-surface-container-low/50 transition-colors">
+                  <td className="py-3 px-space-lg">
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-on-surface">{strat.name}</span>
+                      <span className="font-mono-sm text-mono-sm text-text-muted">{strat.id}</span>
                     </div>
-
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                  </td>
+                  <td className="py-3 px-space-md text-text-secondary">{strat.category}</td>
+                  <td className="py-3 px-space-md font-mono-sm font-semibold text-on-surface">
+                    NSE:{strat.targetSymbol || 'NIFTY 50'}
+                  </td>
+                  <td className="py-3 px-space-md text-text-secondary">{strat.style}</td>
+                  <td className="py-3 px-space-md text-right font-mono-sm tabular-nums text-on-surface font-semibold">
+                    ₹{strat.marginRequired.toLocaleString('en-IN')}
+                  </td>
+                  <td className="py-3 px-space-md text-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onUpdateStrategy({
+                          ...strat,
+                          isPublished: strat.isPublished === false ? true : false,
+                        });
+                      }}
+                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold cursor-pointer transition-colors ${
                         strat.isPublished !== false
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'bg-gray-100 text-gray-600 border-gray-300'
+                          ? 'bg-bullish-tint text-bullish border border-bullish'
+                          : 'bg-surface-container text-text-muted border border-border-subtle'
                       }`}
                     >
-                      {strat.isPublished !== false ? 'Live for Users' : 'Draft'}
-                    </span>
-                  </div>
-
-                  {/* Rules preview */}
-                  <div className="mt-4 p-3 bg-[#FAFAFC] rounded-xl border border-gray-100 text-xs text-gray-600 line-clamp-3 font-mono">
-                    {strat.promptRules || strat.description}
-                  </div>
-
-                  {/* Metrics preview */}
-                  <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs py-2 border-t border-b border-gray-100 font-mono">
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">Min Capital</span>
-                      <span className="font-bold text-[#0A0A0D]">₹{strat.marginRequired.toLocaleString('en-IN')}</span>
+                      <span className={`w-1.5 h-1.5 rounded-full ${strat.isPublished !== false ? 'bg-bullish' : 'bg-text-muted'}`}></span>
+                      <span>{strat.isPublished !== false ? 'Live' : 'Draft'}</span>
+                    </button>
+                  </td>
+                  <td className="py-3 px-space-lg text-right">
+                    <div className="flex items-center justify-end gap-space-xs">
+                      <button
+                        onClick={() => onTestBacktest(strat)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-low hover:bg-primary hover:text-on-primary text-on-surface text-xs font-label-md transition-colors cursor-pointer"
+                        title="Test in Backtest Studio"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">play_arrow</span>
+                        <span>Test</span>
+                      </button>
+                      <button
+                        onClick={() => onDeleteStrategy(strat.id)}
+                        className="p-1.5 rounded-lg text-text-muted hover:text-bearish hover:bg-bearish-tint transition-colors cursor-pointer"
+                        title="Delete Algorithm"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">delete</span>
+                      </button>
                     </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">Win Rate</span>
-                      <span className="font-bold text-emerald-600">{strat.winRate}%</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">1M Return</span>
-                      <span className={`font-bold ${strat.rollingReturn1m >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                        {strat.rollingReturn1m >= 0 ? '+' : ''}{strat.rollingReturn1m}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-5 pt-3 flex items-center justify-between gap-2">
-                  <button
-                    onClick={() => onTestBacktest(strat)}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-gray-100 hover:bg-[#0A0A0D] hover:text-white text-gray-700 text-xs font-bold rounded-xl transition-colors"
-                  >
-                    <Play className="w-3.5 h-3.5" />
-                    <span>Test Backtest</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      onUpdateStrategy({
-                        ...strat,
-                        isPublished: strat.isPublished === false ? true : false,
-                      });
-                    }}
-                    className="p-2 border border-gray-200 hover:border-gray-400 rounded-xl text-gray-600 hover:text-black transition-colors"
-                    title={strat.isPublished !== false ? 'Unpublish from Users' : 'Publish to Users'}
-                  >
-                    {strat.isPublished !== false ? <Eye className="w-4 h-4 text-emerald-600" /> : <EyeOff className="w-4 h-4" />}
-                  </button>
-
-                  <button
-                    onClick={() => onDeleteStrategy(strat.id)}
-                    className="p-2 border border-gray-200 hover:border-rose-300 hover:bg-rose-50 text-gray-400 hover:text-rose-600 rounded-xl transition-colors"
-                    title="Delete Algorithm"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       {/* Modal: Create New Algorithm */}
       {isCreateModalOpen && (

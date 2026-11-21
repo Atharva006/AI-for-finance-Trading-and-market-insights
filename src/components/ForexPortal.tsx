@@ -1,38 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Globe2,
-  DollarSign,
-  TrendingUp,
-  TrendingDown,
-  ShieldCheck,
-  Sliders,
-  Play,
-  RotateCcw,
-  CheckCircle2,
-  ArrowRight,
-  Layers,
-  Activity,
-  Zap,
-  Info,
-  Calendar,
-  Sparkles,
-  RefreshCw,
-  ExternalLink,
-  Code2,
-  AlertCircle,
-  Clock,
-  ArrowUpRight,
-  BarChart3,
-  Radio,
-  Lock,
-  SlidersHorizontal,
-  ChevronDown,
-  Gauge,
-  Crosshair,
-  ShieldAlert,
-  Flame,
-} from 'lucide-react';
-import {
   FOREX_PAIRS,
   ForexPairInfo,
   SessionSweepStrategyParams,
@@ -41,10 +8,9 @@ import {
   runSessionSweepBacktest,
 } from '../services/forexEngine';
 import { Candle } from '../types/backtest';
+import { LiveSessionChart } from './LiveSessionChart';
 import { EquityLineChart } from './EquityLineChart';
 import { QuantUnderwaterChart } from './QuantUnderwaterChart';
-import { QuantRiskAlphaMatrix } from './QuantRiskAlphaMatrix';
-import { LiveSessionChart } from './LiveSessionChart';
 
 interface ForexPortalProps {
   onBackToMain?: () => void;
@@ -56,6 +22,9 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
   const selectedInterval = '15m'; // Execution strictly locked to 15m per Pine Script rules
   const [dateRange, setDateRange] = useState<'30d' | '60d'>('60d');
 
+  // Currency Display State
+  const [currencyMode, setCurrencyMode] = useState<'USD' | 'INR'>('USD');
+
   // Strategy Parameters (from your original Pine Script v5)
   const [params, setParams] = useState<SessionSweepStrategyParams>(DEFAULT_SESSION_SWEEP_PARAMS);
 
@@ -64,11 +33,12 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
   const [usdInrRate, setUsdInrRate] = useState<number>(92.67); // Live USDINR spot
 
   // State Machine & Next-Trade Execution Telemetry
-  const [inversionFilterMode, setInversionFilterMode] = useState<'STRICT_BODY' | 'CONSERVATIVE_EXTENDED'>('STRICT_BODY');
-  const [executionUrgency, setExecutionUrgency] = useState<'LIMIT_AT_FVG_EDGE' | 'AGGRESSIVE_MARKET_CROSS'>('LIMIT_AT_FVG_EDGE');
+  const [entryMode, setEntryMode] = useState<'LIMIT_AT_FVG_EDGE' | 'AGGRESSIVE_MARKET_CROSS'>('LIMIT_AT_FVG_EDGE');
+  const [slMode, setSlMode] = useState<'STRICT_BODY' | 'CONSERVATIVE_EXTENDED'>('STRICT_BODY');
   const [maxSpreadFilter, setMaxSpreadFilter] = useState<number>(1.8);
   const [circuitBreakerLosses, setCircuitBreakerLosses] = useState<number>(3); // Halt if 3 consecutive losses
-  const [riskGovernorArmed, setRiskGovernorArmed] = useState<boolean>(true);
+  const [isPineModalOpen, setIsPineModalOpen] = useState<boolean>(false);
+  const [copiedPine, setCopiedPine] = useState<boolean>(false);
 
   // Live Candle fetching & execution state
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -77,8 +47,20 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
   const [priceChange24h, setPriceChange24h] = useState<number>(0);
   const [backtestResult, setBacktestResult] = useState<ForexBacktestResult | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [currentTimeUtc, setCurrentTimeUtc] = useState<string>('');
 
   const selectedPair = FOREX_PAIRS[selectedPairKey] || FOREX_PAIRS['EURUSD=X'];
+
+  // UTC Live Clock
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTimeUtc(now.toUTCString().slice(17, 25) + ' UTC');
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Fetch real intraday candles from Yahoo Finance endpoint
   const fetchCandles = async () => {
@@ -173,601 +155,535 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
     setBacktestResult(resTest);
   };
 
-  // Inspect the current live session regime based on latest UTC hour
   const currentUtcHour = new Date().getUTCHours();
   const currentSessionName =
     currentUtcHour >= 18 || currentUtcHour < 0
-      ? 'Asia Liquidity Building (18:00 - 00:00)'
+      ? 'Asia Liquidity Building (18:00 - 00:00 UTC)'
       : currentUtcHour >= 0 && currentUtcHour < 6
-      ? 'London Sweep & Inversion Window (00:00 - 06:00)'
+      ? 'London Sweep & Inversion Window (00:00 - 06:00 UTC)'
       : currentUtcHour >= 13 && currentUtcHour < 22
-      ? 'New York Sweep & Inversion Window (13:00 - 22:00)'
+      ? 'New York Sweep & Inversion Window (13:00 - 22:00 UTC)'
       : 'Inter-Session Hold / London-NY Overlap Prep';
 
+  // Format currency helpers
+  const fmtPnl = (usd: number, inr: number) => {
+    if (currencyMode === 'INR') {
+      return (inr >= 0 ? '+' : '') + '₹' + Math.round(inr).toLocaleString('en-IN');
+    }
+    return (usd >= 0 ? '+' : '') + '$' + usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const fmtSecPnl = (usd: number, inr: number) => {
+    if (currencyMode === 'INR') {
+      return (usd >= 0 ? '+' : '') + '$' + Math.round(usd).toLocaleString('en-US') + ' USD';
+    }
+    return (inr >= 0 ? '+' : '') + '₹' + Math.round(inr).toLocaleString('en-IN');
+  };
+
+  const pineScriptCode = `//@version=5
+strategy("Asia-London-NY FVG Inversion", overlay=true, max_boxes_count=500, max_lines_count=500, initial_capital=10000)
+
+tz        = input.string("UTC", "Session Timezone")
+asiaSess  = input.session("1800-0000", "Asia Session")
+lonSess   = input.session("0000-0600", "London Session")
+nySess    = input.session("1300-2200", "New York Session")
+
+riskReward     = input.float(2.0, "Risk : Reward", step=0.1)
+maxRiskPercent = input.float(0.95, "Max SL Distance (%)", step=0.05)
+fixedRiskUSD   = input.float(100.0, "Fixed Risk per Trade ($)", step=10.0)
+
+// 1. Asia Liquidity Setup (18:00-00:00 UTC)
+// 2. London Sweep & FVG Inversion (00:00-06:00 UTC)
+// 3. New York Sweep & FVG Inversion (13:00-22:00 UTC)`;
+
+  const handleCopyPineScript = () => {
+    navigator.clipboard.writeText(pineScriptCode);
+    setCopiedPine(true);
+    setTimeout(() => setCopiedPine(false), 2000);
+  };
+
   return (
-    <div className="min-h-screen w-full bg-[#F5F5F7] text-[#151515] font-sans antialiased pb-24 selection:bg-black selection:text-white relative">
-      {/* 1. Header Bar: Full Width Clean Light Theme Header */}
-      <div className="w-full bg-white border-b border-[#E5E7EB] sticky top-16 z-30 shadow-xs px-4 sm:px-6 lg:px-8 py-3.5">
-        <div className="w-full flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-[#0A0A0D] flex items-center justify-center text-white font-black shadow-sm">
-              <Globe2 className="w-6 h-6 text-emerald-400" />
+    <div className="min-h-screen w-full bg-background text-on-surface font-sans selection:bg-primary selection:text-on-primary pb-24">
+      <div className="w-full px-margin py-space-md flex flex-col gap-space-lg">
+        {/* 1. DESK HEADER BAR (Matching Stitch Screen 8 Exactly) */}
+        <section className="w-full bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-space-md">
+          <div className="flex flex-col gap-space-xs">
+            <div className="flex flex-wrap items-center gap-space-sm">
+              <span className="font-headline-sm text-headline-sm text-on-surface tracking-tight uppercase font-semibold">
+                NRI &amp; GLOBAL FOREX DESK
+              </span>
+              <span className="inline-flex items-center px-space-sm py-0.5 rounded-full bg-forex-tint border border-secondary text-secondary font-mono-sm text-mono-sm font-semibold">
+                ASIA-LONDON-NY FVG INVERSION (PINE SCRIPT v5)
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-lg text-[#0A0A0D] tracking-tight">
-                  NRI &amp; GLOBAL FOREX DESK
-                </span>
-                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold tracking-wider">
-                  ASIA-LONDON-NY FVG INVERSION (PINE SCRIPT v5)
-                </span>
-              </div>
-              <p className="text-xs text-gray-500 flex items-center gap-2 mt-0.5 font-mono">
-                <span className="text-emerald-700 flex items-center gap-1 font-bold">
-                  <Radio className="w-3 h-3 text-emerald-600 animate-pulse" /> LIVE STREAM
-                </span>
-                <span className="text-gray-300">|</span>
-                <span>Active Cycle: <strong className="text-black">{currentSessionName}</strong></span>
-              </p>
+            <div className="flex flex-wrap items-center gap-space-md font-mono-sm text-mono-sm text-text-muted">
+              <span className="inline-flex items-center gap-1.5 text-on-surface">
+                <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
+                15m YAHOO FINANCE STREAM · LIVE
+              </span>
+              <span>|</span>
+              <span>FEMA LRS &amp; GIFT CITY IFSC COMPLIANT</span>
+              <span>|</span>
+              <span className="text-secondary font-semibold">{currentSessionName}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-xs font-mono">
-              <span className="text-gray-500 text-[11px]">LIVE USD/INR SPOT:</span>
-              <span className="text-black font-bold text-sm">₹{usdInrRate.toFixed(2)}</span>
+          <div className="flex flex-wrap items-center gap-space-md">
+            {/* Live USD/INR Spot */}
+            <div className="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg bg-surface-container-low border border-border-subtle">
+              <span className="font-label-sm text-label-sm text-text-muted uppercase">USD/INR SPOT</span>
+              <span className="font-mono-md text-mono-md text-on-surface font-bold tabular-nums">
+                ₹{usdInrRate.toFixed(2)}
+              </span>
+              <span className="font-mono-sm text-mono-sm text-bullish font-semibold">+0.14%</span>
             </div>
 
-            {onBackToMain && (
+            {/* Currency Toggle */}
+            <div className="inline-flex items-center p-1 rounded-lg bg-surface-container-low border border-border-subtle" role="group">
               <button
-                onClick={onBackToMain}
-                className="px-4 py-2 rounded-xl bg-white hover:bg-gray-50 text-gray-700 text-xs font-semibold transition-all border border-gray-200 shadow-xs"
+                onClick={() => setCurrencyMode('USD')}
+                className={`px-space-sm py-1 rounded-md font-mono-sm text-mono-sm transition-all cursor-pointer ${
+                  currencyMode === 'USD'
+                    ? 'bg-surface-card text-on-surface shadow-sm font-semibold'
+                    : 'text-text-muted hover:text-on-surface'
+                }`}
+                type="button"
               >
-                Back to Indian Equities
+                USD ($)
               </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Main Content Area: Expanded to Full Width */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
-        {/* Pine Script Logic Breakdown Card */}
-        <div className="p-4 rounded-xl bg-white border border-[#E5E7EB] shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <strong className="text-black text-sm font-sans">Asia-London-NY FVG Inversion Execution Rules:</strong>
+              <button
+                onClick={() => setCurrencyMode('INR')}
+                className={`px-space-sm py-1 rounded-md font-mono-sm text-mono-sm transition-all cursor-pointer ${
+                  currencyMode === 'INR'
+                    ? 'bg-surface-card text-on-surface shadow-sm font-semibold'
+                    : 'text-text-muted hover:text-on-surface'
+                }`}
+                type="button"
+              >
+                INR (₹)
+              </button>
             </div>
-            <p className="text-gray-600 leading-relaxed font-sans text-xs">
-              1. <strong>Asia Session (18:00 - 00:00 UTC):</strong> Automatically establishes high &amp; low liquidity pool boundaries.<br />
-              2. <strong>London Session (00:00 - 06:00 UTC):</strong> Detects liquidity sweeps above/below Asia range; identifies active Fair Value Gap (FVG); triggers limit entry upon candle close inversion with body-filtered SL.<br />
-              3. <strong>New York Session (13:00 - 22:00 UTC):</strong> Detects liquidity sweeps of London session high/low with identical FVG inversion limit entry rules.
-            </p>
-          </div>
-          <div className="shrink-0 flex md:flex-col items-end gap-1 font-mono text-[11px]">
-            <span className="bg-gray-100 text-black px-2.5 py-1 rounded font-bold">
-              1 : 2.0 PURE R:R
-            </span>
-            <span className="text-emerald-700 font-bold flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" /> 100% Bar-by-Bar Authentic
-            </span>
-          </div>
-        </div>
 
-        {/* Instrument Selector Tabs: Full Width Light Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-          {Object.values(FOREX_PAIRS).map((pair) => {
-            const isSelected = selectedPairKey === pair.symbol;
+            {/* Pine Script v5 Code Button */}
+            <button
+              onClick={() => setIsPineModalOpen(true)}
+              className="inline-flex items-center gap-space-xs px-space-md py-1.5 rounded-lg bg-surface-card border border-border-subtle text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors shadow-xs cursor-pointer active:scale-95"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[16px]">code</span>
+              <span>View Pine Script v5 Code</span>
+            </button>
+          </div>
+        </section>
+
+        {/* 2. INSTRUMENT SELECTOR RIBBON */}
+        <section className="w-full flex items-center gap-space-sm overflow-x-auto pb-1 no-scrollbar">
+          {Object.entries(FOREX_PAIRS).map(([key, pair]) => {
+            const isSelected = selectedPairKey === key;
             return (
               <button
-                key={pair.symbol}
-                onClick={() => setSelectedPairKey(pair.symbol)}
-                className={`p-4 rounded-xl text-left transition-all border ${
+                key={key}
+                onClick={() => setSelectedPairKey(key)}
+                className={`shrink-0 flex items-center gap-space-md px-space-md py-space-sm rounded-xl border shadow-xs transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-white border-black shadow-xs ring-1 ring-black'
-                    : 'bg-white border-gray-200 hover:border-gray-300'
+                    ? 'bg-forex-tint border-secondary text-secondary shadow-sm'
+                    : 'bg-surface-card border-border-subtle text-on-surface hover:bg-surface-container-low'
                 }`}
+                type="button"
               >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="font-bold text-sm text-[#0A0A0D]">
-                    {pair.displayName}
+                <div className="flex flex-col items-start">
+                  <span className="font-mono-md text-mono-md font-semibold">{pair.displayName}</span>
+                  <span className={`font-label-sm text-label-sm ${isSelected ? 'opacity-80' : 'text-text-muted'}`}>
+                    {pair.description}
                   </span>
                 </div>
-                <div className="flex items-center justify-between mb-1 text-[10px] font-mono">
-                  <span className="text-gray-400 uppercase tracking-wider">
-                    {pair.category}
+                <div className="flex flex-col items-end font-mono-sm text-mono-sm tabular-nums">
+                  <span className="font-semibold">
+                    {isSelected && latestPrice ? latestPrice.toFixed(pair.pipSize < 0.001 ? 4 : 2) : 'Live Feed'}
                   </span>
-                  <span className="text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded font-bold">
-                    {pair.spreadPips} spr
+                  <span className={priceChange24h >= 0 ? 'text-bullish font-semibold' : 'text-bearish font-semibold'}>
+                    {priceChange24h >= 0 ? '+' : ''}{priceChange24h.toFixed(2)}%
                   </span>
-                </div>
-                <div className="text-[11px] text-gray-500 line-clamp-1 font-sans">
-                  {pair.description}
                 </div>
               </button>
             );
           })}
-        </div>
+        </section>
 
-        {/* Live Instrument Status Bar: Full Width Light Styling */}
-        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-black text-[#0A0A0D] tracking-tight">
-                  {selectedPair.displayName}
-                </h1>
-                {latestPrice != null && (
-                  <span className="text-2xl font-mono font-bold text-black tracking-wide">
-                    {latestPrice.toFixed(4)}
-                  </span>
-                )}
-                {priceChange24h !== 0 && (
-                  <span
-                    className={`text-xs font-mono font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 border ${
-                      priceChange24h >= 0
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                        : 'bg-rose-50 text-rose-800 border-rose-200'
-                    }`}
-                  >
-                    {priceChange24h >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                    {priceChange24h >= 0 ? '+' : ''}{priceChange24h.toFixed(2)}%
-                  </span>
-                )}
+        {/* 3. TOP CONTROL ROW (2 COLUMNS) */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+          {/* Left: Session Rules Card */}
+          <div className="lg:col-span-5 bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-sm flex flex-col justify-between gap-space-md">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-space-sm">
+                <span className="material-symbols-outlined text-secondary text-[20px]">schedule</span>
+                <h2 className="font-title-md text-title-md text-on-surface font-semibold">
+                  Session Rules &amp; Liquidity Matrix
+                </h2>
               </div>
-              <p className="text-xs text-gray-500 mt-1 font-mono">
-                Symbol: <code className="bg-gray-100 text-black px-1.5 py-0.5 rounded">{selectedPair.symbol}</code> · Lot: <strong className="text-gray-800">{selectedPair.standardLotUnits.toLocaleString()} units</strong> · 1 Pip = <strong className="text-gray-800">{selectedPair.pipSize}</strong> · Feed: <span className="text-emerald-700 font-bold">Continuous Live Market Stream ({candles.length} real bars loaded)</span>
-              </p>
+              <span className="px-space-sm py-0.5 rounded-full bg-surface-container-low font-mono-sm text-mono-sm text-text-muted">
+                UTC-0
+              </span>
             </div>
 
-            {/* Timeframe controls - Fixed to 15m live execution only */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 font-mono">Timeframe:</span>
-              <div className="px-3.5 py-1.5 rounded-xl text-xs font-bold font-mono bg-black text-white shadow-xs flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>15M STRICT LIVE ENGINE</span>
+            <div className="flex flex-col gap-space-sm">
+              <div className="flex items-start justify-between p-space-sm rounded-lg bg-surface-container-low border border-border-subtle">
+                <div className="flex flex-col">
+                  <span className="font-label-md text-label-md text-on-surface font-semibold">Asia Session</span>
+                  <span className="font-body-sm text-body-sm text-text-muted">Range &amp; Liquidity Build (No Entries)</span>
+                </div>
+                <span className="font-mono-sm text-mono-sm text-on-surface tabular-nums">18:00–00:00 UTC</span>
               </div>
 
-              {/* Lookback Stream Feed Status */}
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-mono">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span className="text-gray-500">Stream:</span>
-                <span className="text-black font-bold">Continuous Rolling</span>
+              <div className="flex items-start justify-between p-space-sm rounded-lg bg-forex-tint border border-secondary">
+                <div className="flex flex-col">
+                  <span className="font-label-md text-label-md text-secondary font-semibold">London Session (Active)</span>
+                  <span className="font-body-sm text-body-sm text-on-surface-variant">Asia High/Low Sweep + FVG Inversion</span>
+                </div>
+                <span className="font-mono-sm text-mono-sm text-secondary tabular-nums font-semibold">00:00–06:00 UTC</span>
               </div>
 
-              <button
-                onClick={fetchCandles}
-                disabled={isLoading}
-                className="p-2 rounded-xl bg-white border border-gray-200 text-gray-600 hover:text-black transition-all ml-1 shadow-xs"
-                title="Refresh Live Ticks"
-              >
-                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-black' : ''}`} />
-              </button>
+              <div className="flex items-start justify-between p-space-sm rounded-lg bg-surface-container-low border border-border-subtle">
+                <div className="flex flex-col">
+                  <span className="font-label-md text-label-md text-on-surface font-semibold">New York Session</span>
+                  <span className="font-body-sm text-body-sm text-text-muted">Sweep of London Range + Continuation</span>
+                </div>
+                <span className="font-mono-sm text-mono-sm text-on-surface tabular-nums">13:00–22:00 UTC</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-space-sm pt-space-xs">
+              <div className="p-space-sm rounded-lg bg-surface-container-low border border-border-subtle flex items-center justify-between">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Target R:R</span>
+                <span className="font-mono-md text-mono-md text-bullish font-bold">1 : 2.0</span>
+              </div>
+              <div className="p-space-sm rounded-lg bg-surface-container-low border border-border-subtle flex items-center justify-between">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Position Sizing</span>
+                <span className="font-mono-md text-mono-md text-on-surface font-bold">Dynamic (1.0%)</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* 3. Performance Scorecard & Parameter Tuning: Full Width Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
-          {/* Left Column: Unique Institutional Execution Control Hub */}
-          <div className="lg:col-span-4 space-y-5">
-            <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-4 font-mono">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="w-4 h-4 text-black" />
-                  <span className="font-bold text-sm text-[#0A0A0D] font-sans">
-                    Institutional Execution Engine
-                  </span>
-                </div>
-                <button
-                  onClick={handleRecalculate}
-                  className="text-xs text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1 transition-colors"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>Recalculate</span>
-                </button>
+          {/* Right: Execution Control Hub */}
+          <div className="lg:col-span-7 bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-sm flex flex-col justify-between gap-space-md">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+              <div className="flex items-center gap-space-sm">
+                <span className="material-symbols-outlined text-secondary text-[20px]">tune</span>
+                <h2 className="font-title-md text-title-md text-on-surface font-semibold">
+                  Execution Control Hub
+                </h2>
               </div>
+              <div className="inline-flex items-center gap-space-sm px-space-sm py-1 rounded-full bg-forex-tint border border-secondary text-secondary font-mono-sm text-mono-sm">
+                <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                <span className="font-semibold">{currentTimeUtc}</span>
+                <span>·</span>
+                <span>{currentSessionName}</span>
+              </div>
+            </div>
 
-              {/* Unique Module 1: Session State Machine Telemetry */}
-              <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-xl space-y-2 text-xs font-sans">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-[#0A0A0D] flex items-center gap-1.5">
-                    <Crosshair className="w-3.5 h-3.5 text-indigo-600" /> Session State Machine
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                    AUTOMATIC
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-[10px] font-mono pt-1">
-                  <div className={`p-2 rounded-lg border text-center ${
-                    currentUtcHour >= 18 || currentUtcHour < 0 ? 'bg-amber-50 border-amber-300 text-amber-900 font-bold' : 'bg-white border-gray-200 text-gray-500'
-                  }`}>
-                    <span>ASIA (18-00)</span>
-                    <span className="block text-[9px] mt-0.5 text-gray-400">Range Setup</span>
-                  </div>
-                  <div className={`p-2 rounded-lg border text-center ${
-                    currentUtcHour >= 0 && currentUtcHour < 6 ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold' : 'bg-white border-gray-200 text-gray-500'
-                  }`}>
-                    <span>LONDON (00-06)</span>
-                    <span className="block text-[9px] mt-0.5 text-gray-400">Asia Sweep</span>
-                  </div>
-                  <div className={`p-2 rounded-lg border text-center ${
-                    currentUtcHour >= 13 && currentUtcHour < 22 ? 'bg-purple-50 border-purple-300 text-purple-900 font-bold' : 'bg-white border-gray-200 text-gray-500'
-                  }`}>
-                    <span>NY (13-22)</span>
-                    <span className="block text-[9px] mt-0.5 text-gray-400">Lon Sweep</span>
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+              {/* Toggle 1: Entry Mode */}
+              <div className="p-space-sm rounded-lg bg-surface-container-low border border-border-subtle flex flex-col gap-space-xs">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Order Entry Model</span>
+                <div className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-surface-card border border-border-subtle">
+                  <button
+                    onClick={() => setEntryMode('LIMIT_AT_FVG_EDGE')}
+                    className={`px-space-xs py-1.5 rounded-md font-label-sm text-label-sm transition-all cursor-pointer ${
+                      entryMode === 'LIMIT_AT_FVG_EDGE'
+                        ? 'bg-primary text-on-primary font-semibold'
+                        : 'text-text-muted hover:text-on-surface'
+                    }`}
+                    type="button"
+                  >
+                    Limit Fill at FVG
+                  </button>
+                  <button
+                    onClick={() => setEntryMode('AGGRESSIVE_MARKET_CROSS')}
+                    className={`px-space-xs py-1.5 rounded-md font-label-sm text-label-sm transition-all cursor-pointer ${
+                      entryMode === 'AGGRESSIVE_MARKET_CROSS'
+                        ? 'bg-primary text-on-primary font-semibold'
+                        : 'text-text-muted hover:text-on-surface'
+                    }`}
+                    type="button"
+                  >
+                    Market Inversion Cross
+                  </button>
                 </div>
               </div>
 
-              {/* Capital & Fixed USD Risk Sizing */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <span className="text-xs text-gray-600 block mb-1">Account Capital ($):</span>
+              {/* Toggle 2: Stop Loss Rule */}
+              <div className="p-space-sm rounded-lg bg-surface-container-low border border-border-subtle flex flex-col gap-space-xs">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Stop-Loss Placement</span>
+                <div className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-surface-card border border-border-subtle">
+                  <button
+                    onClick={() => setSlMode('STRICT_BODY')}
+                    className={`px-space-xs py-1.5 rounded-md font-label-sm text-label-sm transition-all cursor-pointer ${
+                      slMode === 'STRICT_BODY'
+                        ? 'bg-primary text-on-primary font-semibold'
+                        : 'text-text-muted hover:text-on-surface'
+                    }`}
+                    type="button"
+                  >
+                    8-Candle Body Exclusion
+                  </button>
+                  <button
+                    onClick={() => setSlMode('CONSERVATIVE_EXTENDED')}
+                    className={`px-space-xs py-1.5 rounded-md font-label-sm text-label-sm transition-all cursor-pointer ${
+                      slMode === 'CONSERVATIVE_EXTENDED'
+                        ? 'bg-primary text-on-primary font-semibold'
+                        : 'text-text-muted hover:text-on-surface'
+                    }`}
+                    type="button"
+                  >
+                    5-Candle Fallback SL
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+              {/* Max Spread Input */}
+              <div className="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low border border-border-subtle">
+                <div className="flex flex-col">
+                  <span className="font-label-md text-label-md text-on-surface font-semibold">Max Allowed Spread</span>
+                  <span className="font-body-sm text-body-sm text-text-muted">
+                    Live: <span className="font-mono-sm text-bullish font-semibold">{selectedPair.spreadPips} pips</span>
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 font-mono-sm">
                   <input
                     type="number"
-                    value={accountCapitalUSD}
-                    onChange={(e) => setAccountCapitalUSD(Number(e.target.value))}
-                    onBlur={handleRecalculate}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-black font-mono text-xs focus:outline-none focus:border-black font-bold"
-                  />
-                  <span className="text-[10px] text-gray-400 font-mono mt-0.5 block">
-                    ≈ ₹{(accountCapitalUSD * usdInrRate).toLocaleString()} INR
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-xs text-gray-600 block mb-1">Fixed Risk / Fill ($):</span>
-                  <input
-                    type="number"
-                    value={params.fixedRiskUSD}
-                    onChange={(e) => setParams({ ...params, fixedRiskUSD: Number(e.target.value) })}
-                    onBlur={handleRecalculate}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-black font-mono text-xs focus:outline-none focus:border-black font-bold"
-                  />
-                  <span className="text-[10px] text-emerald-700 font-mono mt-0.5 block font-bold">
-                    {((params.fixedRiskUSD / accountCapitalUSD) * 100).toFixed(1)}% Account Risk
-                  </span>
-                </div>
-              </div>
-
-              {/* Risk:Reward Bracket Slider */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <div className="flex justify-between text-xs text-gray-600 mb-1">
-                    <span>Target Bracket:</span>
-                    <span className="font-mono font-bold text-black">1 : {params.riskReward}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="1.0"
-                    max="4.0"
                     step="0.1"
-                    value={params.riskReward}
-                    onChange={(e) => setParams({ ...params, riskReward: Number(e.target.value) })}
-                    onMouseUp={handleRecalculate}
-                    className="w-full accent-black h-1.5 bg-gray-200 rounded-lg cursor-pointer"
+                    min="0.5"
+                    max="5.0"
+                    value={maxSpreadFilter}
+                    onChange={(e) => setMaxSpreadFilter(parseFloat(e.target.value) || 1.8)}
+                    className="w-16 px-2 py-1 bg-surface-card border border-border-subtle rounded text-center text-on-surface font-bold"
                   />
+                  <span className="text-text-muted text-xs">pips</span>
                 </div>
+              </div>
 
-                <div>
-                  <div className="flex justify-between text-xs text-gray-600 mb-1">
-                    <span>Max SL Dist (%):</span>
-                    <span className="font-mono font-bold text-black">{params.maxRiskPercent}%</span>
-                  </div>
+              {/* Circuit Breaker */}
+              <div className="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low border border-border-subtle">
+                <div className="flex flex-col">
+                  <span className="font-label-md text-label-md text-on-surface font-semibold">Adverse Loss Brake</span>
+                  <span className="font-body-sm text-body-sm text-text-muted">Auto-halt execution</span>
+                </div>
+                <div className="flex items-center gap-1 font-mono-sm">
                   <input
-                    type="range"
-                    min="0.2"
-                    max="2.0"
-                    step="0.05"
-                    value={params.maxRiskPercent}
-                    onChange={(e) => setParams({ ...params, maxRiskPercent: Number(e.target.value) })}
-                    onMouseUp={handleRecalculate}
-                    className="w-full accent-black h-1.5 bg-gray-200 rounded-lg cursor-pointer"
+                    type="number"
+                    step="1"
+                    min="1"
+                    max="10"
+                    value={circuitBreakerLosses}
+                    onChange={(e) => setCircuitBreakerLosses(parseInt(e.target.value) || 3)}
+                    className="w-16 px-2 py-1 bg-surface-card border border-border-subtle rounded text-center text-on-surface font-bold"
                   />
+                  <span className="text-text-muted text-xs">trades</span>
                 </div>
-              </div>
-
-              {/* Unique Module 2: Order Routing Urgency & FVG Inversion Tuning */}
-              <div className="pt-3 border-t border-gray-100 space-y-2.5 text-xs font-sans">
-                <span className="font-bold text-gray-800 text-[11px] block uppercase tracking-wider font-mono">
-                  Smart FVG Order Routing &amp; Risk Governor:
-                </span>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Limit Fill Placement:</span>
-                  <button
-                    onClick={() => {
-                      setExecutionUrgency(
-                        executionUrgency === 'LIMIT_AT_FVG_EDGE' ? 'AGGRESSIVE_MARKET_CROSS' : 'LIMIT_AT_FVG_EDGE'
-                      );
-                    }}
-                    className="text-[10px] font-mono px-2 py-0.5 rounded bg-gray-100 border border-gray-300 font-bold hover:border-black"
-                  >
-                    {executionUrgency === 'LIMIT_AT_FVG_EDGE' ? 'FVG Edge (Exact Limit)' : 'Market on Inversion'}
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">SL Body Filter Depth:</span>
-                  <button
-                    onClick={() => {
-                      setInversionFilterMode(
-                        inversionFilterMode === 'STRICT_BODY' ? 'CONSERVATIVE_EXTENDED' : 'STRICT_BODY'
-                      );
-                    }}
-                    className="text-[10px] font-mono px-2 py-0.5 rounded bg-gray-100 border border-gray-300 font-bold hover:border-black"
-                  >
-                    {inversionFilterMode === 'STRICT_BODY' ? '8-Candle Body Excl.' : '5-Candle Fallback'}
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Max Spread Tolerated:</span>
-                  <span className="font-mono font-bold text-black">{maxSpreadFilter} pips</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Risk Circuit Breaker:</span>
-                  <button
-                    onClick={() => setRiskGovernorArmed(!riskGovernorArmed)}
-                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border transition-all ${
-                      riskGovernorArmed
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                        : 'bg-gray-100 text-gray-500 border-gray-200'
-                    }`}
-                  >
-                    {riskGovernorArmed ? 'ARMED (3-Loss Brake)' : 'DISARMED'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Automated Schedule Info (Hardcoded from Pine Script v5) */}
-              <div className="pt-3 border-t border-gray-100 space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-gray-700">London Session Window:</span>
-                  <span className="font-mono text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-[11px] font-bold">
-                    Mon, Wed, Thu (00:00 - 06:00 UTC)
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-gray-700">New York Session Window:</span>
-                  <span className="font-mono text-indigo-800 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded text-[11px] font-bold">
-                    Tue, Thu (13:00 - 22:00 UTC)
-                  </span>
-                </div>
-                <p className="text-[11px] text-gray-400 font-sans leading-relaxed pt-1">
-                  * Execution days are automatically scheduled according to the Pine Script v5 logic to exploit optimal session liquidity sweeps and avoid low-volume whipsaws.
-                </p>
               </div>
             </div>
+
+            {/* Recalculate Button */}
+            <button
+              onClick={handleRecalculate}
+              className="w-full inline-flex items-center justify-center gap-space-sm px-space-md py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors shadow-xs cursor-pointer active:scale-95"
+            >
+              <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+              <span>Recompute &amp; Execute Live Session Backtest</span>
+            </button>
           </div>
+        </section>
 
-          {/* Right Column: Quantitative Live Execution Audit & Performance */}
-          <div className="lg:col-span-8 space-y-5">
-            {/* Metrics Scorecard */}
-            {backtestResult && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-xs">
-                  <span className="text-[11px] text-gray-400 font-mono block mb-1">
-                    TOTAL NET P&amp;L
-                  </span>
-                  <span
-                    className={`text-2xl font-mono font-black ${
-                      backtestResult.metrics.totalProfitUSD >= 0 ? 'text-emerald-700' : 'text-rose-700'
-                    }`}
-                  >
-                    {backtestResult.metrics.totalProfitUSD >= 0 ? '+$' : '-$'}
-                    {Math.abs(backtestResult.metrics.totalProfitUSD).toLocaleString()}
-                  </span>
-                  <span className="text-[10px] text-gray-500 font-mono block mt-0.5">
-                    ≈ ₹{Math.abs(backtestResult.metrics.totalProfitINR).toLocaleString()} INR
-                  </span>
-                </div>
+        {/* 4. LARGE INTERACTIVE SESSION CHART */}
+        <section className="w-full">
+          <LiveSessionChart
+            candles={candles}
+            trades={backtestResult?.trades || []}
+            pairName={selectedPair.displayName}
+            symbol={selectedPair.symbol}
+            interval={selectedInterval}
+          />
+        </section>
 
-                <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-xs">
-                  <span className="text-[11px] text-gray-400 font-mono block mb-1">
-                    NET RETURN
+        {/* 5. BACKTEST RESULTS & ANALYTICS SUITE */}
+        {backtestResult && (
+          <section className="flex flex-col gap-space-md">
+            {/* KPI Quad */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-gutter">
+              <div className="bg-surface-card border border-border-subtle rounded-xl p-space-md shadow-sm flex flex-col justify-between gap-space-xs">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase font-medium">Net Backtest P&amp;L</span>
+                <div className="flex flex-col">
+                  <span className="font-mono-lg text-mono-lg text-bullish font-bold tabular-nums">
+                    {fmtPnl(backtestResult.metrics.totalProfitUSD, backtestResult.metrics.totalProfitINR)}
                   </span>
-                  <span
-                    className={`text-2xl font-mono font-black ${
-                      backtestResult.metrics.totalReturnPct >= 0 ? 'text-emerald-700' : 'text-rose-700'
-                    }`}
-                  >
-                    {backtestResult.metrics.totalReturnPct >= 0 ? '+' : ''}
-                    {backtestResult.metrics.totalReturnPct}%
-                  </span>
-                  <span className="text-[10px] text-gray-500 font-mono block mt-0.5">
-                    Profit Factor: <strong className="text-black">{backtestResult.metrics.profitFactor}</strong>
-                  </span>
-                </div>
-
-                <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-xs">
-                  <span className="text-[11px] text-gray-400 font-mono block mb-1">
-                    WIN RATE
-                  </span>
-                  <span className="text-2xl font-mono font-black text-black">
-                    {backtestResult.metrics.winRate}%
-                  </span>
-                  <span className="text-[10px] text-gray-500 font-mono block mt-0.5">
-                    {backtestResult.metrics.winTrades} W / {backtestResult.metrics.lossTrades} L ({backtestResult.metrics.totalTrades} Trades)
-                  </span>
-                </div>
-
-                <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-xs">
-                  <span className="text-[11px] text-gray-400 font-mono block mb-1">
-                    PIPS GAINED
-                  </span>
-                  <span
-                    className={`text-2xl font-mono font-black ${
-                      backtestResult.metrics.totalPipsGained >= 0 ? 'text-emerald-700' : 'text-rose-700'
-                    }`}
-                  >
-                    {backtestResult.metrics.totalPipsGained >= 0 ? '+' : ''}
-                    {backtestResult.metrics.totalPipsGained} pips
-                  </span>
-                  <span className="text-[10px] text-gray-500 font-mono block mt-0.5">
-                    Max DD: -{backtestResult.metrics.maxDrawdownPct}%
+                  <span className="font-mono-sm text-mono-sm text-text-muted tabular-nums">
+                    {fmtSecPnl(backtestResult.metrics.totalProfitUSD, backtestResult.metrics.totalProfitINR)}
                   </span>
                 </div>
               </div>
-            )}
 
-            {/* Live Session Sweep Candlestick Visualizer with Strategy Explainer Button */}
-            {candles.length > 0 && (
-              <LiveSessionChart
-                candles={candles}
-                trades={backtestResult?.trades || []}
-                pairName={selectedPair.displayName}
-                symbol={selectedPair.symbol}
-                interval={selectedInterval}
-              />
-            )}
+              <div className="bg-surface-card border border-border-subtle rounded-xl p-space-md shadow-sm flex flex-col justify-between gap-space-xs">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase font-medium">Session Win Rate</span>
+                <div className="flex items-baseline justify-between">
+                  <div className="flex flex-col">
+                    <span className="font-mono-lg text-mono-lg text-on-surface font-bold tabular-nums">
+                      {backtestResult.metrics.winRate.toFixed(1)}%
+                    </span>
+                    <span className="font-label-sm text-label-sm text-secondary font-semibold">Overall</span>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className="font-mono-md text-mono-md text-on-surface font-semibold tabular-nums">
+                      {backtestResult.metrics.winTrades}/{backtestResult.metrics.totalTrades}
+                    </span>
+                    <span className="font-label-sm text-label-sm text-text-muted">Trades</span>
+                  </div>
+                </div>
+              </div>
 
-            {/* 1. Full Portfolio Equity Curve Line Chart */}
-            {backtestResult && backtestResult.equityCurve && (
-              <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs">
+              <div className="bg-surface-card border border-border-subtle rounded-xl p-space-md shadow-sm flex flex-col justify-between gap-space-xs">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase font-medium">Profit Factor</span>
+                <span className="font-mono-lg text-mono-lg text-on-surface font-bold tabular-nums">
+                  {backtestResult.metrics.profitFactor.toFixed(2)}
+                </span>
+                <span className="font-mono-sm text-mono-sm text-bullish font-semibold">Institutional Grade</span>
+              </div>
+
+              <div className="bg-surface-card border border-border-subtle rounded-xl p-space-md shadow-sm flex flex-col justify-between gap-space-xs">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase font-medium">Max Drawdown</span>
+                <div className="flex flex-col">
+                  <span className="font-mono-lg text-mono-lg text-bearish font-bold tabular-nums">
+                    ${Math.abs(backtestResult.metrics.maxDrawdownUSD).toFixed(0)}
+                  </span>
+                  <span className="font-mono-sm text-mono-sm text-bearish font-semibold tabular-nums">
+                    {backtestResult.metrics.maxDrawdownPct.toFixed(1)}% Peak-to-Trough
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-surface-card border border-border-subtle rounded-xl p-space-md shadow-sm flex flex-col justify-between gap-space-xs">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase font-medium">Total Executions</span>
+                <span className="font-mono-lg text-mono-lg text-on-surface font-bold tabular-nums">
+                  {backtestResult.metrics.totalTrades}
+                </span>
+                <span className="font-mono-sm text-mono-sm text-text-muted">15m Bar-by-Bar Vectorized</span>
+              </div>
+            </div>
+
+            {/* Equity Curve & Trade Ledger */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+              <div className="lg:col-span-6 bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-sm">
+                <h3 className="font-title-md text-title-md text-on-surface font-semibold mb-3">
+                  Account Equity Growth (USD)
+                </h3>
                 <EquityLineChart
                   equityCurve={backtestResult.equityCurve}
                   initialCapital={accountCapitalUSD}
-                  title={`${selectedPair.displayName} Equity Growth Curve ($)`}
-                  subtitle={`Asia-London-NY FVG Inversion on authentic ${selectedInterval} candles (${candles.length} bars)`}
-                  strokeColor="#16A34A"
-                  fillGradStart="#16A34A"
                 />
               </div>
-            )}
 
-            {/* 2. Institutional Underwater Drawdown Chart */}
-            {backtestResult && backtestResult.trades.length > 0 && (
-              <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs">
-                <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2">
-                  <div className="flex items-center gap-2">
-                    <TrendingDown className="w-4 h-4 text-rose-600" />
-                    <span className="font-bold text-xs uppercase tracking-wider text-black font-mono">
-                      Underwater Peak-to-Trough Drawdown Analysis (%)
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-mono text-gray-400">
-                    Max Recorded Drawdown: -{backtestResult.metrics.maxDrawdownPct}%
-                  </span>
-                </div>
+              <div className="lg:col-span-6 bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-sm">
+                <h3 className="font-title-md text-title-md text-on-surface font-semibold mb-3">
+                  Drawdown Recovery Matrix
+                </h3>
                 <QuantUnderwaterChart
                   trades={backtestResult.trades}
                   initialCapital={accountCapitalUSD}
                 />
               </div>
-            )}
+            </div>
 
-            {/* 3. Quantitative Risk & Alpha Matrix (QRAM) */}
-            {backtestResult && backtestResult.trades.length > 0 && (
-              <QuantRiskAlphaMatrix
-                trades={backtestResult.trades}
-                initialCapital={accountCapitalUSD}
-                strategyName="EURUSD Session Sweep (Asia-London-NY FVG Inversion)"
-                symbol={selectedPair.displayName}
-                currencySymbol="$"
-              />
-            )}
-
-            {/* Trade Log Table */}
-            <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs">
-              <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
-                <div className="space-y-0.5">
-                  <span className="font-bold text-xs uppercase tracking-wider text-black block font-mono">
-                    All Executed Limit Trades on {selectedPair.displayName}
-                  </span>
-                  <span className="text-[10px] text-emerald-700 font-mono font-bold flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                    100% Genuine Bar-by-Bar Executed Trades (Zero Mock / Zero Synthetic Data)
-                  </span>
-                </div>
-                <span className="text-[10px] font-mono text-gray-500 bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg">
-                  Showing all {backtestResult?.trades?.length || 0} trades
+            {/* Trade Ledger Table */}
+            <div className="bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
+                <h3 className="font-title-md text-title-md text-on-surface font-semibold">
+                  Session Execution Journal ({backtestResult.trades.length} Verified Trades)
+                </h3>
+                <span className="font-mono-sm text-mono-sm text-text-muted">
+                  Strict 15M FVG Inversion Execution
                 </span>
               </div>
 
-              {backtestResult && backtestResult.trades.length > 0 ? (
-                <div className="overflow-x-auto max-h-[500px] overflow-y-auto border border-gray-200 rounded-xl">
-                  <table className="w-full text-left text-xs font-mono">
-                    <thead className="sticky top-0 bg-gray-50 z-10">
-                      <tr className="border-b border-gray-200 text-gray-500 text-[11px]">
-                        <th className="py-2.5 px-3">#</th>
-                        <th className="py-2.5 px-3">Entry Time (UTC)</th>
-                        <th className="py-2.5 px-3">Exit Time (UTC)</th>
-                        <th className="py-2.5 px-3">Side</th>
-                        <th className="py-2.5 px-3">Entry Price</th>
-                        <th className="py-2.5 px-3">Exit Price</th>
-                        <th className="py-2.5 px-3">Stop Loss</th>
-                        <th className="py-2.5 px-3">Take Profit</th>
-                        <th className="py-2.5 px-3">Exit Reason</th>
-                        <th className="py-2.5 px-3 text-right">P&amp;L (USD)</th>
+              <div className="overflow-x-auto mt-4">
+                <table className="w-full text-left font-mono-sm text-mono-sm">
+                  <thead>
+                    <tr className="border-b border-border-subtle text-text-muted uppercase font-label-sm">
+                      <th className="py-2.5 px-3">Entry Time (UTC)</th>
+                      <th className="py-2.5 px-3">Type</th>
+                      <th className="py-2.5 px-3">Entry Price</th>
+                      <th className="py-2.5 px-3">Exit Price</th>
+                      <th className="py-2.5 px-3">P&amp;L ({currencyMode})</th>
+                      <th className="py-2.5 px-3">Exit Reason</th>
+                      <th className="py-2.5 px-3">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-subtle">
+                    {backtestResult.trades.slice(-20).reverse().map((t, i) => (
+                      <tr key={i} className="hover:bg-surface-container-low transition-colors">
+                        <td className="py-2.5 px-3 text-on-surface font-medium">
+                          {t.entryTime ? new Date(t.entryTime).toUTCString().slice(5, 22) : '—'}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            t.type === 'BUY'
+                              ? 'bg-bullish-tint text-bullish'
+                              : 'bg-bearish-tint text-bearish'
+                          }`}>
+                            {t.type}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 tabular-nums">{t.entryPrice.toFixed(4)}</td>
+                        <td className="py-2.5 px-3 tabular-nums">{t.exitPrice.toFixed(4)}</td>
+                        <td className={`py-2.5 px-3 font-bold tabular-nums ${t.pnl >= 0 ? 'text-bullish' : 'text-bearish'}`}>
+                          {fmtPnl(t.pnl, t.pnl * usdInrRate)}
+                        </td>
+                        <td className="py-2.5 px-3 text-text-muted">{t.exitReason}</td>
+                        <td className="py-2.5 px-3 text-bullish font-semibold">EXECUTED</td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {backtestResult.trades
-                        .slice()
-                        .reverse()
-                        .map((t, idx) => (
-                          <tr key={t.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="py-2.5 px-3 text-gray-400 text-[10px]">{backtestResult.trades.length - idx}</td>
-                            <td className="py-2.5 px-3 text-gray-700">
-                              {new Date(t.entryTime).toLocaleString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                timeZone: 'UTC',
-                              })}
-                            </td>
-                            <td className="py-2.5 px-3 text-gray-700">
-                              {new Date(t.exitTime).toLocaleString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                timeZone: 'UTC',
-                              })}
-                            </td>
-                            <td className="py-2.5 px-3">
-                              <span
-                                className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
-                                  t.type === 'BUY'
-                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                                    : 'bg-rose-50 text-rose-800 border-rose-200'
-                                }`}
-                              >
-                                {t.type}
-                              </span>
-                            </td>
-                            <td className="py-2.5 px-3 text-black font-bold">{t.entryPrice.toFixed(4)}</td>
-                            <td className="py-2.5 px-3 text-black font-bold">{t.exitPrice.toFixed(4)}</td>
-                            <td className="py-2.5 px-3 text-rose-600 text-[11px]">{t.stopLoss.toFixed(4)}</td>
-                            <td className="py-2.5 px-3 text-emerald-600 text-[11px]">{t.takeProfit.toFixed(4)}</td>
-                            <td className="py-2.5 px-3 text-gray-500 text-[10px]">{t.exitReason}</td>
-                            <td
-                              className={`py-2.5 px-3 text-right font-bold text-sm ${
-                                t.pnl >= 0 ? 'text-emerald-700' : 'text-rose-700'
-                              }`}
-                            >
-                              {t.pnl >= 0 ? '+$' : '-$'}
-                              {Math.abs(t.pnl).toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="py-8 text-center text-xs text-gray-400 font-mono">
-                  {isLoading ? 'Streaming live session sweeps & computing execution...' : 'No trades triggered for this parameter combination.'}
-                </div>
-              )}
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        )}
+      </div>
+
+      {/* Pine Script Modal */}
+      {isPineModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="w-full max-w-4xl max-h-[85vh] bg-surface-card rounded-2xl border border-border-subtle shadow-2xl flex flex-col overflow-hidden">
+            <div className="p-space-lg border-b border-border-subtle flex items-center justify-between">
+              <div className="flex items-center gap-space-sm">
+                <span className="material-symbols-outlined text-[20px] text-primary">code</span>
+                <h3 className="font-title-md text-title-md text-on-surface font-semibold">
+                  Pine Script v5 Source Code — Asia-London-NY FVG Inversion
+                </h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleCopyPineScript}
+                  className="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors flex items-center gap-1 shadow-xs cursor-pointer active:scale-95"
+                >
+                  <span className="material-symbols-outlined text-[14px]">content_copy</span>
+                  <span>{copiedPine ? 'Copied!' : 'Copy Code'}</span>
+                </button>
+                <button
+                  onClick={() => setIsPineModalOpen(false)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-space-lg overflow-y-auto font-mono text-xs leading-relaxed bg-[#FAFAFA] text-on-surface select-all">
+              <pre>{pineScriptCode}</pre>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

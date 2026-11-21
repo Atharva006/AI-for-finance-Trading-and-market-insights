@@ -568,6 +568,17 @@ export const VisualFlowStudio: React.FC<VisualFlowStudioProps> = ({ initialStock
     showToast('Canvas Initialized: Root feed ready. Wire downstream indicator nodes.');
   };
 
+  const handleExportJson = () => {
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify({ nodes, connections }, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', 'NIFTY_EMA_ATR_V4.flow.json');
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    showToast('✓ Exported flow to JSON!');
+  };
+
   // Load Verified Atharva Strategy Template
   const handleLoadAtharvaTemplate = () => {
     setNodes(DEFAULT_NODES);
@@ -919,85 +930,76 @@ export const VisualFlowStudio: React.FC<VisualFlowStudioProps> = ({ initialStock
       {/* Natural Language Prompt-to-Strategy Copilot */}
       <NaturalLanguagePromptBar onApplyParsedStrategy={handleApplyParsedPrompt} />
 
-      {/* Top Banner & Control Bar */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#0A0A0D] flex items-center justify-center text-white shadow-sm">
-              <Workflow className="w-5 h-5 text-emerald-400" />
+      {/* 1. Flow Canvas Toolbar (Stitch Screen 6) */}
+      <div className="bg-surface-card border border-border-subtle rounded-xl p-space-md shadow-sm space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+          <div className="flex items-center gap-space-sm flex-wrap">
+            <div className="flex items-center gap-space-xs font-mono-sm text-mono-sm text-text-muted">
+              <span className="material-symbols-outlined text-secondary text-[18px]">account_tree</span>
+              <span className="text-on-surface font-semibold">Visual Flow Studio</span>
+              <span>/</span>
+              <span className="text-bullish font-semibold">NIFTY_EMA_ATR_V4.flow</span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono">
-                  n8n-Style Algo Workflow Studio
-                </span>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold flex items-center gap-1 ${
-                    pipelineStatus.isValid
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : 'bg-rose-50 text-rose-700 border border-rose-200'
-                  }`}
-                >
-                  {pipelineStatus.isValid ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
-                  {pipelineStatus.isValid
-                    ? `Pipeline Complete (${pipelineStatus.executionSequence.length} Stages Linked)`
-                    : `Incomplete Pipeline (${pipelineStatus.errors.length} Errors)`}
-                </span>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-[#0A0A0D] tracking-tight">
-                Visual Flow Strategy Builder
-              </h2>
-            </div>
+            <span
+              className={`inline-flex items-center gap-space-xs px-space-sm py-0.5 rounded-full font-mono-sm text-mono-sm font-semibold ${
+                pipelineStatus.isValid
+                  ? 'bg-bullish-tint text-bullish'
+                  : 'bg-error-container text-error'
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${pipelineStatus.isValid ? 'bg-bullish' : 'bg-error'}`}></span>
+              {pipelineStatus.isValid
+                ? `COMPILED · ZERO ERRORS (${pipelineStatus.executionSequence.length} NODES)`
+                : `PIPELINE INCOMPLETE (${pipelineStatus.errors.length} ERRORS)`}
+            </span>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Init Blank Flow */}
-            <button
-              onClick={handleInitBlankFlow}
-              className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
-              title="Initialize clean canvas in init state"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-gray-600" />
-              <span>Init Blank Flow</span>
-            </button>
-
-            {/* Load Verified Atharva Strategy */}
+          {/* Action Buttons (Stitch Screen 6) */}
+          <div className="flex items-center gap-space-xs flex-wrap">
             <button
               onClick={handleLoadAtharvaTemplate}
-              className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
+              className="inline-flex items-center gap-space-xs px-space-sm py-1.5 rounded-lg bg-surface-card border border-border-subtle text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors cursor-pointer"
+              type="button"
               title="Load full 5-stage verified Atharva PSAR + SMA100 strategy"
             >
-              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-              <span>Load Verified Strategy</span>
+              <span className="material-symbols-outlined text-[16px]">folder_open</span>
+              <span>Load Template</span>
             </button>
 
-            {/* Quick Connect Nodes Tool */}
             <button
-              onClick={() => setIsQuickConnectOpen(!isQuickConnectOpen)}
-              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
-              title="Connect nodes together"
+              onClick={handleExportJson}
+              className="inline-flex items-center gap-space-xs px-space-sm py-1.5 rounded-lg bg-surface-card border border-border-subtle text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors cursor-pointer"
+              type="button"
             >
-              <Link2 className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Connect Nodes Tool</span>
+              <span className="material-symbols-outlined text-[16px]">data_object</span>
+              <span>Export .json</span>
             </button>
 
-            {/* Preview Sequence Stepper */}
             <button
-              onClick={handlePreviewSequence}
-              className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
-              title="Simulate step sequence animation"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-space-xs px-space-sm py-1.5 rounded-lg bg-surface-card border border-border-subtle text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors cursor-pointer"
+              type="button"
             >
-              <Eye className="w-3.5 h-3.5 text-blue-600" />
-              <span>Preview Sequence</span>
+              <span className="material-symbols-outlined text-[16px]">upload_file</span>
+              <span>Import</span>
+            </button>
+
+            <button
+              onClick={handleInitBlankFlow}
+              className="inline-flex items-center gap-space-xs px-space-sm py-1.5 rounded-lg bg-surface-card border border-border-subtle text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors cursor-pointer"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+              <span>Clear</span>
             </button>
 
             {result && (
               <button
                 onClick={handleDeployToMarketplace}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-black rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
+                className="inline-flex items-center gap-space-xs px-space-sm py-1.5 rounded-lg bg-surface-card border border-border-subtle text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors cursor-pointer"
+                type="button"
               >
-                <Save className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="material-symbols-outlined text-[16px]">save</span>
                 <span>Deploy</span>
               </button>
             )}
@@ -1005,31 +1007,13 @@ export const VisualFlowStudio: React.FC<VisualFlowStudioProps> = ({ initialStock
             <button
               onClick={handleExecuteFlow}
               disabled={isExecuting}
-              className={`flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50 ${
-                isExecuting
-                  ? 'bg-neutral-800 text-white cursor-wait'
-                  : pipelineStatus.isValid
-                  ? 'bg-[#0A0A0D] hover:bg-neutral-800 text-white ring-2 ring-emerald-500/40'
-                  : 'bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300'
-              }`}
-              title={pipelineStatus.isValid ? 'Execute flow with real historical candles' : 'Execution strictly blocked until pipeline is complete'}
+              className="inline-flex items-center gap-space-xs px-space-md py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
+              type="button"
             >
-              {isExecuting ? (
-                <>
-                  <Activity className="w-3.5 h-3.5 animate-spin text-emerald-400" />
-                  <span>Running Nodes...</span>
-                </>
-              ) : pipelineStatus.isValid ? (
-                <>
-                  <Play className="w-3.5 h-3.5 fill-emerald-400 text-emerald-400" />
-                  <span>Execute Flow (Real NSE Data)</span>
-                </>
-              ) : (
-                <>
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
-                  <span>Pipeline Incomplete ({pipelineStatus.errors.length} Errors)</span>
-                </>
-              )}
+              <span className="material-symbols-outlined text-[16px]">
+                {isExecuting ? 'refresh' : 'play_arrow'}
+              </span>
+              <span>{isExecuting ? 'Running...' : 'Run Flow Backtest'}</span>
             </button>
           </div>
         </div>

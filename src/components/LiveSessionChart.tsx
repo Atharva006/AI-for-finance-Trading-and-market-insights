@@ -459,91 +459,93 @@ if not inNy and inNy[1]
   }, [visibleCandles, trades]);
 
   return (
-    <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs font-mono select-none space-y-4">
-      {/* 1. Header with Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-[#0A0A0D] flex items-center justify-center text-white font-bold text-xs shadow-xs">
-            <Crosshair className="w-5 h-5 text-emerald-400" />
+    <div className="w-full bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md select-none">
+      {/* 1. Header with Controls (Matching Stitch Screen 8 Exactly) */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-sm pb-space-sm border-b border-border-subtle">
+        <div className="flex flex-wrap items-center gap-space-md">
+          <div className="flex items-center gap-space-sm">
+            <span className="font-headline-sm text-headline-sm text-on-surface font-semibold" id="chart-inst-title">
+              {pairName}
+            </span>
+            <span className="font-mono-md text-mono-md text-secondary font-bold" id="chart-inst-price">
+              {candles.length > 0 ? candles[candles.length - 1].close.toFixed(symbol.includes('GC') || symbol.includes('SI') ? 2 : 4) : '—'}
+            </span>
+            <span className="font-mono-sm text-mono-sm text-bullish font-semibold" id="chart-inst-change">
+              15m Stream
+            </span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-sm text-[#0A0A0D] tracking-tight font-sans">
-                Live {pairName} Session Sweep Visualizer &amp; Drawing Engine
-              </span>
-              <span className="text-[10px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-bold">
-                {interval} Bar Stream
-              </span>
-            </div>
-            <span className="text-[11px] text-gray-400 block font-sans">
-              Dynamic liquidity sweeps, FVG boxes, SL/TP lines &amp; on-chart comments
+
+          <div className="flex flex-wrap items-center gap-space-sm font-mono-sm text-mono-sm text-text-muted">
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-xs bg-[#EEEFF0] border border-border-subtle" />
+              Asia
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-xs bg-forex-tint border border-secondary" />
+              London
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-xs bg-surface-container-low border border-border-subtle" />
+              NY
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-xs bg-bullish-tint border border-bullish" />
+              FVG / iFVG
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Chart View Toggle: Line vs Candlestick */}
-          <div className="flex items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200 text-xs">
-            <button
-              onClick={() => setChartMode('line')}
-              className={`px-3 py-1 rounded-md font-bold transition-all ${
-                chartMode === 'line'
-                  ? 'bg-black text-white shadow-xs'
-                  : 'text-gray-600 hover:text-black'
-              }`}
-            >
-              Line Chart
-            </button>
+        <div className="flex items-center gap-space-sm">
+          {/* Chart View Toggle: Candlestick vs Line */}
+          <div className="inline-flex items-center p-1 rounded-lg bg-surface-container-low border border-border-subtle">
             <button
               onClick={() => setChartMode('candles')}
-              className={`px-3 py-1 rounded-md font-bold transition-all ${
+              className={`px-space-sm py-1 rounded-md font-label-sm text-label-sm transition-all cursor-pointer ${
                 chartMode === 'candles'
-                  ? 'bg-black text-white shadow-xs'
-                  : 'text-gray-600 hover:text-black'
+                  ? 'bg-surface-card text-on-surface shadow-xs font-semibold'
+                  : 'text-text-muted hover:text-on-surface'
               }`}
+              type="button"
             >
-              Candles
+              Candlestick
+            </button>
+            <button
+              onClick={() => setChartMode('line')}
+              className={`px-space-sm py-1 rounded-md font-label-sm text-label-sm transition-all cursor-pointer ${
+                chartMode === 'line'
+                  ? 'bg-surface-card text-on-surface shadow-xs font-semibold'
+                  : 'text-text-muted hover:text-on-surface'
+              }`}
+              type="button"
+            >
+              Line
             </button>
           </div>
 
-          {/* View Pine Script v5 Code & Copy Button */}
-          <button
-            onClick={() => setShowScriptModal(!showScriptModal)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-              showScriptModal
-                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                : 'bg-white border-blue-300 text-blue-700 hover:bg-blue-50'
-            }`}
-            title="View TradingView Pine Script v5 Code"
-          >
-            <Code2 className="w-3.5 h-3.5" />
-            <span>Pine Script Code</span>
-          </button>
-
-          {/* Toggle On-Chart Annotation Drawings */}
+          {/* Toggle Annotations */}
           <button
             onClick={() => setShowAnnotations(!showAnnotations)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+            className={`inline-flex items-center gap-1 px-space-sm py-1 rounded-lg border font-label-sm text-label-sm transition-colors cursor-pointer ${
               showAnnotations
-                ? 'bg-black text-white border-black'
-                : 'bg-white border-gray-200 text-gray-600 hover:border-black'
+                ? 'bg-surface-container text-on-surface border-border-subtle font-semibold'
+                : 'bg-surface-card text-text-muted border-border-subtle hover:text-on-surface'
             }`}
           >
-            <Layers className="w-3.5 h-3.5" />
-            <span>{showAnnotations ? 'Drawings: ON' : 'Drawings: OFF'}</span>
+            <span className="material-symbols-outlined text-[14px]">draw</span>
+            <span>Drawings</span>
           </button>
 
           {/* Info Guide Toggle */}
           <button
             onClick={() => setShowExplanation(!showExplanation)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+            className={`inline-flex items-center gap-1 px-space-sm py-1 rounded-lg border font-label-sm text-label-sm transition-colors cursor-pointer ${
               showExplanation
-                ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
-                : 'bg-white border-gray-200 text-gray-600 hover:border-black'
+                ? 'bg-bullish-tint text-bullish border-bullish font-semibold'
+                : 'bg-surface-card text-text-muted border-border-subtle hover:text-on-surface'
             }`}
           >
-            <Info className="w-3.5 h-3.5 text-emerald-700" />
-            <span>{showExplanation ? 'Hide Guide' : 'Explain Strategy'}</span>
+            <span className="material-symbols-outlined text-[14px]">info</span>
+            <span>{showExplanation ? 'Hide Guide' : 'Explain'}</span>
           </button>
         </div>
       </div>

@@ -81,143 +81,175 @@ export const MarketPulseInsights: React.FC<MarketPulseInsightsProps> = ({
   }, [searchTerm, selectedSector, shieldOnly]);
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner: Macro Market Regime & Institutional Intelligence */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#0A0A0D] flex items-center justify-center text-white shadow-sm">
-              <Activity className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono">
-                  Macro Market Regime & Quantitative Breadth
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Live NSE Regime
-                </span>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-[#0A0A0D] tracking-tight">
-                {pulse.regimeTitle}
-              </h2>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 font-mono text-xs">
-            <div className="px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl">
-              <span className="text-[10px] text-gray-400 uppercase font-bold block">India VIX</span>
-              <span className="text-sm font-bold text-black">{pulse.indiaVix}</span>
-              <span className="text-[10px] text-emerald-600 block">+0.97% (Calm)</span>
-            </div>
-            <div className="px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl">
-              <span className="text-[10px] text-gray-400 uppercase font-bold block">Market Breadth</span>
-              <span className="text-sm font-bold text-black">{pulse.marketBreadthPct}%</span>
-              <span className="text-[10px] text-gray-500 block">&gt; 50-Day EMA</span>
-            </div>
-            <div className="px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl">
-              <span className="text-[10px] text-gray-400 uppercase font-bold block">FII Net Flow</span>
-              <span className="text-sm font-bold text-emerald-600">+₹{pulse.fiiNetFlowCr} Cr</span>
-              <span className="text-[10px] text-gray-500 block">Institutional Net Buy</span>
-            </div>
-          </div>
-        </div>
-
-        {/* AI Regime Diagnostics & Strategy Fit */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-emerald-50/60 rounded-xl border border-emerald-200/80 space-y-2 flex flex-col justify-between">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-emerald-900">
-                  <Sparkles className="w-4 h-4 text-emerald-600" />
-                  <span>Macro Regime Quantitative Intelligence</span>
-                </div>
-                <button
-                  onClick={fetchGroqCommentary}
-                  disabled={isAiLoading}
-                  className="p-1 rounded hover:bg-emerald-100 text-emerald-800 transition-colors disabled:opacity-50"
-                  title="Re-analyze Macro Regime"
-                >
-                  <RefreshCw className={`w-3 h-3 ${isAiLoading ? 'animate-spin text-emerald-600' : 'text-emerald-700'}`} />
-                </button>
-              </div>
-              <p className="text-xs text-gray-700 leading-relaxed font-sans">
-                {isAiLoading ? 'Generating quantitative macro commentary via AI Engine...' : (groqCommentary || pulse.regimeDescription)}
-              </p>
-            </div>
-            <div className="flex items-center gap-1.5 pt-1 text-[10px] font-mono text-emerald-800">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span>Quantitative Macro Engine</span>
-            </div>
-          </div>
-
-          <div className="md:col-span-2 p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider font-mono block">
-              Regime Strategy Fit Recommendations
+    <div className="flex flex-col w-full gap-space-lg pb-space-xl">
+      {/* Top Header (Stitch Screen 7) */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md pt-space-xs">
+        <div className="flex flex-col gap-space-xs">
+          <div className="flex items-center gap-space-sm">
+            <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight">Market Pulse &amp; Macro Intelligence</h1>
+            <span className="inline-flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-bullish-tint text-bullish font-mono-sm text-mono-sm font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-bullish animate-pulse"></span>
+              NSE LIVE REGIME
             </span>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-mono">
-              {pulse.recommendedStrategies.map((rec, idx) => (
-                <div key={idx} className="p-2.5 bg-white rounded-lg border border-gray-200 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-black truncate text-[11px]">{rec.name}</span>
-                    <span
-                      className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${
-                        rec.fitLevel === 'OPTIMAL'
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : rec.fitLevel === 'MODERATE'
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                          : 'bg-rose-50 text-rose-700 border border-rose-200'
-                      }`}
-                    >
-                      {rec.fitLevel}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-gray-500 font-sans leading-tight line-clamp-2">
-                    {rec.reason}
-                  </p>
-                </div>
-              ))}
-            </div>
           </div>
+          <p className="font-body-sm text-body-sm text-text-secondary">
+            High-frequency NSE breadth, institutional FII/DII liquidity tracker &amp; systematic equity scanner.
+          </p>
+        </div>
+        <div className="flex items-center gap-space-sm">
+          <button
+            onClick={() => setSelectedFilingStock(NSE_FUNDAMENTAL_STOCKS[0])}
+            className="inline-flex items-center gap-space-xs px-space-md py-2 rounded-lg bg-surface-card border border-border-subtle text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors cursor-pointer"
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[16px]">description</span>
+            <span>Preview Filing Analyzer (RELIANCE)</span>
+          </button>
+          <button
+            onClick={() => onSelectStockForBacktest('NIFTY 50')}
+            className="inline-flex items-center gap-space-xs px-space-md py-2 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors cursor-pointer"
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[16px]">bolt</span>
+            <span>Run Regime Backtest</span>
+          </button>
         </div>
       </div>
 
-      {/* Fundamental Filings Screener & Earnings Blackout Shield */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-gray-100">
-          <div>
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-emerald-600" />
-              <h3 className="text-base font-bold text-[#0A0A0D]">
-                NSE Company Filings & Fundamental Confluence Screener
-              </h3>
-              <span className="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-mono font-bold">
-                SEBI Corporate Filings Data
-              </span>
+      {/* 4 Macro Breadth Cards (Stitch Screen 7) */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-gutter">
+        {/* Card 1: NIFTY 50 Breadth */}
+        <div className="bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-xs flex flex-col justify-between gap-space-md">
+          <div className="flex items-start justify-between gap-space-sm">
+            <div className="flex flex-col gap-1">
+              <span className="font-label-sm text-label-sm text-text-muted uppercase">NIFTY 50 Breadth</span>
+              <span className="font-mono-lg text-mono-lg text-on-surface tabular-nums font-bold">72.0%</span>
             </div>
-            <p className="text-xs text-gray-500 font-sans mt-0.5">
-              Filter institutional-grade balance sheets before deploying quantitative trend strategies.
-            </p>
+            <div className="w-14 h-14 shrink-0">
+              <svg className="w-full h-full" viewBox="0 0 64 64">
+                <circle className="text-surface-container" cx="32" cy="32" fill="none" r="26" stroke="currentColor" strokeWidth="6" />
+                <circle className="text-bullish" cx="32" cy="32" fill="none" r="26" stroke="currentColor" strokeDasharray="163.36" strokeDashoffset="45.74" strokeLinecap="round" strokeWidth="6" transform="rotate(-90 32 32)" />
+                <text className="fill-on-surface font-mono-sm text-[11px] font-semibold" textAnchor="middle" x="32" y="36">36/50</text>
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center justify-between pt-space-sm border-t border-border-subtle font-mono-sm text-mono-sm">
+            <span className="text-text-secondary">Above 50-EMA</span>
+            <span className="text-bullish font-semibold">+4.0% WoW</span>
+          </div>
+        </div>
+
+        {/* Card 2: India VIX Volatility */}
+        <div className="bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-xs flex flex-col justify-between gap-space-md">
+          <div className="flex items-start justify-between gap-space-sm">
+            <div className="flex flex-col gap-1">
+              <span className="font-label-sm text-label-sm text-text-muted uppercase">India VIX Volatility</span>
+              <div className="flex items-baseline gap-space-sm">
+                <span className="font-mono-lg text-mono-lg text-on-surface tabular-nums font-bold">{pulse.indiaVix}</span>
+                <span className="font-mono-sm text-mono-sm text-bullish tabular-nums font-semibold">-3.8%</span>
+              </div>
+            </div>
+            <span className="material-symbols-outlined text-[20px] text-bullish">verified</span>
+          </div>
+          <div className="flex items-center justify-between pt-space-sm border-t border-border-subtle">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-bullish-tint text-bullish font-mono-sm text-mono-sm font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-bullish"></span>
+              Low Volatility / Trend Friendly
+            </span>
+          </div>
+        </div>
+
+        {/* Card 3: FII / DII Flow */}
+        <div className="bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-xs flex flex-col justify-between gap-space-md">
+          <div className="flex items-start justify-between gap-space-sm">
+            <div className="flex flex-col gap-1">
+              <span className="font-label-sm text-label-sm text-text-muted uppercase">FII / DII Net Flow</span>
+              <div className="flex items-baseline gap-space-sm">
+                <span className="font-mono-lg text-mono-lg text-bullish tabular-nums font-bold">+₹{pulse.fiiNetFlowCr} Cr</span>
+              </div>
+            </div>
+            <span className="material-symbols-outlined text-[20px] text-bullish">swap_vert</span>
+          </div>
+          <div className="flex items-center justify-between pt-space-sm border-t border-border-subtle font-mono-sm text-mono-sm">
+            <span className="text-text-secondary">₹6,410 Cr FII</span>
+            <span className="text-text-muted">₹3,583 Cr DII</span>
+          </div>
+        </div>
+
+        {/* Card 4: Market Breadth */}
+        <div className="bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-xs flex flex-col justify-between gap-space-md">
+          <div className="flex items-start justify-between gap-space-sm">
+            <div className="flex flex-col gap-1">
+              <span className="font-label-sm text-label-sm text-text-muted uppercase">Advance / Decline</span>
+              <span className="font-mono-lg text-mono-lg text-on-surface tabular-nums font-bold">34 Adv / 16 Dec</span>
+            </div>
+            <span className="material-symbols-outlined text-[20px] text-bullish">trending_up</span>
+          </div>
+          <div className="flex items-center justify-between pt-space-sm border-t border-border-subtle font-mono-sm text-mono-sm">
+            <span className="text-text-secondary">Ratio: 2.12x</span>
+            <span className="text-bullish font-semibold">Broad-Based Rally</span>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Macro Commentary Section (Stitch Screen 7) */}
+      <section className="bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-xs flex flex-col gap-space-md">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-space-sm">
+            <span className="material-symbols-outlined text-secondary text-[20px]">psychology</span>
+            <h2 className="font-title-md text-title-md text-on-surface">AI Macro Commentary</h2>
+          </div>
+          <div className="flex items-center gap-space-sm">
+            <button
+              onClick={fetchGroqCommentary}
+              disabled={isAiLoading}
+              className="inline-flex items-center gap-space-xs px-2.5 py-1 rounded-md bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-mono transition-colors cursor-pointer disabled:opacity-50"
+              title="Refresh AI Analysis"
+            >
+              <span className={`material-symbols-outlined text-[14px] ${isAiLoading ? 'animate-spin' : ''}`}>refresh</span>
+              <span>Re-analyze</span>
+            </button>
+            <span className="inline-flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-surface-container font-mono-sm text-mono-sm text-on-surface-variant font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-bullish"></span>
+              GROQ LPU 120B QUANT
+            </span>
+          </div>
+        </div>
+        <p className="font-body-md text-body-md text-text-secondary leading-relaxed">
+          {isAiLoading ? 'Synthesizing quantitative macroeconomic commentary via Groq LPU...' : (groqCommentary || pulse.regimeDescription)}
+        </p>
+      </section>
+
+      {/* Section 3: NSE Fundamental Screener (Stitch Screen 7) */}
+      <section className="bg-surface-card border border-border-subtle rounded-xl shadow-xs overflow-hidden flex flex-col">
+        <div className="p-space-lg border-b border-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
+          <div className="flex items-center gap-space-sm">
+            <span className="material-symbols-outlined text-on-surface text-[20px]">filter_alt</span>
+            <div>
+              <h2 className="font-title-md text-title-md text-on-surface">NSE Fundamental Screener</h2>
+              <p className="font-body-sm text-body-sm text-text-muted">
+                Pre-screen quality balance sheets before deploying systematic quantitative momentum.
+              </p>
+            </div>
           </div>
 
           {/* Filters & Search */}
           <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5" />
+              <span className="material-symbols-outlined text-text-muted text-[16px] absolute left-2.5 top-2.5">search</span>
               <input
                 type="text"
                 placeholder="Search symbol / company..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-black"
+                className="pl-8 pr-3 py-1.5 bg-surface-container-low border border-border-subtle rounded-lg text-xs font-body-sm text-on-surface focus:outline-none focus:border-primary"
               />
             </div>
 
             <select
               value={selectedSector}
               onChange={(e) => setSelectedSector(e.target.value)}
-              className="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-gray-700"
+              className="bg-surface-container-low border border-border-subtle rounded-lg px-2.5 py-1.5 text-xs font-semibold text-on-surface cursor-pointer"
             >
               {sectors.map((sec) => (
                 <option key={sec} value={sec}>
@@ -228,14 +260,14 @@ export const MarketPulseInsights: React.FC<MarketPulseInsightsProps> = ({
 
             <button
               onClick={() => setShieldOnly(!shieldOnly)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
                 shieldOnly
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                  : 'bg-gray-50 text-gray-600 border-gray-200 hover:text-black'
+                  ? 'bg-bullish-tint text-bullish border-bullish'
+                  : 'bg-surface-container-low text-text-secondary border-border-subtle hover:text-on-surface'
               }`}
               title="Hide stocks announcing quarterly earnings in under 7 days to eliminate event risk"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="material-symbols-outlined text-[15px]">verified_user</span>
               <span>Earnings Shield Active</span>
             </button>
           </div>
@@ -360,7 +392,7 @@ export const MarketPulseInsights: React.FC<MarketPulseInsightsProps> = ({
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
 
       {/* AI Company Filing & Concall Analyzer Modal */}
       <CompanyFilingAnalyzerModal
