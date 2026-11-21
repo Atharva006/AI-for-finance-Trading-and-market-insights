@@ -49,17 +49,23 @@ function quantMarketProxyPlugin() {
       return;
     }
 
-    if (req.url && req.url.startsWith('/upstox-api/')) {
-      const cleanPath = req.url.replace('/upstox-api', '');
+    // Upstox API Proxy: handles both /upstox-api/ and /upstox/ to prevent CORS in browser
+    if (req.url && (req.url.startsWith('/upstox-api/') || req.url.startsWith('/upstox/'))) {
+      const cleanPath = req.url.replace(/^\/(upstox-api|upstox)/, '');
       const targetUrl = `https://api.upstox.com${cleanPath}`;
       try {
         const authHeader = req.headers['authorization'];
-        const apiRes = await fetch(targetUrl, {
-          headers: {
-            Accept: 'application/json',
-            ...(authHeader ? { Authorization: authHeader } : {}),
-          },
-        });
+        const defaultToken = process.env.VITE_UPSTOX_ACCESS_TOKEN || 'eyJ0eXAiOiJKV1QiLCJrZXlfaWQiOiJza192MS4wIiwiYWxnIjoiSFMyNTYifQ.eyJzdWIiOiIzQkNQVjYiLCJqdGkiOiI2YWQyMjE0MTg1MjEwZDJlZDE0M2FjYzMiLCJpc011bHRpQ2xpZW50IjpmYWxzZSwiaXNQbHVzUGxhbiI6ZmFsc2UsImlzRXh0ZW5kZWQiOnRydWUsImlhdCI6MTc5MjE1NTk2OSwiaXNzIjoidWRhcGktZ2F0ZXdheS1zZXJ2aWNlIiwiZXhwIjoxODIzNzI0MDAwfQ.slbHonDXTfVeWGkAvvbWAxzEJfk4xJQnn41P5M635yQ';
+        const headers: Record<string, string> = {
+          Accept: 'application/json',
+        };
+        if (authHeader) {
+          headers['Authorization'] = authHeader;
+        } else if (defaultToken) {
+          headers['Authorization'] = `Bearer ${defaultToken}`;
+        }
+
+        const apiRes = await fetch(targetUrl, { headers });
         const data = await apiRes.text();
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Access-Control-Allow-Origin', '*');

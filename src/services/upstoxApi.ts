@@ -1,5 +1,6 @@
 import { Candle } from '../types/backtest';
 import { calculateStochastic, calculateATR } from './indicators';
+import { DEFAULT_UPSTOX_ACCESS_TOKEN } from '../paperTrading/config/upstoxDefault';
 
 const UPSTOX_BASE_PROXY = '/upstox-api/v2';
 const UPSTOX_DIRECT_BASE = 'https://api.upstox.com/v2';
@@ -145,6 +146,12 @@ export function resampleCandles(rawCandles: Candle[], targetMinutes: number): Ca
 
 function getUpstoxToken(): string {
   try {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tradeedge_upstox_access_token');
+      if (saved && saved.trim().length > 20) return saved.trim();
+    }
+  } catch (_) {}
+  try {
     if (typeof import.meta !== 'undefined' && import.meta?.env?.VITE_UPSTOX_ACCESS_TOKEN) {
       return import.meta.env.VITE_UPSTOX_ACCESS_TOKEN;
     }
@@ -154,7 +161,7 @@ function getUpstoxToken(): string {
       return process.env.VITE_UPSTOX_ACCESS_TOKEN;
     }
   } catch (_) {}
-  return '';
+  return DEFAULT_UPSTOX_ACCESS_TOKEN;
 }
 
 /**

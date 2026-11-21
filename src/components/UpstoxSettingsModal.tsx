@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { X, CheckCircle2, ShieldCheck, Key, RefreshCw, ExternalLink } from 'lucide-react';
+import { DEFAULT_UPSTOX_ACCESS_TOKEN, DEFAULT_UPSTOX_API_KEY, DEFAULT_UPSTOX_API_SECRET } from '../paperTrading/config/upstoxDefault';
+import { marketDataService } from '../paperTrading/services/market/MarketDataService';
 
 interface UpstoxSettingsModalProps {
   isOpen: boolean;
@@ -7,13 +9,16 @@ interface UpstoxSettingsModalProps {
 }
 
 export const UpstoxSettingsModal: React.FC<UpstoxSettingsModalProps> = ({ isOpen, onClose }) => {
-  const [token, setToken] = useState(
-    import.meta.env.VITE_UPSTOX_ACCESS_TOKEN ||
-      'eyJ0eXAiOiJKV1QiLCJrZXlfaWQiOiJza192MS4wIiwiYWxnIjoiSFMyNTYifQ.eyJzdWIiOiIzQkNQVjYiLCJqdGkiOiI2YWQyMjE0MTg1MjEwZDJlZDE0M2FjYzMiLCJpc011bHRpQ2xpZW50IjpmYWxzZSwiaXNQbHVzUGxhbiI6ZmFsc2UsImlzRXh0ZW5kZWQiOnRydWUsImlhdCI6MTc5MjE1NTk2OSwiaXNzIjoidWRhcGktZ2F0ZXdheS1zZXJ2aWNlIiwiZXhwIjoxODIzNzI0MDAwfQ.slbHonDXTfVeWGkAvvbWAxzEJfk4xJQnn41P5M635yQ'
-  );
-  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('success');
+  const [token, setToken] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tradeedge_upstox_access_token');
+      if (saved && saved.length > 20) return saved;
+    }
+    return import.meta.env.VITE_UPSTOX_ACCESS_TOKEN || DEFAULT_UPSTOX_ACCESS_TOKEN;
+  });
+  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [testMessage, setTestMessage] = useState<string>(
-    'Connected to Upstox API Gateway. Authenticated User: 3BCPV6'
+    'Upstox API Gateway configured. Bearer token active.'
   );
 
   if (!isOpen) return null;
@@ -21,27 +26,41 @@ export const UpstoxSettingsModal: React.FC<UpstoxSettingsModalProps> = ({ isOpen
   const handleTestConnection = async () => {
     setTestStatus('testing');
     try {
+      const activeToken = token.trim();
       const res = await fetch(
-        '/upstox-api/v2/historical-candle/intraday/NSE_INDEX%7CNifty%2050/30minute',
+        '/upstox-api/v2/market-quote/quotes?instrument_key=NSE_INDEX%7CNifty%2050',
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${activeToken}`,
             Accept: 'application/json',
           },
         }
       );
       if (res.ok) {
+        const json = await res.json();
+        const niftyData = json?.data?.['NSE_INDEX:Nifty 50'];
+        const ltp = niftyData?.last_price || 'Verified';
         setTestStatus('success');
-        setTestMessage('Successfully validated Upstox API Token with live NIFTY 50 candles!');
+        setTestMessage(`Live connection established! NSE Nifty 50: ₹${ltp}`);
       } else {
-        // Direct test
-        setTestStatus('success');
-        setTestMessage('Upstox Token saved. API endpoints configured for NIFTY 50.');
+        const errJson = await res.json().catch(() => ({}));
+        setTestStatus('error');
+        setTestMessage(errJson?.errors?.[0]?.message || 'Upstox API returned an error.');
       }
-    } catch (e) {
-      setTestStatus('success');
-      setTestMessage('Token saved locally. Ready for backtesting.');
+    } catch (e: any) {
+      setTestStatus('error');
+      setTestMessage(e?.message || 'Network error while contacting Upstox API.');
     }
+  };
+
+  const handleSave = () => {
+    const cleanToken = token.trim();
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('tradeedge_upstox_access_token', cleanToken);
+      localStorage.setItem('tradeedge_market_mode', 'LIVE');
+    }
+    marketDataService.setUpstoxCredentials(DEFAULT_UPSTOX_API_KEY, DEFAULT_UPSTOX_API_SECRET, cleanToken);
+    onClose();
   };
 
   return (
@@ -133,7 +152,7 @@ export const UpstoxSettingsModal: React.FC<UpstoxSettingsModalProps> = ({ isOpen
           </button>
 
           <button
-            onClick={onClose}
+            onClick={handleSave}
             className="px-5 py-2 bg-primary text-on-primary hover:bg-primary-container font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
           >
             Save & Continue
