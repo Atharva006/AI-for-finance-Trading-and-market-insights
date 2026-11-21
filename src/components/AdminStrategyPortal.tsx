@@ -209,7 +209,7 @@ export const AdminStrategyPortal: React.FC<AdminStrategyPortalProps> = ({
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-stretch">
         <div className="lg:col-span-5 bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
           <div className="flex flex-col gap-space-xs">
-            <span className="font-label-sm text-label-sm uppercase text-text-muted">ADMIN // STRATEGY COMPILER</span>
+            <span className="font-label-sm text-label-sm uppercase text-text-muted">ADMIN · STRATEGY COMPILER</span>
             <h1 className="font-headline-sm text-headline-sm text-on-surface">Strategy Management &amp; Compiler</h1>
             <p className="font-body-sm text-body-sm text-text-secondary">
               Author, test, compile, and configure quantitative algorithms on live NSE bar data with automated SEBI audit trails.

@@ -8,7 +8,7 @@ export const Footer: React.FC = () => {
 
   return (
     <footer className="relative bg-[#FAFAFC] border-t border-gray-200 pt-16 pb-12 overflow-hidden font-mono select-none">
-      {/* Background Watermark Typography: "अर्जुन // लक्ष्य" */}
+      {/* Background Watermark Typography: "अर्जुन · लक्ष्य" */}
       <div className="absolute inset-x-0 bottom-6 flex justify-center items-center pointer-events-none opacity-5 overflow-hidden whitespace-nowrap">
         <span
           className="font-devanagari text-[16vw] font-bold text-transparent tracking-widest"
@@ -16,7 +16,7 @@ export const Footer: React.FC = () => {
             WebkitTextStroke: '2px #10B981',
           }}
         >
-          अर्जुन // लक्ष्य
+          अर्जुन · लक्ष्य
         </span>
       </div>
 

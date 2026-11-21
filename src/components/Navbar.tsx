@@ -61,7 +61,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="border-b border-gray-100 bg-[#F8FAFC] overflow-hidden py-1 px-4 flex items-center text-[10px] font-mono font-tabular text-[#64748B]">
         <div className="flex items-center gap-2 pr-4 border-r border-gray-200 text-[#10B981] font-bold tracking-wider whitespace-nowrap">
           <Activity className="w-3 h-3 animate-pulse text-[#10B981]" />
-          <span>NSE FEED // SIMULATED:</span>
+          <span>NSE FEED · SIMULATED:</span>
         </div>
 
         <div className="flex gap-6 overflow-x-hidden whitespace-nowrap md:flex">

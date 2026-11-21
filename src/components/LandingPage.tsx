@@ -185,11 +185,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </section>
 
-        {/* 2. SECTION: 01 // Platform Architecture */}
+        {/* 2. SECTION: 01 · Platform Architecture */}
         <section className="w-full py-space-xl flex flex-col gap-space-lg">
           <div className="flex flex-col gap-space-xs">
             <span className="font-mono-sm text-mono-sm text-text-muted uppercase">
-              01 // Platform Architecture
+              01 · Platform Architecture
             </span>
             <h2 className="font-headline-md text-headline-md text-on-surface font-semibold">
               Deterministic execution without discretionary drift.
@@ -352,13 +352,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </section>
 
-        {/* 3. SECTION: 02 // Strategy Deployments */}
+        {/* 3. SECTION: 02 · Strategy Deployments */}
         <section className="w-full py-space-xl flex flex-col gap-space-lg scroll-mt-28" id="algorithms-section">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
             <div className="flex flex-col gap-space-xs">
               <div className="inline-flex items-center gap-space-xs font-mono-sm text-mono-sm text-bullish font-semibold">
                 <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
-                <span>02 // LIVE ASSET DEPLOYMENTS (ZERO MOCK DATA)</span>
+                <span>02 · LIVE ASSET DEPLOYMENTS (ZERO MOCK DATA)</span>
               </div>
               <h2 className="font-headline-md text-headline-md text-on-surface font-semibold">
                 Asia-London-NY FVG Inversion Model across Global Liquid Instruments.
@@ -584,7 +584,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* 4. INTERACTIVE FAQ ACCORDION */}
         <section className="w-full py-space-xl flex flex-col gap-space-lg">
           <div className="flex flex-col gap-space-xs">
-            <span className="font-mono-sm text-mono-sm text-text-muted uppercase">03 // FAQ</span>
+            <span className="font-mono-sm text-mono-sm text-text-muted uppercase">03 · FAQ</span>
             <h2 className="font-headline-md text-headline-md text-on-surface font-semibold">Frequently asked questions.</h2>
           </div>
 

@@ -662,7 +662,7 @@ export const DhanStrategyDetail: React.FC<DhanStrategyDetailProps> = ({
           <section className="bg-surface-card rounded-xl shadow-sm p-space-lg">
             <div className="flex items-center justify-between mb-space-md">
               <div className="flex items-center gap-space-sm">
-                <span className="font-mono-sm text-mono-sm text-text-muted">01 //</span>
+                <span className="font-mono-sm text-mono-sm text-text-muted">01 ·</span>
                 <h2 className="font-headline-sm text-headline-sm text-on-surface">Institutional Audit Matrix</h2>
               </div>
               <span className="font-mono-sm text-mono-sm text-text-muted">LOOKBACK: 36 MONTHS</span>
@@ -731,7 +731,7 @@ export const DhanStrategyDetail: React.FC<DhanStrategyDetailProps> = ({
           <section className="bg-surface-card rounded-xl shadow-sm p-space-lg flex flex-col gap-space-lg">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
               <div className="flex items-center gap-space-sm">
-                <span className="font-mono-sm text-mono-sm text-text-muted">02 //</span>
+                <span className="font-mono-sm text-mono-sm text-text-muted">02 ·</span>
                 <h2 className="font-headline-sm text-headline-sm text-on-surface">Cumulative Equity &amp; Underwater Drawdown</h2>
               </div>
               <div className="flex items-center gap-space-md font-mono-sm text-mono-sm">
@@ -782,7 +782,7 @@ export const DhanStrategyDetail: React.FC<DhanStrategyDetailProps> = ({
           <section className="bg-surface-card rounded-xl shadow-sm p-space-lg">
             <div className="flex items-center justify-between mb-space-md">
               <div className="flex items-center gap-space-sm">
-                <span className="font-mono-sm text-mono-sm text-text-muted">03 //</span>
+                <span className="font-mono-sm text-mono-sm text-text-muted">03 ·</span>
                 <h2 className="font-headline-sm text-headline-sm text-on-surface">Codified Execution Ruleset</h2>
               </div>
               <span className="font-mono-sm text-mono-sm text-text-muted">DETERMINISTIC V5</span>
