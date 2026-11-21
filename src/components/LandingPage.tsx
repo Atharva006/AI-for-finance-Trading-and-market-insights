@@ -57,7 +57,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   className="inline-flex items-center gap-space-sm px-space-lg py-3 rounded-lg bg-surface-card text-primary font-label-md text-label-md hover:bg-surface-container transition-all shadow-sm border border-border-subtle cursor-pointer active:scale-95"
                 >
                   <span className="material-symbols-outlined text-[18px]">grid_view</span>
-                  <span>Market Heatmaps (IN · US)</span>
+                  <span>Market Heatmaps (SENSEX · US)</span>
                 </button>
 
                 <button
@@ -303,24 +303,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </section>
 
-        {/* 2.6 SECTION: Market Heatmaps Showcase (India & US TradingView) */}
+        {/* 2.6 SECTION: Market Heatmaps Showcase (<tv-heatmap> Web Component) */}
         <section className="w-full py-space-sm">
           <div className="w-full bg-white rounded-2xl p-6 sm:p-8 border border-border-subtle shadow-card flex flex-col lg:flex-row items-center justify-between gap-6 relative overflow-hidden">
             <div className="flex flex-col gap-3 max-w-2xl relative z-10">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container border border-border-subtle self-start text-xs font-mono font-semibold text-primary">
                 <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
-                <span>100% FREE ALGO SCANNER · TRADINGVIEW ENGINE · REAL-TIME CAPITALIZATION &amp; FLOW</span>
+                <span>TRADINGVIEW &lt;tv-heatmap&gt; · SENSEX &amp; US EQUITY CAPITALIZATION</span>
               </div>
               <h2 className="font-headline text-2xl sm:text-3xl font-bold text-primary tracking-tight">
-                Algorithmic Market Heatmaps for Indian &amp; US Equities
+                Live Market Heatmaps for BSE SENSEX, NSE &amp; Wall Street
               </h2>
               <p className="text-sm text-text-secondary leading-relaxed">
-                Scan high-volatility momentum rotations and visual market breadth across Indian (NIFTY 50, BSE SENSEX, All-India) and US (S&amp;P 500, NASDAQ 100, DOW 30) markets for algorithmic strategies. 100% free TradingView tree maps with zero subscription or API key requirements.
+                Scan high-volatility momentum rotations and visual sector breadth across BSE SENSEX, NIFTY 50, and US markets (S&amp;P 500 / NASDAQ 100). Embedded with full responsive width and sector depth using TradingView's official <code className="font-mono text-xs bg-surface-container px-1 py-0.5 rounded">&lt;tv-heatmap&gt;</code> engine.
               </p>
               <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-text-muted pt-1">
                 <span className="inline-flex items-center gap-1.5 text-primary font-semibold">
                   <span className="material-symbols-outlined text-[16px] text-bullish">check_circle</span>
-                  🇮🇳 NIFTY 50 &amp; BSE SENSEX
+                  🇮🇳 BSE SENSEX &amp; NIFTY 50
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-primary font-semibold">
                   <span className="material-symbols-outlined text-[16px] text-bullish">check_circle</span>
@@ -328,11 +328,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-primary font-semibold">
                   <span className="material-symbols-outlined text-[16px] text-bullish">check_circle</span>
-                  GICS Sector Clustering
+                  Sector vs Flat Grid Grouping
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-primary font-semibold">
                   <span className="material-symbols-outlined text-[16px] text-bullish">check_circle</span>
-                  Interactive Drill-Down Zoom
+                  Market Cap &amp; Volume Weighting
                 </span>
               </div>
             </div>
@@ -343,10 +343,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 className="w-full sm:w-auto px-6 py-3.5 bg-primary hover:bg-primary-container text-white font-semibold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[18px]">grid_view</span>
-                <span>Open Algo Market Heatmaps</span>
+                <span>Open Market Heatmaps</span>
               </button>
               <span className="text-[11px] font-mono text-text-muted text-center">
-                100% Free · No API Key Required
+                Powered by TradingView &lt;tv-heatmap&gt;
               </span>
             </div>
           </div>

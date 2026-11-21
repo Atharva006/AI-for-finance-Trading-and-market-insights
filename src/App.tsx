@@ -215,7 +215,7 @@ export function App() {
           <PaperTradingSection />
         )}
 
-        {/* Live Algorithmic Market Heatmaps Section (India & US Free TradingView Engine) */}
+        {/* Live TradingView <tv-heatmap> Web Component Section */}
         {activeView === 'heatmap' && (
           <TradingViewHeatmapSection
             onNavigateToBacktest={(symbol) => {

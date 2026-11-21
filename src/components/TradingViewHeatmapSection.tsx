@@ -1,5 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'tv-heatmap': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        'heatmap-type'?: string;
+        'data-source'?: string;
+        grouping?: string;
+        'block-size'?: string;
+        'block-color'?: string;
+        theme?: string;
+      };
+    }
+  }
+}
+
 export type HeatmapRegion = 'INDIA' | 'US';
 
 interface TradingViewHeatmapSectionProps {
@@ -12,10 +27,10 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
   onNavigateToFVGAlgo,
 }) => {
   const [region, setRegion] = useState<HeatmapRegion>('INDIA');
-  const [indiaPreset, setIndiaPreset] = useState<'NIFTY50' | 'SENSEX' | 'AllIndia'>('NIFTY50');
+  const [indiaPreset, setIndiaPreset] = useState<'SENSEX' | 'NIFTY50' | 'AllIndia'>('SENSEX');
   const [usPreset, setUsPreset] = useState<'SPX500' | 'NASDAQ100' | 'DJI'>('SPX500');
   const [grouping, setGrouping] = useState<'sector' | 'no_group'>('sector');
-  const [blockSize, setBlockSize] = useState<'market_cap_basic' | 'volume' | 'is_mono_size'>('market_cap_basic');
+  const [blockSize, setBlockSize] = useState<'market_cap_basic' | 'volume'>('market_cap_basic');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<string>(() => new Date().toLocaleTimeString());
 
@@ -24,45 +39,29 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
 
   const activeDataSource = region === 'INDIA' ? indiaPreset : usPreset;
 
-  // Mount / Re-mount TradingView Stock Heatmap Widget
+  // Mount TradingView tv-heatmap custom element dynamically
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Clear previous widget
+    // Clear previous heatmap
     containerRef.current.innerHTML = '';
 
-    const widgetDiv = document.createElement('div');
-    widgetDiv.className = 'tradingview-widget-container__widget';
-    widgetDiv.style.width = '100%';
-    widgetDiv.style.height = '100%';
-    containerRef.current.appendChild(widgetDiv);
+    // Create tv-heatmap custom element
+    const tvEl = document.createElement('tv-heatmap');
+    tvEl.setAttribute('heatmap-type', 'stock');
+    tvEl.setAttribute('data-source', activeDataSource);
+    tvEl.setAttribute('grouping', grouping);
+    tvEl.setAttribute('block-size', blockSize);
+    tvEl.setAttribute('block-color', 'change');
+    tvEl.setAttribute('theme', 'light');
 
-    const script = document.createElement('script');
-    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js';
-    script.type = 'text/javascript';
-    script.async = true;
+    // Style for full responsive width and height
+    tvEl.style.display = 'block';
+    tvEl.style.width = '100%';
+    tvEl.style.height = '100%';
+    tvEl.style.minHeight = '560px';
 
-    const config = {
-      exchanges: [],
-      dataSource: activeDataSource,
-      grouping: grouping,
-      blockSize: blockSize === 'is_mono_size' ? 'market_cap_basic' : blockSize,
-      blockColor: 'change',
-      locale: region === 'INDIA' ? 'in' : 'en',
-      symbolUrl: '',
-      colorTheme: 'light',
-      hasTopBar: true,
-      isDataSetEnabled: true,
-      isZoomEnabled: true,
-      hasSymbolTooltip: true,
-      isMonoSize: blockSize === 'is_mono_size',
-      width: '100%',
-      height: '100%',
-    };
-
-    script.innerHTML = JSON.stringify(config);
-    containerRef.current.appendChild(script);
-
+    containerRef.current.appendChild(tvEl);
     setLastRefreshed(new Date().toLocaleTimeString());
 
     return () => {
@@ -118,25 +117,25 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
         isFullscreen ? 'p-6 bg-[#FCFCFC] h-screen overflow-y-auto' : ''
       }`}
     >
-      {/* ── 1. Top Section Header Strip ────────────────────────────────────── */}
+      {/* ── 1. Header Strip ─────────────────────────────────────────────────── */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-4 border-b border-border-subtle bg-white p-5 rounded-2xl shadow-card border">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
             <span className="text-[11px] font-mono tracking-wider text-secondary uppercase font-semibold">
-              Live Algorithmic Sector Scanner · Free TradingView Engine
+              Live Algorithmic Sector Scanner · TradingView tv-heatmap
             </span>
           </div>
           <h1 className="font-headline text-2xl sm:text-3xl font-bold tracking-tight text-primary flex items-center gap-2.5">
             <span className="material-symbols-outlined text-[28px] text-primary">grid_view</span>
-            <span>Algorithmic Market Heatmaps (India &amp; US)</span>
+            <span>Market Heatmaps (India &amp; US)</span>
           </h1>
           <p className="text-xs text-text-muted mt-1 max-w-2xl">
-            Real-time multi-asset market capitalization and performance tree maps for algorithmic traders. Identify high-momentum sector rotations and scan quantitative setups across NSE/BSE and US exchanges with 100% free TradingView feeds.
+            Real-time market capitalization tree maps powered by TradingView's official <code className="bg-surface-container px-1 py-0.5 rounded text-[11px] font-mono text-primary">&lt;tv-heatmap&gt;</code> engine. Real-time sector breadth and percentage dispersion across BSE SENSEX, NSE NIFTY 50, and US markets.
           </p>
         </div>
 
-        {/* Action Buttons: Algo Backtest & Strategy Execution Desk */}
+        {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           {onNavigateToBacktest && (
             <button
@@ -185,7 +184,7 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
             }`}
           >
             <span className="text-sm">🇮🇳</span>
-            <span>Indian Markets (NSE &amp; BSE)</span>
+            <span>Indian Markets (BSE · NSE)</span>
           </button>
 
           <button
@@ -197,77 +196,73 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
             }`}
           >
             <span className="text-sm">🇺🇸</span>
-            <span>US Markets (Wall Street)</span>
+            <span>US Markets (Wall St)</span>
           </button>
         </div>
 
-        {/* Center: Presets for Active Region */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-hide text-xs">
+        {/* Center: Index Presets */}
+        <div className="flex flex-wrap items-center gap-2">
           {region === 'INDIA' ? (
             <>
               <button
-                onClick={() => setIndiaPreset('NIFTY50')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer border ${
-                  indiaPreset === 'NIFTY50'
-                    ? 'bg-secondary-container border-secondary/30 text-primary font-bold shadow-xs'
-                    : 'bg-white border-border-subtle text-text-muted hover:text-primary hover:bg-surface-container'
-                }`}
-              >
-                NIFTY 50 (Benchmark)
-              </button>
-
-              <button
                 onClick={() => setIndiaPreset('SENSEX')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer border ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                   indiaPreset === 'SENSEX'
-                    ? 'bg-secondary-container border-secondary/30 text-primary font-bold shadow-xs'
-                    : 'bg-white border-border-subtle text-text-muted hover:text-primary hover:bg-surface-container'
+                    ? 'bg-secondary text-white border-secondary font-semibold shadow-xs'
+                    : 'bg-white text-text-muted border-border-subtle hover:text-primary hover:bg-surface-container'
                 }`}
               >
                 BSE SENSEX (Top 30)
               </button>
-
               <button
-                onClick={() => setIndiaPreset('AllIndia')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer border ${
-                  indiaPreset === 'AllIndia'
-                    ? 'bg-secondary-container border-secondary/30 text-primary font-bold shadow-xs'
-                    : 'bg-white border-border-subtle text-text-muted hover:text-primary hover:bg-surface-container'
+                onClick={() => setIndiaPreset('NIFTY50')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                  indiaPreset === 'NIFTY50'
+                    ? 'bg-secondary text-white border-secondary font-semibold shadow-xs'
+                    : 'bg-white text-text-muted border-border-subtle hover:text-primary hover:bg-surface-container'
                 }`}
               >
-                All India Equities (Broad Market)
+                NIFTY 50 (NSE Benchmark)
+              </button>
+              <button
+                onClick={() => setIndiaPreset('AllIndia')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                  indiaPreset === 'AllIndia'
+                    ? 'bg-secondary text-white border-secondary font-semibold shadow-xs'
+                    : 'bg-white text-text-muted border-border-subtle hover:text-primary hover:bg-surface-container'
+                }`}
+              >
+                All-India Equities (Broad Market)
               </button>
             </>
           ) : (
             <>
               <button
                 onClick={() => setUsPreset('SPX500')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer border ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                   usPreset === 'SPX500'
-                    ? 'bg-secondary-container border-secondary/30 text-primary font-bold shadow-xs'
-                    : 'bg-white border-border-subtle text-text-muted hover:text-primary hover:bg-surface-container'
+                    ? 'bg-secondary text-white border-secondary font-semibold shadow-xs'
+                    : 'bg-white text-text-muted border-border-subtle hover:text-primary hover:bg-surface-container'
                 }`}
               >
                 S&amp;P 500 (Mega-Caps)
               </button>
-
               <button
                 onClick={() => setUsPreset('NASDAQ100')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer border ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                   usPreset === 'NASDAQ100'
-                    ? 'bg-secondary-container border-secondary/30 text-primary font-bold shadow-xs'
-                    : 'bg-white border-border-subtle text-text-muted hover:text-primary hover:bg-surface-container'
+                    ? 'bg-secondary text-white border-secondary font-semibold shadow-xs'
+                    : 'bg-white text-text-muted border-border-subtle hover:text-primary hover:bg-surface-container'
                 }`}
               >
                 NASDAQ 100 (Tech Heavy)
               </button>
-
               <button
                 onClick={() => setUsPreset('DJI')}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer border ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                   usPreset === 'DJI'
-                    ? 'bg-secondary-container border-secondary/30 text-primary font-bold shadow-xs'
-                    : 'bg-white border-border-subtle text-text-muted hover:text-primary hover:bg-surface-container'
+                    ? 'bg-secondary text-white border-secondary font-semibold shadow-xs'
+                    : 'bg-white text-text-muted border-border-subtle hover:text-primary hover:bg-surface-container'
                 }`}
               >
                 DOW 30 (Industrials)
@@ -276,55 +271,63 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
           )}
         </div>
 
-        {/* Right: Sizing & Grouping Options */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Grouping Toggle */}
-          <div className="flex items-center gap-1 bg-surface-container p-1 rounded-xl border border-border-subtle text-xs">
+        {/* Right: Grouping & Sizing Selectors */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-1.5 bg-surface-container px-2 py-1 rounded-lg border border-border-subtle text-xs">
+            <span className="text-text-muted text-[11px] font-mono">GROUP:</span>
             <button
               onClick={() => setGrouping('sector')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
-                grouping === 'sector' ? 'bg-white text-primary font-bold shadow-xs' : 'text-text-muted'
+              className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-all cursor-pointer ${
+                grouping === 'sector' ? 'bg-white text-primary shadow-xs' : 'text-text-muted hover:text-primary'
               }`}
-              title="Group blocks by industry sector"
             >
-              By Sector
+              Sector
             </button>
             <button
               onClick={() => setGrouping('no_group')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
-                grouping === 'no_group' ? 'bg-white text-primary font-bold shadow-xs' : 'text-text-muted'
+              className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-all cursor-pointer ${
+                grouping === 'no_group' ? 'bg-white text-primary shadow-xs' : 'text-text-muted hover:text-primary'
               }`}
-              title="Show flat heat grid without grouping"
             >
-              Flat Grid
+              Flat
             </button>
           </div>
 
-          {/* Block Size Select */}
-          <select
-            value={blockSize}
-            onChange={(e) => setBlockSize(e.target.value as any)}
-            className="bg-white border border-border-subtle rounded-xl px-2.5 py-1.5 text-xs text-primary font-medium shadow-xs outline-none focus:border-secondary cursor-pointer"
-          >
-            <option value="market_cap_basic">Size: Market Cap</option>
-            <option value="volume">Size: Volume</option>
-            <option value="is_mono_size">Size: Equal Size</option>
-          </select>
+          <div className="flex items-center gap-1.5 bg-surface-container px-2 py-1 rounded-lg border border-border-subtle text-xs">
+            <span className="text-text-muted text-[11px] font-mono">SIZE:</span>
+            <button
+              onClick={() => setBlockSize('market_cap_basic')}
+              className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-all cursor-pointer ${
+                blockSize === 'market_cap_basic' ? 'bg-white text-primary shadow-xs' : 'text-text-muted hover:text-primary'
+              }`}
+            >
+              Market Cap
+            </button>
+            <button
+              onClick={() => setBlockSize('volume')}
+              className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-all cursor-pointer ${
+                blockSize === 'volume' ? 'bg-white text-primary shadow-xs' : 'text-text-muted hover:text-primary'
+              }`}
+            >
+              Volume
+            </button>
+          </div>
         </div>
-
       </div>
 
-      {/* ── 3. Sector Performance Telemetry Strip ──────────────────────────── */}
-      <div className="w-full bg-white rounded-xl p-3 border border-border-subtle shadow-xs flex items-center gap-3 overflow-x-auto scrollbar-hide text-xs font-mono">
-        <span className="text-[11px] text-text-muted font-sans font-bold uppercase shrink-0 flex items-center gap-1.5 border-r border-border-subtle pr-3">
-          <span className="w-2 h-2 rounded-full bg-bullish" />
-          <span>Sector Flow</span>
-        </span>
-
+      {/* ── 3. Real-Time Sector Telemetry Bar ───────────────────────────────── */}
+      <div className="bg-white p-3.5 rounded-xl border border-border-subtle shadow-card flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 overflow-x-auto">
         <div className="flex items-center gap-2 shrink-0">
-          {(region === 'INDIA' ? indianSectors : usSectors).map((sec) => (
+          <span className="material-symbols-outlined text-[16px] text-primary">pie_chart</span>
+          <span className="text-xs font-mono font-bold text-primary uppercase">
+            {region === 'INDIA' ? 'NSE & BSE SECTORS' : 'US GICS SECTORS'}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none py-0.5">
+          {(region === 'INDIA' ? indianSectors : usSectors).map((sec, idx) => (
             <div
-              key={sec.name}
+              key={idx}
               className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border text-[11px] ${
                 sec.bullish
                   ? 'bg-bullish-tint border-bullish/20 text-bullish font-semibold'
@@ -333,39 +336,49 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
             >
               <span className="font-sans font-medium text-primary text-[11px]">{sec.name}</span>
               <span className="font-mono">{sec.change}</span>
-              <span className="text-[9px] text-text-muted font-sans font-normal opacity-80">({sec.weight})</span>
+              <span className="text-[9px] text-text-muted font-sans font-normal opacity-80">
+                ({sec.weight})
+              </span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* ── 4. Main Heatmap Canvas (TradingView Embed Container) ────────────── */}
-      <div className="w-full bg-white rounded-2xl border border-border-subtle shadow-card overflow-hidden flex flex-col h-[650px] lg:h-[720px] relative">
-        {/* Heatmap Top Bar Indicators */}
+      {/* ── 4. Main Heatmap Canvas (TradingView tv-heatmap Web Component) ─────── */}
+      <div className="w-full bg-white rounded-2xl border border-border-subtle shadow-card overflow-hidden flex flex-col h-[680px] lg:h-[750px] relative">
+        {/* Top Info Bar */}
         <div className="h-10 px-4 bg-surface-container border-b border-border-subtle flex items-center justify-between text-xs font-mono text-text-muted select-none">
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-1.5 text-primary font-semibold">
               <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
-              <span>{region === 'INDIA' ? 'NSE & BSE LIVE QUOTES' : 'US WALL STREET LIVE'}</span>
+              <span>&lt;tv-heatmap&gt; WEB COMPONENT</span>
             </span>
             <span className="text-border-subtle">|</span>
-            <span>INDEX: <strong className="text-primary font-mono">{activeDataSource}</strong></span>
+            <span>
+              DATA SOURCE: <strong className="text-primary font-mono">{activeDataSource}</strong>
+            </span>
             <span className="hidden sm:inline text-border-subtle">|</span>
-            <span className="hidden sm:inline">COLOR: <span className="text-bullish font-semibold">% CHANGE</span></span>
+            <span className="hidden sm:inline">
+              GROUPING: <strong className="text-primary font-mono">{grouping}</strong>
+            </span>
+            <span className="hidden md:inline text-border-subtle">|</span>
+            <span className="hidden md:inline">
+              SIZE: <strong className="text-primary font-mono">{blockSize}</strong>
+            </span>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-[11px]">UPDATED: {lastRefreshed}</span>
+            <span className="text-[11px]">LIVE SYNC: {lastRefreshed}</span>
             <span className="text-border-subtle">|</span>
-            <span className="text-[10px] text-text-muted font-sans">Powered by TradingView</span>
+            <span className="text-[10px] text-text-muted font-sans">TradingView Heatmap Engine</span>
           </div>
         </div>
 
-        {/* Embedded Container */}
-        <div className="flex-1 w-full h-full relative" ref={containerRef} />
+        {/* Embedded Container for <tv-heatmap> */}
+        <div className="flex-1 w-full h-full relative p-2 bg-[#FCFCFC]" ref={containerRef} />
       </div>
 
-      {/* ── 5. Bottom Informational & Strategy Quick Launch Bar ─────────────── */}
+      {/* ── 5. Bottom Strategy Quick Launch Bar ─────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
         <div className="bg-white p-4 rounded-xl border border-border-subtle shadow-xs flex items-start gap-3">
           <div className="w-8 h-8 rounded-lg bg-secondary-container flex items-center justify-center text-primary shrink-0">
@@ -374,7 +387,7 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
           <div>
             <h4 className="font-bold text-primary font-headline text-sm">Interactive Zoom &amp; Depth</h4>
             <p className="text-text-muted mt-0.5 leading-relaxed">
-              Click on any sector cluster to drill down into sub-industries. Double-click any stock block to view its live trading chart and quote details.
+              Click on any sector cluster to drill down into sub-industries. Double-click any stock block to inspect its trading parameters.
             </p>
           </div>
         </div>
@@ -384,7 +397,7 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
             <span className="material-symbols-outlined text-[18px]">pie_chart</span>
           </div>
           <div>
-            <h4 className="font-bold text-primary font-headline text-sm">Market Capitalization Weighting</h4>
+            <h4 className="font-bold text-primary font-headline text-sm">Market Cap Weighted Blocks</h4>
             <p className="text-text-muted mt-0.5 leading-relaxed">
               Block dimensions dynamically reflect each company's free-float market cap relative to the index, preventing small-cap distortion.
             </p>
@@ -398,7 +411,7 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
           <div>
             <h4 className="font-bold text-primary font-headline text-sm">Algorithmic Execution Scanner</h4>
             <p className="text-text-muted mt-0.5 leading-relaxed">
-              Spotting abnormal sector dispersion? Seamlessly test institutional systematic setups in the Backtest Studio or deploy our Audited Asia-London-NY FVG Pine Script Algorithm.
+              Spotting abnormal sector dispersion? Seamlessly test institutional systematic setups in the Backtest Studio or deploy our Audited Asia-London-NY FVG Algorithm.
             </p>
           </div>
         </div>

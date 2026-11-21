@@ -83,16 +83,16 @@ export const DhanNavbar: React.FC<DhanNavbarProps> = ({
           </span>
         </button>
 
-        {/* Free Market Heatmaps (India & US TradingView Engine for Algo Traders) */}
+        {/* TradingView Market Heatmaps (<tv-heatmap> Web Component) */}
         <button
           onClick={() => setActiveView('heatmap')}
           className={navItemClass('heatmap')}
         >
           <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
             <span className="material-symbols-outlined text-[15px]">grid_view</span>
-            <span>Algo Heatmaps</span>
+            <span>Market Heatmaps</span>
             <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-bullish/10 text-bullish border border-bullish/25">
-              FREE
+              SENSEX · US
             </span>
           </span>
         </button>

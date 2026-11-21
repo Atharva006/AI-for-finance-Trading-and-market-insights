@@ -33,7 +33,7 @@ export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
   onNavigateToBacktestWithSymbol,
   onNavigateToFVG,
 }) => {
-  // Navigation Tabs matching Stitch Screen 2 + Integrated Free Heatmap
+  // Navigation Tabs matching Stitch Screen 2
   const [activeTab, setActiveTab] = useState<MarketplaceTab>(initialTab);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [capitalFilter, setCapitalFilter] = useState<string>('ALL');
@@ -166,7 +166,7 @@ export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
             Investment &amp; Wealth
           </button>
 
-          {/* Integrated Free Heatmap for Algorithmic Scanning */}
+          {/* TradingView Heatmap Web Component Tab */}
           <button
             onClick={() => setActiveTab('heatmap')}
             className={`px-space-md py-space-sm rounded-lg font-label-md text-label-md whitespace-nowrap transition-all cursor-pointer inline-flex items-center gap-1.5 ${
@@ -177,9 +177,9 @@ export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
             type="button"
           >
             <span className="material-symbols-outlined text-[16px] text-primary">grid_view</span>
-            <span>Market Heatmap (NSE · US)</span>
+            <span>Market Heatmap (SENSEX · NSE · US)</span>
             <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-bullish/10 text-bullish border border-bullish/25">
-              FREE
+              LIVE
             </span>
           </button>
 
@@ -522,7 +522,7 @@ export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
           </div>
         </div>
       )}
-      {/* 6. FREE TRADINGVIEW HEATMAP FOR ALGORITHMIC SCANNING */}
+      {/* TradingView <tv-heatmap> Section */}
       {activeTab === 'heatmap' && (
         <div className="w-full">
           <TradingViewHeatmapSection
