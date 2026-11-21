@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   ShieldAlert,
   Activity,
@@ -12,9 +12,6 @@ import {
   Calculator,
   ArrowUpRight,
   ArrowDownRight,
-  FileSpreadsheet,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react';
 import { Trade } from '../types/backtest';
 import { calculateQuantRiskProfile, QuantRiskProfile } from '../services/quantMath';
@@ -32,8 +29,6 @@ export const QuantRiskAlphaMatrix: React.FC<QuantRiskAlphaMatrixProps> = ({
   strategyName = 'Strategy',
   symbol = 'NIFTY 50',
 }) => {
-  const [isTaxDrawerOpen, setIsTaxDrawerOpen] = useState(false);
-
   const profile: QuantRiskProfile = calculateQuantRiskProfile(trades, initialCapital);
 
   return (
@@ -54,7 +49,7 @@ export const QuantRiskAlphaMatrix: React.FC<QuantRiskAlphaMatrixProps> = ({
               </span>
             </div>
             <h3 className="text-xl font-extrabold text-[#0A0A0D] tracking-tight font-sans">
-              Factor Exposures, Tail Risk & Net Alpha
+              Factor Exposures, Tail Risk & Pre-Tax Alpha
             </h3>
           </div>
         </div>
@@ -77,10 +72,14 @@ export const QuantRiskAlphaMatrix: React.FC<QuantRiskAlphaMatrixProps> = ({
 
           <div className="px-3.5 py-2 bg-emerald-50/70 border border-emerald-200 rounded-xl text-right">
             <span className="text-[10px] text-emerald-700 uppercase font-bold block">
-              Post-Tax In-Hand Net
+              Pre-Tax Net P&amp;L
             </span>
-            <span className="text-base font-bold text-emerald-900">
-              ₹{profile.netInHandCashRs.toLocaleString('en-IN')}
+            <span
+              className={`text-base font-bold ${
+                profile.grossProfitRs >= 0 ? 'text-emerald-900' : 'text-rose-700'
+              }`}
+            >
+              ₹{profile.grossProfitRs.toLocaleString('en-IN')}
             </span>
           </div>
         </div>
@@ -216,91 +215,6 @@ export const QuantRiskAlphaMatrix: React.FC<QuantRiskAlphaMatrixProps> = ({
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Collapsible Section: Indian Tax & Statutory Friction Audit */}
-      <div className="rounded-xl border border-gray-200 overflow-hidden">
-        <div
-          onClick={() => setIsTaxDrawerOpen(!isTaxDrawerOpen)}
-          className="p-4 bg-gray-50 hover:bg-gray-100 flex items-center justify-between cursor-pointer transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span className="text-xs font-bold text-[#0A0A0D]">
-              Indian Tax & Statutory Friction Audit (Sec 111A STCG 20%, STT, GST & SEBI Fees)
-            </span>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-white border border-gray-200 text-gray-700">
-              Friction Drag: {profile.taxDragPct}%
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-gray-500 hidden sm:inline">
-              Gross: <strong>₹{profile.grossProfitRs.toLocaleString('en-IN')}</strong> ➔ Real Net In-Hand:{' '}
-              <strong className="text-emerald-700">
-                ₹{profile.netInHandCashRs.toLocaleString('en-IN')}
-              </strong>
-            </span>
-            {isTaxDrawerOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </div>
-        </div>
-
-        {isTaxDrawerOpen && (
-          <div className="p-4 bg-white border-t border-gray-200 space-y-4 animate-in fade-in">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
-              <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
-                <span className="text-[10px] text-gray-400 block uppercase">Gross PnL</span>
-                <span className="text-sm font-bold text-black">
-                  ₹{profile.grossProfitRs.toLocaleString('en-IN')}
-                </span>
-              </div>
-
-              <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
-                <span className="text-[10px] text-gray-400 block uppercase">STT (0.05% Turn)</span>
-                <span className="text-sm font-bold text-rose-600">
-                  -₹{profile.sttChargesRs.toLocaleString('en-IN')}
-                </span>
-              </div>
-
-              <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
-                <span className="text-[10px] text-gray-400 block uppercase">NSE + SEBI Fee</span>
-                <span className="text-sm font-bold text-rose-600">
-                  -₹{profile.exchangeAndSebiRs.toLocaleString('en-IN')}
-                </span>
-              </div>
-
-              <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
-                <span className="text-[10px] text-gray-400 block uppercase">Stamp Duty</span>
-                <span className="text-sm font-bold text-rose-600">
-                  -₹{profile.stampDutyRs.toLocaleString('en-IN')}
-                </span>
-              </div>
-
-              <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
-                <span className="text-[10px] text-gray-400 block uppercase">18% GST on Brok.</span>
-                <span className="text-sm font-bold text-rose-600">
-                  -₹{profile.gstOnBrokerageRs.toLocaleString('en-IN')}
-                </span>
-              </div>
-
-              <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200">
-                <span className="text-[10px] text-emerald-800 block uppercase font-bold">
-                  20% STCG Tax (Sec 111A)
-                </span>
-                <span className="text-sm font-bold text-emerald-950">
-                  -₹{profile.stcgTaxRs.toLocaleString('en-IN')}
-                </span>
-              </div>
-            </div>
-
-            <p className="text-[11px] text-gray-500 font-sans leading-relaxed">
-              * Statutory deductions reflect current Indian Income Tax Act 1961 (Budget 2024 Section 111A
-              Short Term Capital Gains @ 20%), Securities Transaction Tax (STT) circulars, SEBI turnover
-              levy (₹10/crore), state stamp duty regulations, and 18% GST on brokerage. Quants optimize
-              holding period to minimize turnover tax drag.
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

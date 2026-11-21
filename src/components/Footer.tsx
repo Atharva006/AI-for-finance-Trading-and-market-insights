@@ -107,8 +107,8 @@ export const Footer: React.FC = () => {
                 <span className="text-emerald-600 font-bold">6.50% (Indian 10Y G-Sec)</span>
               </div>
               <div className="flex justify-between">
-                <span>STATUTORY TAX FRICTION:</span>
-                <span className="text-[#0A0A0D] font-bold">Section 111A STCG 20%</span>
+                <span>EXECUTION REPORTING:</span>
+                <span className="text-[#0A0A0D] font-bold">Pre-Tax Gross Returns</span>
               </div>
               <div className="flex justify-between">
                 <span>EQUITY UNIVERSE:</span>
