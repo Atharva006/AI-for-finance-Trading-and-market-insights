@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   FOREX_PAIRS,
   ForexPairInfo,
@@ -33,12 +33,15 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
   const [usdInrRate, setUsdInrRate] = useState<number>(92.67); // Live USDINR spot
 
   // State Machine & Next-Trade Execution Telemetry
-  const [entryMode, setEntryMode] = useState<'LIMIT_AT_FVG_EDGE' | 'AGGRESSIVE_MARKET_CROSS'>('LIMIT_AT_FVG_EDGE');
-  const [slMode, setSlMode] = useState<'STRICT_BODY' | 'CONSERVATIVE_EXTENDED'>('STRICT_BODY');
-  const [maxSpreadFilter, setMaxSpreadFilter] = useState<number>(1.8);
-  const [circuitBreakerLosses, setCircuitBreakerLosses] = useState<number>(3); // Halt if 3 consecutive losses
   const [isPineModalOpen, setIsPineModalOpen] = useState<boolean>(false);
   const [copiedPine, setCopiedPine] = useState<boolean>(false);
+  const [copiedWebhook, setCopiedWebhook] = useState<boolean>(false);
+  const [orderToast, setOrderToast] = useState<string | null>(null);
+
+  const showOrderToast = (msg: string) => {
+    setOrderToast(msg);
+    setTimeout(() => setOrderToast(null), 4000);
+  };
 
   // Live Candle fetching & execution state
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -164,6 +167,53 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
       : currentUtcHour >= 13 && currentUtcHour < 22
       ? 'New York Sweep & Inversion Window (13:00 - 22:00 UTC)'
       : 'Inter-Session Hold / London-NY Overlap Prep';
+
+  // Compute live session stats from the loaded candles
+  const sessionAnalytics = useMemo(() => {
+    if (!candles || candles.length === 0) return null;
+
+    let asiaHigh = 0;
+    let asiaLow = Infinity;
+    let foundAsia = false;
+
+    // Scan recent candles
+    for (let i = Math.max(0, candles.length - 48); i < candles.length; i++) {
+      const c = candles[i];
+      const d = new Date(c.timestamp);
+      const h = d.getUTCHours();
+      if (h >= 18 || h === 0) {
+        if (c.high > asiaHigh) asiaHigh = c.high;
+        if (c.low < asiaLow) asiaLow = c.low;
+        foundAsia = true;
+      }
+    }
+
+    const lastPrice = candles[candles.length - 1].close;
+    const finalAsiaHigh = foundAsia ? asiaHigh : lastPrice * 1.0022;
+    const finalAsiaLow = foundAsia ? asiaLow : lastPrice * 0.9978;
+    const sweptHigh = lastPrice > finalAsiaHigh;
+    const sweptLow = lastPrice < finalAsiaLow;
+
+    let setupBias: 'BULLISH' | 'BEARISH' | 'RANGE' = 'RANGE';
+    if (sweptLow) setupBias = 'BULLISH';
+    else if (sweptHigh) setupBias = 'BEARISH';
+
+    const slPips = Math.max(10, (lastPrice * (params.maxRiskPercent / 100)) / selectedPair.pipSize);
+    const lotSize = Math.max(0.01, Number((params.fixedRiskUSD / (slPips * 10)).toFixed(2)));
+
+    return {
+      asiaHigh: finalAsiaHigh,
+      asiaLow: finalAsiaLow,
+      lastPrice,
+      sweptHigh,
+      sweptLow,
+      setupBias,
+      slPips: slPips.toFixed(1),
+      tpPips: (slPips * params.riskReward).toFixed(1),
+      lotSize,
+      targetProfitUSD: params.fixedRiskUSD * params.riskReward,
+    };
+  }, [candles, selectedPair, params.fixedRiskUSD, params.riskReward, params.maxRiskPercent]);
 
   // Format currency helpers
   const fmtPnl = (usd: number, inr: number) => {
@@ -385,14 +435,18 @@ fixedRiskUSD   = input.float(100.0, "Fixed Risk per Trade ($)", step=10.0)
             </div>
           </div>
 
-          {/* Right: Execution Control Hub (Stitch Screen 8) */}
+          {/* Right: Execution Control Hub (Institutional Session Operations) */}
           <div className="lg:col-span-7 bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-sm flex flex-col justify-between gap-space-md">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pb-1 border-b border-border-subtle">
               <div className="flex items-center gap-space-sm">
                 <span className="material-symbols-outlined text-secondary text-[20px]">tune</span>
                 <h2 className="font-title-md text-title-md text-on-surface font-semibold">
                   Execution Control Hub
                 </h2>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-bullish-tint text-bullish border border-bullish/25">
+                  PINE SCRIPT v5
+                </span>
               </div>
               <div className="inline-flex items-center gap-space-sm px-space-sm py-1 rounded-full bg-forex-tint border border-secondary text-secondary font-mono-sm text-mono-sm">
                 <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
@@ -402,163 +456,306 @@ fixedRiskUSD   = input.float(100.0, "Fixed Risk per Trade ($)", step=10.0)
               </div>
             </div>
 
-            {/* Unique Real-Time State Machine Progression Strip */}
+            {/* 1. Real-Time State Machine Progression */}
             <div className="p-space-sm rounded-lg bg-surface-container-low border border-border-subtle flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <span className="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Session Pipeline Telemetry</span>
                 <span className="font-mono-sm text-mono-sm text-secondary font-semibold">
-                  STATE: {currentUtcHour >= 18 ? 'ASIA RANGE' : currentUtcHour < 6 ? 'LONDON ACTIVE' : currentUtcHour < 13 ? 'INTER-SESSION' : currentUtcHour < 22 ? 'NY ACTIVE' : 'HOLD'}
+                  STATUS: {currentUtcHour >= 18 || currentUtcHour < 0 ? 'ASIA RANGE FORMING' : currentUtcHour < 6 ? 'LONDON SWEEP ACTIVE' : currentUtcHour < 13 ? 'FVG DISPLACEMENT' : currentUtcHour < 22 ? 'NY CONTINUATION' : 'HOLD'}
                 </span>
               </div>
               <div className="grid grid-cols-4 gap-1 text-[11px] font-mono">
                 <div className={`p-1.5 rounded border text-center transition-all ${
-                  currentUtcHour >= 18 ? 'bg-amber-50 border-amber-300 text-amber-900 font-bold' : 'bg-surface-card border-border-subtle'
+                  currentUtcHour >= 18 || currentUtcHour < 0 ? 'bg-amber-50 border-amber-300 text-amber-900 font-bold shadow-xs' : 'bg-surface-card border-border-subtle text-text-muted'
                 }`}>
-                  <div className={`text-[9px] uppercase font-bold ${currentUtcHour >= 18 ? 'text-amber-700' : 'text-text-muted'}`}>Phase 1</div>
+                  <div className="text-[9px] uppercase font-bold text-amber-700">Phase 1</div>
                   <div className="font-semibold truncate">Asia Range</div>
-                  <div className="text-[9px] text-text-muted">18:00–00:00</div>
+                  <div className="text-[9px] opacity-80">18:00–00:00 UTC</div>
                 </div>
                 <div className={`p-1.5 rounded border text-center transition-all ${
-                  currentUtcHour >= 0 && currentUtcHour < 6 ? 'bg-forex-tint border-secondary text-secondary font-bold' : 'bg-surface-card border-border-subtle'
+                  currentUtcHour >= 0 && currentUtcHour < 6 ? 'bg-forex-tint border-secondary text-secondary font-bold shadow-xs' : 'bg-surface-card border-border-subtle text-text-muted'
                 }`}>
-                  <div className={`text-[9px] uppercase font-bold ${currentUtcHour >= 0 && currentUtcHour < 6 ? 'text-secondary' : 'text-text-muted'}`}>Phase 2</div>
+                  <div className="text-[9px] uppercase font-bold text-secondary">Phase 2</div>
                   <div className="font-semibold truncate">London Sweep</div>
-                  <div className="text-[9px] text-text-muted">00:00–06:00</div>
+                  <div className="text-[9px] opacity-80">00:00–06:00 UTC</div>
                 </div>
                 <div className={`p-1.5 rounded border text-center transition-all ${
-                  currentUtcHour >= 6 && currentUtcHour < 13 ? 'bg-bullish-tint border-bullish text-bullish font-bold' : 'bg-surface-card border-border-subtle'
+                  currentUtcHour >= 6 && currentUtcHour < 13 ? 'bg-bullish-tint border-bullish text-bullish font-bold shadow-xs' : 'bg-surface-card border-border-subtle text-text-muted'
                 }`}>
-                  <div className={`text-[9px] uppercase font-bold ${currentUtcHour >= 6 && currentUtcHour < 13 ? 'text-bullish' : 'text-text-muted'}`}>Phase 3</div>
+                  <div className="text-[9px] uppercase font-bold text-bullish">Phase 3</div>
                   <div className="font-semibold truncate">FVG Inversion</div>
-                  <div className="text-[9px] text-text-muted">06:00–13:00</div>
+                  <div className="text-[9px] opacity-80">06:00–13:00 UTC</div>
                 </div>
                 <div className={`p-1.5 rounded border text-center transition-all ${
-                  currentUtcHour >= 13 && currentUtcHour < 22 ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold' : 'bg-surface-card border-border-subtle'
+                  currentUtcHour >= 13 && currentUtcHour < 22 ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold shadow-xs' : 'bg-surface-card border-border-subtle text-text-muted'
                 }`}>
-                  <div className={`text-[9px] uppercase font-bold ${currentUtcHour >= 13 && currentUtcHour < 22 ? 'text-blue-700' : 'text-text-muted'}`}>Phase 4</div>
+                  <div className="text-[9px] uppercase font-bold text-blue-700">Phase 4</div>
                   <div className="font-semibold truncate">1:2 R:R Exit</div>
-                  <div className="text-[9px] text-text-muted">13:00–22:00</div>
+                  <div className="text-[9px] opacity-80">13:00–22:00 UTC</div>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
-              {/* Toggle 1: Entry Mode */}
-              <div className="p-space-sm rounded-lg bg-surface-container-low border border-border-subtle flex flex-col gap-space-xs">
-                <span className="font-label-sm text-label-sm text-text-muted uppercase">Order Entry Model</span>
-                <div className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-surface-card border border-border-subtle">
-                  <button
-                    onClick={() => setEntryMode('LIMIT_AT_FVG_EDGE')}
-                    className={`px-space-xs py-1.5 rounded-md font-label-sm text-label-sm transition-all cursor-pointer ${
-                      entryMode === 'LIMIT_AT_FVG_EDGE'
-                        ? 'bg-primary text-on-primary font-semibold'
-                        : 'text-text-muted hover:text-on-surface'
-                    }`}
-                    type="button"
-                  >
-                    Limit Fill at FVG
-                  </button>
-                  <button
-                    onClick={() => setEntryMode('AGGRESSIVE_MARKET_CROSS')}
-                    className={`px-space-xs py-1.5 rounded-md font-label-sm text-label-sm transition-all cursor-pointer ${
-                      entryMode === 'AGGRESSIVE_MARKET_CROSS'
-                        ? 'bg-primary text-on-primary font-semibold'
-                        : 'text-text-muted hover:text-on-surface'
-                    }`}
-                    type="button"
-                  >
-                    Market Inversion Cross
-                  </button>
-                </div>
-              </div>
-
-              {/* Toggle 2: Stop Loss Rule */}
-              <div className="p-space-sm rounded-lg bg-surface-container-low border border-border-subtle flex flex-col gap-space-xs">
-                <span className="font-label-sm text-label-sm text-text-muted uppercase">Stop-Loss Placement</span>
-                <div className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-surface-card border border-border-subtle">
-                  <button
-                    onClick={() => setSlMode('STRICT_BODY')}
-                    className={`px-space-xs py-1.5 rounded-md font-label-sm text-label-sm transition-all cursor-pointer ${
-                      slMode === 'STRICT_BODY'
-                        ? 'bg-primary text-on-primary font-semibold'
-                        : 'text-text-muted hover:text-on-surface'
-                    }`}
-                    type="button"
-                  >
-                    8-Candle Body Exclusion
-                  </button>
-                  <button
-                    onClick={() => setSlMode('CONSERVATIVE_EXTENDED')}
-                    className={`px-space-xs py-1.5 rounded-md font-label-sm text-label-sm transition-all cursor-pointer ${
-                      slMode === 'CONSERVATIVE_EXTENDED'
-                        ? 'bg-primary text-on-primary font-semibold'
-                        : 'text-text-muted hover:text-on-surface'
-                    }`}
-                    type="button"
-                  >
-                    5-Candle Fallback SL
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
-              {/* Max Spread Input */}
-              <div className="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low border border-border-subtle">
-                <div className="flex flex-col">
-                  <span className="font-label-md text-label-md text-on-surface font-semibold">Max Allowed Spread</span>
-                  <span className="font-body-sm text-body-sm text-text-muted">
-                    Live: <span className="font-mono-sm text-bullish font-semibold">{selectedPair.spreadPips} pips</span>
+            {/* 2. Meaningful Live Signal Radar & Setup Confluence */}
+            {sessionAnalytics && (
+              <div className="p-3 rounded-lg bg-surface-container-low border border-border-subtle flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-label-sm text-label-sm text-text-muted uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[15px] text-primary">radar</span>
+                    <span>Live Asian Liquidity &amp; FVG Confluence</span>
+                  </span>
+                  <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold ${
+                    sessionAnalytics.setupBias === 'BULLISH'
+                      ? 'bg-bullish-tint text-bullish border border-bullish/25'
+                      : sessionAnalytics.setupBias === 'BEARISH'
+                      ? 'bg-bearish-tint text-bearish border border-bearish/25'
+                      : 'bg-surface-card text-text-muted border border-border-subtle'
+                  }`}>
+                    {sessionAnalytics.setupBias === 'BULLISH' ? 'BULLISH REVERSAL SIGNAL' : sessionAnalytics.setupBias === 'BEARISH' ? 'BEARISH SWEEP SIGNAL' : 'MONITORING LIQUIDITY POOL'}
                   </span>
                 </div>
-                <div className="flex items-center gap-1 font-mono-sm">
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0.5"
-                    max="5.0"
-                    value={maxSpreadFilter}
-                    onChange={(e) => setMaxSpreadFilter(parseFloat(e.target.value) || 1.8)}
-                    className="w-16 px-2 py-1 bg-surface-card border border-border-subtle rounded text-center text-on-surface font-bold"
-                  />
-                  <span className="text-text-muted text-xs">pips</span>
-                </div>
-              </div>
 
-              {/* Circuit Breaker (Stitch Screen 8) */}
-              <div className="flex items-center justify-between p-space-sm rounded-lg bg-bearish-tint border border-bearish/30">
-                <div className="flex items-center gap-space-sm">
-                  <span className="material-symbols-outlined text-bearish text-[20px]">gpp_maybe</span>
-                  <div className="flex flex-col">
-                    <span className="font-label-md text-label-md text-on-surface font-semibold">Circuit Breaker</span>
-                    <span className="font-body-sm text-body-sm text-bearish">Halt after {circuitBreakerLosses} consecutive losses</span>
+                <div className="grid grid-cols-3 gap-2 text-xs font-mono">
+                  <div className="p-2 rounded bg-surface-card border border-border-subtle flex flex-col">
+                    <span className="text-[10px] text-text-muted uppercase">Asia High (Buy-Side Liq)</span>
+                    <span className="font-bold text-on-surface text-sm mt-0.5 tabular-nums">
+                      {sessionAnalytics.asiaHigh.toFixed(selectedPair.pipSize < 0.01 ? 5 : 2)}
+                    </span>
+                    <span className={`text-[10px] mt-0.5 font-sans ${sessionAnalytics.sweptHigh ? 'text-bullish font-semibold' : 'text-text-muted'}`}>
+                      {sessionAnalytics.sweptHigh ? '✓ Swept by London' : 'Untested'}
+                    </span>
+                  </div>
+
+                  <div className="p-2 rounded bg-surface-card border border-border-subtle flex flex-col">
+                    <span className="text-[10px] text-text-muted uppercase">Asia Low (Sell-Side Liq)</span>
+                    <span className="font-bold text-on-surface text-sm mt-0.5 tabular-nums">
+                      {sessionAnalytics.asiaLow.toFixed(selectedPair.pipSize < 0.01 ? 5 : 2)}
+                    </span>
+                    <span className={`text-[10px] mt-0.5 font-sans ${sessionAnalytics.sweptLow ? 'text-bearish font-semibold' : 'text-text-muted'}`}>
+                      {sessionAnalytics.sweptLow ? '✓ Swept by London' : 'Untested'}
+                    </span>
+                  </div>
+
+                  <div className="p-2 rounded bg-surface-card border border-border-subtle flex flex-col">
+                    <span className="text-[10px] text-text-muted uppercase">Market Spot Price</span>
+                    <span className="font-bold text-secondary text-sm mt-0.5 tabular-nums">
+                      {sessionAnalytics.lastPrice.toFixed(selectedPair.pipSize < 0.01 ? 5 : 2)}
+                    </span>
+                    <span className="text-[10px] text-text-muted mt-0.5 font-sans">
+                      Spread: {selectedPair.spreadPips} pips
+                    </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    step="1"
-                    min="1"
-                    max="10"
-                    value={circuitBreakerLosses}
-                    onChange={(e) => setCircuitBreakerLosses(parseInt(e.target.value) || 3)}
-                    className="w-12 px-1.5 py-0.5 bg-surface-card border border-bearish/30 rounded text-center text-bearish font-mono-sm text-mono-sm font-bold"
-                  />
-                  <span className="px-space-sm py-0.5 rounded-full bg-surface-card border border-bearish/40 font-mono-sm text-mono-sm text-bearish font-bold">
-                    ARMED
+              </div>
+            )}
+
+            {/* 3. Pine Script v5 Trading Days Matrix */}
+            <div className="p-3 rounded-lg bg-surface-container-low border border-border-subtle flex flex-col gap-2">
+              <span className="font-label-sm text-label-sm text-text-muted uppercase tracking-wider flex items-center justify-between">
+                <span>Session Active Trading Days (Pine Script v5 Inputs)</span>
+                <span className="text-[10px] text-text-muted font-mono font-normal">Click day to toggle backtest rule</span>
+              </span>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                {/* London Days */}
+                <div className="p-2 rounded bg-surface-card border border-border-subtle flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-primary text-xs">London Session Filter</span>
+                    <span className="text-[10px] font-mono text-secondary">00:00–06:00 UTC</span>
+                  </div>
+                  <div className="flex items-center gap-1 font-mono text-xs">
+                    {(['lonMon', 'lonTue', 'lonWed', 'lonThu', 'lonFri'] as const).map((dayKey, idx) => {
+                      const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+                      const isActive = params[dayKey];
+                      return (
+                        <button
+                          key={dayKey}
+                          type="button"
+                          onClick={() => {
+                            const newParams = { ...params, [dayKey]: !isActive };
+                            setParams(newParams);
+                            if (candles.length > 0) {
+                              setBacktestResult(runSessionSweepBacktest(candles, selectedPair, newParams, accountCapitalUSD, usdInrRate));
+                            }
+                          }}
+                          className={`flex-1 py-1 rounded text-center font-bold transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-secondary text-white shadow-xs'
+                              : 'bg-surface-container text-text-muted hover:text-on-surface'
+                          }`}
+                        >
+                          {dayLabels[idx]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* New York Days */}
+                <div className="p-2 rounded bg-surface-card border border-border-subtle flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-primary text-xs">New York Session Filter</span>
+                    <span className="text-[10px] font-mono text-secondary">13:00–22:00 UTC</span>
+                  </div>
+                  <div className="flex items-center gap-1 font-mono text-xs">
+                    {(['nyMon', 'nyTue', 'nyWed', 'nyThu', 'nyFri'] as const).map((dayKey, idx) => {
+                      const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+                      const isActive = params[dayKey];
+                      return (
+                        <button
+                          key={dayKey}
+                          type="button"
+                          onClick={() => {
+                            const newParams = { ...params, [dayKey]: !isActive };
+                            setParams(newParams);
+                            if (candles.length > 0) {
+                              setBacktestResult(runSessionSweepBacktest(candles, selectedPair, newParams, accountCapitalUSD, usdInrRate));
+                            }
+                          }}
+                          className={`flex-1 py-1 rounded text-center font-bold transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-secondary text-white shadow-xs'
+                              : 'bg-surface-container text-text-muted hover:text-on-surface'
+                          }`}
+                        >
+                          {dayLabels[idx]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Institutional Risk & Lot Size Terminal */}
+            <div className="p-3 rounded-lg bg-surface-container-low border border-border-subtle flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">
+                  Quantitative Risk &amp; Sizing Calculator
+                </span>
+                <span className="font-mono-sm text-mono-sm text-primary font-semibold">
+                  1:{params.riskReward.toFixed(1)} Risk-to-Reward Ratio
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
+                <div className="p-2 rounded bg-surface-card border border-border-subtle flex flex-col">
+                  <span className="text-[10px] text-text-muted uppercase">Risk / Trade</span>
+                  <div className="flex items-center gap-1 mt-1">
+                    {[50, 100, 200].map((usd) => (
+                      <button
+                        key={usd}
+                        type="button"
+                        onClick={() => {
+                          const newParams = { ...params, fixedRiskUSD: usd };
+                          setParams(newParams);
+                          if (candles.length > 0) {
+                            setBacktestResult(runSessionSweepBacktest(candles, selectedPair, newParams, accountCapitalUSD, usdInrRate));
+                          }
+                        }}
+                        className={`px-1.5 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                          params.fixedRiskUSD === usd
+                            ? 'bg-primary text-white shadow-xs'
+                            : 'bg-surface-container text-text-muted hover:text-on-surface'
+                        }`}
+                      >
+                        ${usd}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-2 rounded bg-surface-card border border-border-subtle flex flex-col">
+                  <span className="text-[10px] text-text-muted uppercase">Calculated Lot Size</span>
+                  <span className="font-bold text-on-surface text-sm mt-0.5 tabular-nums">
+                    {sessionAnalytics?.lotSize || 0.71} Lots
+                  </span>
+                  <span className="text-[10px] text-text-muted font-sans">
+                    Standard Lot Units
+                  </span>
+                </div>
+
+                <div className="p-2 rounded bg-surface-card border border-border-subtle flex flex-col">
+                  <span className="text-[10px] text-text-muted uppercase">Stop-Loss Cap</span>
+                  <span className="font-bold text-bearish text-sm mt-0.5 tabular-nums">
+                    {sessionAnalytics?.slPips || '14.2'} pips
+                  </span>
+                  <span className="text-[10px] text-bearish font-sans">
+                    -${params.fixedRiskUSD.toFixed(0)} Max Risk
+                  </span>
+                </div>
+
+                <div className="p-2 rounded bg-surface-card border border-border-subtle flex flex-col">
+                  <span className="text-[10px] text-text-muted uppercase">Take-Profit Target</span>
+                  <span className="font-bold text-bullish text-sm mt-0.5 tabular-nums">
+                    {sessionAnalytics?.tpPips || '28.4'} pips
+                  </span>
+                  <span className="text-[10px] text-bullish font-sans">
+                    +${(params.fixedRiskUSD * params.riskReward).toFixed(0)} Target
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Recalculate Button */}
-            <button
-              onClick={handleRecalculate}
-              className="w-full inline-flex items-center justify-center gap-space-sm px-space-md py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors shadow-xs cursor-pointer active:scale-95"
-            >
-              <span className="material-symbols-outlined text-[16px]">play_arrow</span>
-              <span>Recompute &amp; Execute Live Session Backtest</span>
-            </button>
+            {/* Toast Feedback */}
+            {orderToast && (
+              <div className="p-2.5 rounded-lg bg-bullish-tint border border-bullish/30 text-bullish text-xs font-mono font-semibold flex items-center justify-between animate-fade-in">
+                <span className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                  <span>{orderToast}</span>
+                </span>
+                <button onClick={() => setOrderToast(null)} className="text-bullish hover:opacity-75">✕</button>
+              </div>
+            )}
+
+            {/* 5. Action Controls */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+              <button
+                onClick={handleRecalculate}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary text-white font-label-md text-label-md hover:bg-secondary transition-all shadow-xs cursor-pointer active:scale-95"
+              >
+                <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+                <span>Run Vectorized Backtest</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const lot = sessionAnalytics?.lotSize || 0.71;
+                  const price = latestPrice || (selectedPair.symbol.startsWith('GC') ? 2750.5 : 1.0842);
+                  const pips = Number(sessionAnalytics?.slPips) || 14.2;
+                  const sl = Number((price - pips * selectedPair.pipSize).toFixed(5));
+                  const tp = Number((price + pips * params.riskReward * selectedPair.pipSize).toFixed(5));
+                  showOrderToast(`Order Executed: BUY ${lot} Lots ${selectedPair.displayName} @ ${price.toFixed(5)} · SL: ${sl} · TP: ${tp}`);
+                }}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-secondary text-white font-label-md text-label-md hover:bg-secondary/90 transition-all shadow-xs cursor-pointer active:scale-95"
+              >
+                <span className="material-symbols-outlined text-[16px]">candlestick_chart</span>
+                <span>Deploy Virtual Order</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const webhookPayload = JSON.stringify({
+                    strategy: "Asia-London-NY FVG Inversion v5",
+                    ticker: selectedPair.symbol,
+                    action: "{{strategy.order.action}}",
+                    contracts: sessionAnalytics?.lotSize || 0.71,
+                    price: "{{strategy.order.price}}",
+                    riskReward: params.riskReward,
+                    timestamp: new Date().toISOString()
+                  }, null, 2);
+                  navigator.clipboard.writeText(webhookPayload);
+                  setCopiedWebhook(true);
+                  setTimeout(() => setCopiedWebhook(false), 2500);
+                  showOrderToast("TradingView Webhook JSON copied to clipboard!");
+                }}
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-surface-container border border-border-subtle text-primary font-label-md text-label-md hover:bg-surface-card transition-all cursor-pointer shadow-xs active:scale-95"
+                title="Copy TradingView Webhook alert JSON for automated execution"
+              >
+                <span className="material-symbols-outlined text-[16px]">webhook</span>
+                <span>{copiedWebhook ? 'Copied JSON!' : 'Webhook JSON'}</span>
+              </button>
+            </div>
           </div>
         </section>
 
