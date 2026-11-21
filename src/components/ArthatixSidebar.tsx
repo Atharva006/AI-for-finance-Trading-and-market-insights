@@ -6,7 +6,7 @@ import {
   TrendingUp,
   Activity,
   Briefcase,
-  LineChart,
+  GitBranch,
   PieChart,
   ChevronDown,
   ChevronRight,
@@ -49,16 +49,11 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
   onToggleCollapse,
   onOpenSettings,
 }) => {
-  // Open state matching the reference UI screenshot
+  // Independent open state for collapsible groups
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    market: true,
-    fundamental: true,
-    quant: true,
-    sector: false,
-    technical: false,
-    mutual_funds: false,
-    analysis: false,
-    broker_flow: false,
+    market_pulse: true,
+    quant_systems: true,
+    fundamental_research: false,
   });
 
   const toggleSection = (id: string, defaultView?: AppView) => {
@@ -71,78 +66,76 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
     }
   };
 
-  // Nav structure faithful to the Arthatix Left UI reference image
+  // Distinct, non-repeating institutional navigation tree
   const sections: NavSection[] = [
     {
-      id: 'market',
-      title: 'Market',
+      id: 'market_pulse',
+      title: 'Market Pulse',
       icon: BarChart2,
       defaultOpen: true,
       items: [
-        { id: 'stocks', label: 'Stocks', view: 'backtest' },
-        { id: 'intraday', label: 'Intraday', view: 'papertrading', badge: 'Live' },
-        { id: 'sectors', label: 'Sectors', view: 'heatmap' },
-        { id: 'market-cap', label: 'Market Cap', view: 'insights' },
-        { id: 'volume-shockers', label: 'Volume Shockers', view: 'insights' },
-        { id: 'market-movers', label: 'Market Movers', view: 'landing' },
-        { id: 'live-floorsheet', label: 'Live Floorsheet', view: 'papertrading' },
+        { id: 'equity-watchlist', label: 'Equity Watchlist', view: 'backtest' },
+        { id: 'intraday-desk', label: 'Intraday Desk', view: 'papertrading', badge: 'Live' },
+        { id: 'floorsheet-l2', label: 'Floorsheet L2', view: 'papertrading' },
+        { id: 'volume-spikes', label: 'Volume Spikes', view: 'insights' },
+        { id: 'active-movers', label: 'Active Movers', view: 'landing' },
       ],
     },
     {
-      id: 'sector',
-      title: 'Sector Analysis',
+      id: 'sector_heatmaps',
+      title: 'Sector Heatmaps',
       icon: LayoutGrid,
       hasSubmenu: true,
       view: 'heatmap',
     },
     {
-      id: 'fundamental',
-      title: 'Fundamental',
-      icon: FileText,
-      defaultOpen: true,
-      items: [
-        { id: 'valuation', label: 'Valuation', view: 'insights', hasSubmenu: true },
-        { id: 'scores', label: 'Scores', view: 'insights', hasSubmenu: true },
-        { id: 'banks', label: 'Banks', view: 'heatmap', hasSubmenu: true },
-        { id: 'company', label: 'Company', view: 'insights', hasSubmenu: true },
-      ],
-    },
-    {
-      id: 'quant',
-      title: 'Quant Analysis',
+      id: 'quant_systems',
+      title: 'Quantitative Systems',
       icon: TrendingUp,
       defaultOpen: true,
       items: [
-        { id: 'quant-market', label: 'Market', view: 'marketplace', hasSubmenu: true },
-        { id: 'stock-checks', label: 'Stock checks', view: 'backtest', hasSubmenu: true },
-        { id: 'testing', label: 'Testing', view: 'backtest', hasSubmenu: true },
-        { id: 'pairs-portfolio', label: 'Pairs & portfolio', view: 'forex', hasSubmenu: true },
+        { id: 'strategy-marketplace', label: 'Strategy Marketplace', view: 'marketplace', hasSubmenu: true },
+        { id: 'parameter-optimizer', label: 'Parameter Optimizer', view: 'backtest', hasSubmenu: true },
+        { id: 'walk-forward-testing', label: 'Walk-Forward Testing', view: 'backtest', hasSubmenu: true },
+        { id: 'session-fvg-engine', label: 'Session FVG Engine', view: 'forex', hasSubmenu: true, badge: 'v5' },
       ],
     },
     {
-      id: 'technical',
-      title: 'Technical',
+      id: 'fundamental_research',
+      title: 'Fundamental Research',
+      icon: FileText,
+      defaultOpen: false,
+      items: [
+        { id: 'valuation-metrics', label: 'Valuation Metrics', view: 'insights', hasSubmenu: true },
+        { id: 'financial-health', label: 'Financial Health', view: 'insights', hasSubmenu: true },
+        { id: 'banking-radar', label: 'Banking Radar', view: 'heatmap', hasSubmenu: true },
+        { id: 'corporate-filings', label: 'Corporate Filings', view: 'insights', hasSubmenu: true },
+      ],
+    },
+    {
+      id: 'technical_screener',
+      title: 'Technical Screener',
       icon: Activity,
       hasSubmenu: true,
       view: 'forex',
     },
     {
-      id: 'mutual_funds',
-      title: 'Mutual Funds',
+      id: 'institutional_funds',
+      title: 'Institutional Funds',
       icon: Briefcase,
       hasSubmenu: true,
       view: 'insights',
     },
     {
-      id: 'analysis',
-      title: 'Analysis',
-      icon: LineChart,
+      id: 'workflow_studio',
+      title: 'Workflow Studio',
+      icon: GitBranch,
       hasSubmenu: true,
       view: 'flow',
     },
     {
-      id: 'broker_flow',
-      title: 'Broker flow',
+      id: 'broker_clearing',
+      title: 'Broker Clearing Flow',
       icon: PieChart,
       hasSubmenu: true,
       view: 'admin',
@@ -155,7 +148,7 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
         isCollapsed ? 'w-16' : 'w-60 sm:w-64'
       }`}
     >
-      {/* ── Brand Header (Faithful to Arthatix Logo & Collapse Icon) ── */}
+      {/* ── Brand Header ── */}
       <div className="h-14 px-4 flex items-center justify-between border-b border-[#E2E8F0] bg-[#F4F7FB]">
         <div
           onClick={() => onNavigate('landing')}
@@ -238,7 +231,7 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
                 )}
               </button>
 
-              {/* Sub-items (with faithful left vertical line tree structure) */}
+              {/* Sub-items (with left vertical guideline) */}
               {hasChildren && (isOpen || isCollapsed) && (
                 <div
                   className={`space-y-0.5 animate-fade-in ${
