@@ -50,7 +50,7 @@ interface StudioStrategyOption {
   id: string;
   name: string;
   category: string;
-  strategyType: 'PSAR_SMA100' | 'OPENING_RANGE' | 'STOCHASTIC';
+  strategyType: 'PSAR_SMA100' | 'OPENING_RANGE' | 'STOCHASTIC' | 'TREND_PULLBACK_CHANDELIER';
   params?: Partial<StrategyParams>;
   targetSymbol?: string;
   timeframe?: string;
@@ -58,6 +58,36 @@ interface StudioStrategyOption {
 }
 
 const DEFAULT_STUDIO_STRATEGIES: StudioStrategyOption[] = [
+  {
+    id: 'algo-nifty-trend-pullback-chandelier',
+    name: 'Nifty50 Daily Trend-Pullback | 1% Risk | Chandelier',
+    category: 'Trend Following',
+    strategyType: 'TREND_PULLBACK_CHANDELIER',
+    targetSymbol: 'NIFTY 50',
+    timeframe: '1d',
+    params: {
+      strategyType: 'TREND_PULLBACK_CHANDELIER',
+      fastEmaLength: 50,
+      slowEmaLength: 200,
+      slopeLookback: 20,
+      adxLength: 14,
+      adxMin: 20.0,
+      rsiPullbackLen: 5,
+      rsiOversold: 30.0,
+      rsiOverbought: 70.0,
+      swingStopLookback: 5,
+      atrPeriod: 14,
+      atrFloorMultiplier: 1.0,
+      chandelierAtrMultiplier: 3.0,
+      timeStopBars: 30,
+      riskPerTradePct: 1.0,
+      maxNotionalPct: 100,
+      allowShort: true,
+      slippagePoints: 2,
+      initialCapital: 1000000,
+      positionMode: 'BOTH',
+    },
+  },
   {
     id: 'algo-psar-strategy-nifty',
     name: 'PSAR Strategy - NIFTY 50',
@@ -210,7 +240,7 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
   const [studioTab, setStudioTab] = useState<'SINGLE' | 'BASKET'>('SINGLE');
   const [saveToast, setSaveToast] = useState<string | null>(null);
   const [strategyOptions, setStrategyOptions] = useState<StudioStrategyOption[]>(DEFAULT_STUDIO_STRATEGIES);
-  const [selectedStrategyId, setSelectedStrategyId] = useState<string>('algo-psar-strategy-nifty');
+  const [selectedStrategyId, setSelectedStrategyId] = useState<string>('algo-nifty-trend-pullback-chandelier');
   const [selectedStock, setSelectedStock] = useState<NseStock>(() => {
     if (initialSymbol) {
       const match = POPULAR_NSE_STOCKS.find(
@@ -228,7 +258,7 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
   const [allStocks, setAllStocks] = useState<NseStock[]>(POPULAR_NSE_STOCKS);
   const [stockSearchQuery, setStockSearchQuery] = useState('');
   const [isStockDropdownOpen, setIsStockDropdownOpen] = useState(false);
-  const [strategyMode, setStrategyMode] = useState<'OPENING_RANGE' | 'PSAR_SMA100' | 'STOCHASTIC'>('PSAR_SMA100');
+  const [strategyMode, setStrategyMode] = useState<'OPENING_RANGE' | 'PSAR_SMA100' | 'STOCHASTIC' | 'TREND_PULLBACK_CHANDELIER'>('TREND_PULLBACK_CHANDELIER');
   const [timeframe, setTimeframe] = useState<string>('1d');
   const [dataProvider, setDataProvider] = useState<HistoricalDataProvider>('yahoo');
   const [historyRange, setHistoryRange] = useState<HistoricalRange>('max');
@@ -390,7 +420,34 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
     if (chosen.timeframe) {
       setTimeframe(chosen.timeframe);
     }
-    if (chosen.strategyType === 'PSAR_SMA100') {
+    if (chosen.strategyType === 'TREND_PULLBACK_CHANDELIER') {
+      setDataProvider('yahoo');
+      setHistoryRange('max');
+      setParams((prev) => ({
+        ...prev,
+        strategyType: 'TREND_PULLBACK_CHANDELIER',
+        fastEmaLength: chosen.params?.fastEmaLength ?? 50,
+        slowEmaLength: chosen.params?.slowEmaLength ?? 200,
+        slopeLookback: chosen.params?.slopeLookback ?? 20,
+        adxLength: chosen.params?.adxLength ?? 14,
+        adxMin: chosen.params?.adxMin ?? 20.0,
+        rsiPullbackLen: chosen.params?.rsiPullbackLen ?? 5,
+        rsiOversold: chosen.params?.rsiOversold ?? 30.0,
+        rsiOverbought: chosen.params?.rsiOverbought ?? 70.0,
+        swingStopLookback: chosen.params?.swingStopLookback ?? 5,
+        atrPeriod: chosen.params?.atrPeriod ?? 14,
+        atrFloorMultiplier: chosen.params?.atrFloorMultiplier ?? 1.0,
+        chandelierAtrMultiplier: chosen.params?.chandelierAtrMultiplier ?? 3.0,
+        timeStopBars: chosen.params?.timeStopBars ?? 30,
+        riskPerTradePct: chosen.params?.riskPerTradePct ?? 1.0,
+        maxNotionalPct: chosen.params?.maxNotionalPct ?? 100,
+        allowShort: chosen.params?.allowShort ?? true,
+        slippagePoints: chosen.params?.slippagePoints ?? 2,
+        initialCapital: chosen.params?.initialCapital ?? 1000000,
+        positionMode: 'BOTH',
+        ...(chosen.params || {}),
+      }));
+    } else if (chosen.strategyType === 'PSAR_SMA100') {
       setDataProvider('yahoo');
       setHistoryRange('max');
       setParams((prev) => ({
@@ -427,8 +484,29 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
 
   // Strategy Parameters
   const [params, setParams] = useState<StrategyParams>({
-    strategyType: 'PSAR_SMA100',
-    tradeDir: 'Buy Only',
+    strategyType: 'TREND_PULLBACK_CHANDELIER',
+    fastEmaLength: 50,
+    slowEmaLength: 200,
+    slopeLookback: 20,
+    adxLength: 14,
+    adxMin: 20.0,
+    rsiPullbackLen: 5,
+    rsiOversold: 30.0,
+    rsiOverbought: 70.0,
+    swingStopLookback: 5,
+    atrPeriod: 14,
+    atrFloorMultiplier: 1.0,
+    chandelierAtrMultiplier: 3.0,
+    timeStopBars: 30,
+    maxNotionalPct: 100,
+    allowShort: true,
+    initialCapital: 1000000,
+    riskPerTradePct: 1.0,
+    slippagePoints: 2,
+    brokeragePerOrder: 20,
+    positionMode: 'BOTH',
+    dataProvider: 'yahoo',
+    tradeDir: 'Both',
     psarStart: 0.01,
     psarStep: 0.01,
     psarMax: 0.10,
@@ -448,16 +526,9 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
     stochDPeriod: 3,
     stochOverbought: 80,
     stochOversold: 20,
-    atrPeriod: 14,
     atrSlMultiplier: 1.2,
     atrTpMultiplier: 3.6,
-    useTrailingStop: false,
-    initialCapital: 100000,
-    riskPerTradePct: 3.0,
-    slippagePoints: 1.0,
-    brokeragePerOrder: 20,
-    positionMode: 'LONG_ONLY',
-    dataProvider: 'yahoo',
+    useTrailingStop: true,
     historyRange: 'max',
   });
 
@@ -527,7 +598,10 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
     let targetId = selectedStrategyId;
     let stratName = strategyOptions.find((o) => o.id === selectedStrategyId)?.name;
 
-    if (!stratName || strategyMode === 'PSAR_SMA100') {
+    if (strategyMode === 'TREND_PULLBACK_CHANDELIER') {
+      targetId = `algo-nifty-trend-pullback-chandelier`;
+      stratName = `Nifty50 Daily Trend-Pullback | 1% Risk | Chandelier`;
+    } else if (!stratName || strategyMode === 'PSAR_SMA100') {
       targetId = `algo-psar-strategy-${symbolSlug}`;
       stratName = `PSAR Strategy - ${symbolClean}`;
     } else if (strategyMode === 'OPENING_RANGE') {
@@ -1071,7 +1145,140 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
           </div>
 
           {/* Conditional Controls based on Strategy */}
-          {strategyMode === 'PSAR_SMA100' ? (
+          {strategyMode === 'TREND_PULLBACK_CHANDELIER' ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                <span className="text-xs font-bold text-[#0A0A0D] uppercase tracking-wider text-gray-500">
+                  Trend-Pullback Chandelier Rules
+                </span>
+                <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 font-bold">
+                  Pine Script v5
+                </span>
+              </div>
+
+              {/* EMA Trend Regime */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>Fast EMA Length:</span>
+                  <span className="font-bold font-mono text-[#0A0A0D]">{params.fastEmaLength ?? 50}</span>
+                </div>
+                <input
+                  type="range"
+                  min="10"
+                  max="100"
+                  step="5"
+                  value={params.fastEmaLength ?? 50}
+                  onChange={(e) => setParams({ ...params, fastEmaLength: parseInt(e.target.value) })}
+                  className="w-full accent-black cursor-pointer h-1"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>Slow EMA Length:</span>
+                  <span className="font-bold font-mono text-[#0A0A0D]">{params.slowEmaLength ?? 200}</span>
+                </div>
+                <input
+                  type="range"
+                  min="100"
+                  max="300"
+                  step="10"
+                  value={params.slowEmaLength ?? 200}
+                  onChange={(e) => setParams({ ...params, slowEmaLength: parseInt(e.target.value) })}
+                  className="w-full accent-black cursor-pointer h-1"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>ADX(14) Filter Minimum:</span>
+                  <span className="font-bold font-mono text-[#0A0A0D]">&gt; {params.adxMin ?? 20.0}</span>
+                </div>
+                <input
+                  type="range"
+                  min="15"
+                  max="35"
+                  step="1"
+                  value={params.adxMin ?? 20.0}
+                  onChange={(e) => setParams({ ...params, adxMin: parseFloat(e.target.value) })}
+                  className="w-full accent-black cursor-pointer h-1"
+                />
+              </div>
+
+              {/* RSI Pullback */}
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div>
+                  <span className="text-[11px] text-gray-500 block mb-1">RSI Oversold (&lt;):</span>
+                  <input
+                    type="number"
+                    value={params.rsiOversold ?? 30.0}
+                    onChange={(e) => setParams({ ...params, rsiOversold: parseFloat(e.target.value) || 30.0 })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-mono font-bold focus:outline-none focus:border-black"
+                  />
+                </div>
+                <div>
+                  <span className="text-[11px] text-gray-500 block mb-1">RSI Overbought (&gt;):</span>
+                  <input
+                    type="number"
+                    value={params.rsiOverbought ?? 70.0}
+                    onChange={(e) => setParams({ ...params, rsiOverbought: parseFloat(e.target.value) || 70.0 })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-mono font-bold focus:outline-none focus:border-black"
+                  />
+                </div>
+              </div>
+
+              {/* Chandelier Trail Multiplier & Time Stop */}
+              <div className="space-y-1.5 pt-2">
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>Chandelier Exit Multiple (xATR):</span>
+                  <span className="font-bold font-mono text-[#0A0A0D]">{params.chandelierAtrMultiplier ?? 3.0}x ATR</span>
+                </div>
+                <input
+                  type="range"
+                  min="1.5"
+                  max="5.0"
+                  step="0.1"
+                  value={params.chandelierAtrMultiplier ?? 3.0}
+                  onChange={(e) => setParams({ ...params, chandelierAtrMultiplier: parseFloat(e.target.value) })}
+                  className="w-full accent-black cursor-pointer h-1"
+                />
+                <span className="text-[10px] text-gray-400 block">
+                  Activated after trade reaches +1R risk distance
+                </span>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>Time Stop (Max Bars):</span>
+                  <span className="font-bold font-mono text-[#0A0A0D]">{params.timeStopBars ?? 30} bars</span>
+                </div>
+                <input
+                  type="range"
+                  min="10"
+                  max="60"
+                  step="5"
+                  value={params.timeStopBars ?? 30}
+                  onChange={(e) => setParams({ ...params, timeStopBars: parseInt(e.target.value) })}
+                  className="w-full accent-black cursor-pointer h-1"
+                />
+              </div>
+
+              <div className="p-3 bg-gray-50 border border-gray-100 rounded-xl space-y-1 text-xs text-gray-600 font-mono">
+                <div className="flex items-center justify-between">
+                  <span>Initial Stop:</span>
+                  <span className="font-bold text-black">min(5-bar low, close - 1x ATR)</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Risk Sizing:</span>
+                  <span className="text-emerald-600 font-bold">Strict 1.0% Equity Risk</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Commission:</span>
+                  <span className="text-gray-600 font-bold">0.1% + 2-Tick Slippage</span>
+                </div>
+              </div>
+            </div>
+          ) : strategyMode === 'PSAR_SMA100' ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-gray-100">
                 <span className="text-xs font-bold text-[#0A0A0D] uppercase tracking-wider text-gray-500">

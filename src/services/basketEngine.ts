@@ -90,6 +90,21 @@ export async function runBasketBacktest(
         slippagePoints: 1.0,
         brokeragePerOrder: 20,
         positionMode: 'BOTH',
+        // Trend-Pullback Chandelier defaults (Pine Script v5)
+        fastEmaLength: 50,
+        slowEmaLength: 200,
+        slopeLookback: 20,
+        adxLength: 14,
+        adxMin: 20.0,
+        rsiPullbackLen: 5,
+        rsiOversold: 30.0,
+        rsiOverbought: 70.0,
+        swingStopLookback: 5,
+        atrFloorMultiplier: 1.0,
+        chandelierAtrMultiplier: 3.0,
+        timeStopBars: 30,
+        maxNotionalPct: 100,
+        allowShort: true,
         ...item.customParams,
       };
 

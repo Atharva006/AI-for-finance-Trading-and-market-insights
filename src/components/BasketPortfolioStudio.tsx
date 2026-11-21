@@ -243,7 +243,6 @@ export const BasketPortfolioStudio: React.FC = () => {
   };
 
   const filteredStocks = allStocks
-    .filter((s) => !s.isIndex && s.category !== 'INDEX' && !s.symbol.toUpperCase().includes('NIFTY') && s.symbol !== 'BANKNIFTY' && !s.symbol.startsWith('^') && !s.name.toUpperCase().includes('INDEX'))
     .filter(
       (s) =>
         s.symbol.toLowerCase().includes(addStockSearch.toLowerCase()) ||
@@ -418,7 +417,7 @@ export const BasketPortfolioStudio: React.FC = () => {
             <thead className="bg-[#FAFAFC] border-b border-gray-200 text-gray-500 font-semibold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="py-3 px-4 w-12 text-center">Active</th>
-                <th className="py-3 px-4">NSE Equity Asset</th>
+                <th className="py-3 px-4">NSE Stock / Index Asset</th>
                 <th className="py-3 px-4">Strategy System</th>
                 <th className="py-3 px-4">Timeframe</th>
                 <th className="py-3 px-4 text-center">RPT (% Risk)</th>
@@ -461,6 +460,7 @@ export const BasketPortfolioStudio: React.FC = () => {
                         onChange={(e) => handleItemStrategyChange(item.id, e.target.value as BasketStrategyType)}
                         className="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1 text-xs font-bold text-[#0A0A0D] focus:outline-none focus:border-black"
                       >
+                        <option value="TREND_PULLBACK_CHANDELIER">Trend-Pullback 1% Chandelier</option>
                         <option value="PSAR_SMA100">PSAR + SMA100 Swing</option>
                         <option value="OPENING_RANGE">ORB 5M Breakout</option>
                         <option value="STOCHASTIC">Stochastic ATR Inflection</option>
@@ -625,7 +625,9 @@ export const BasketPortfolioStudio: React.FC = () => {
                     <td className="py-3 px-4 font-bold text-[#0A0A0D]">{row.symbol}</td>
                     <td className="py-3 px-4">
                       <span className="bg-gray-100 text-gray-800 px-2 py-0.5 rounded text-[11px] font-semibold">
-                        {row.strategyType}
+                        {row.strategyType === 'TREND_PULLBACK_CHANDELIER'
+                          ? 'Trend-Pullback Chandelier'
+                          : row.strategyType}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-gray-500 font-semibold">{row.timeframe.toUpperCase()}</td>
@@ -695,7 +697,9 @@ export const BasketPortfolioStudio: React.FC = () => {
                     <tr key={tr.id} className="hover:bg-gray-50 transition-colors">
                       <td className="py-2 px-4 text-gray-500 font-bold">{tr.id}</td>
                       <td className="py-2 px-4 font-bold text-[#0A0A0D]">{tr.symbol}</td>
-                      <td className="py-2 px-4 text-gray-600 font-semibold">{tr.strategyType}</td>
+                      <td className="py-2 px-4 text-gray-600 font-semibold">
+                        {tr.strategyType === 'TREND_PULLBACK_CHANDELIER' ? 'Trend-Pullback Chandelier' : tr.strategyType}
+                      </td>
                       <td className="py-2 px-4 text-center">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold ${
@@ -758,7 +762,7 @@ export const BasketPortfolioStudio: React.FC = () => {
 
             {/* Stock Search & Select */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-600 block">Select NSE Equity Stock</label>
+              <label className="text-xs font-bold text-gray-600 block">Select NSE Stock or Index</label>
               <div className="relative">
                 <div
                   onClick={() => setIsStockSelectOpen(!isStockSelectOpen)}
@@ -808,6 +812,7 @@ export const BasketPortfolioStudio: React.FC = () => {
                 onChange={(e) => setSelectedStrategy(e.target.value as BasketStrategyType)}
                 className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs font-bold text-[#0A0A0D] focus:outline-none focus:border-black"
               >
+                <option value="TREND_PULLBACK_CHANDELIER">Nifty50 Daily Trend-Pullback 1% Risk Chandelier</option>
                 <option value="PSAR_SMA100">PSAR + SMA 100 Trend Following</option>
                 <option value="OPENING_RANGE">ORB 5M Breakout (Pure Price Action)</option>
                 <option value="STOCHASTIC">Stochastic Momentum Oscillator (%K, %D)</option>

@@ -1,12 +1,13 @@
 import { StrategyBasket, BasketItem } from '../types/basket';
 import { POPULAR_NSE_STOCKS } from './nseStocks';
 
-const STORAGE_KEY = 'arjuna_saved_baskets_v5';
+const STORAGE_KEY = 'arjuna_saved_baskets_v6';
 const LEGACY_BASKET_KEYS = [
   'arjuna_saved_baskets_v1',
   'arjuna_saved_baskets_v2',
   'arjuna_saved_baskets_v3',
   'arjuna_saved_baskets_v4',
+  'arjuna_saved_baskets_v5',
 ];
 
 const getStock = (symbol: string) => {
@@ -23,6 +24,48 @@ const getStock = (symbol: string) => {
 };
 
 export const DEFAULT_PRESET_BASKETS: StrategyBasket[] = [
+  {
+    id: 'basket-nifty-trend-chandelier-multi',
+    name: 'NIFTY 50 Trend-Pullback Alpha Basket',
+    description: 'Chandelier trailing-stop portfolio capturing major directional swings across NIFTY 50 and high-beta bluechip momentum equities with conservative 1% risk.',
+    initialCapital: 1000000,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    items: [
+      {
+        id: 'item-n1',
+        stock: getStock('NIFTY 50'),
+        strategyType: 'TREND_PULLBACK_CHANDELIER',
+        timeframe: '1d',
+        riskPerTradePct: 1.0,
+        enabled: true,
+      },
+      {
+        id: 'item-n2',
+        stock: getStock('RELIANCE'),
+        strategyType: 'TREND_PULLBACK_CHANDELIER',
+        timeframe: '1d',
+        riskPerTradePct: 1.0,
+        enabled: true,
+      },
+      {
+        id: 'item-n3',
+        stock: getStock('HDFCBANK'),
+        strategyType: 'TREND_PULLBACK_CHANDELIER',
+        timeframe: '1d',
+        riskPerTradePct: 1.0,
+        enabled: true,
+      },
+      {
+        id: 'item-n4',
+        stock: getStock('BHARTIARTL'),
+        strategyType: 'TREND_PULLBACK_CHANDELIER',
+        timeframe: '1d',
+        riskPerTradePct: 1.0,
+        enabled: true,
+      },
+    ],
+  },
   {
     id: 'basket-kuber-navratna',
     name: 'Large-Cap Bluechip Core Basket',
@@ -167,19 +210,12 @@ export function getSavedBaskets(): StrategyBasket[] {
     }
     const parsed: StrategyBasket[] = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      const isIndexOrNifty = (sym = '', name = '') => {
-        const s = sym.toUpperCase();
-        const n = name.toUpperCase();
-        return s.includes('NIFTY') || s.startsWith('^') || s === 'BANKNIFTY' || n.includes('NIFTY') || n.includes('INDEX');
-      };
-
-      // Ensure all items in baskets are genuine equities (strictly no indices or trend pullback indices)
+      // Validate items have valid stock objects
       const sanitized = parsed
         .map((basket) => ({
           ...basket,
-          name: basket.name.replace(/nifty/gi, 'Bluechip').trim(),
           items: basket.items
-            .filter((item) => !isIndexOrNifty(item.stock?.symbol, item.stock?.name) && !item.stock?.isIndex && item.stock?.category !== 'INDEX')
+            .filter((item) => !!item.stock?.symbol)
             .map((item) => ({
               ...item,
               stock: getStock(item.stock?.symbol || 'RELIANCE'),

@@ -1,7 +1,7 @@
 import { Candle, StrategyParams, Trade, EquityPoint } from './backtest';
 import { NseStock } from '../services/nseStocks';
 
-export type BasketStrategyType = 'PSAR_SMA100' | 'OPENING_RANGE' | 'STOCHASTIC';
+export type BasketStrategyType = 'PSAR_SMA100' | 'OPENING_RANGE' | 'STOCHASTIC' | 'TREND_PULLBACK_CHANDELIER';
 
 export interface BasketItem {
   id: string;
