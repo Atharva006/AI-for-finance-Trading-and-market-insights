@@ -293,6 +293,7 @@ export function App() {
               <BacktestStudio
                 onStrategyUpdated={handleUpdateStrategy}
                 initialSymbol={selectedInstrument}
+                initialStrategy={selectedStrategy}
               />
             )}
 

@@ -37,10 +37,12 @@ import { ParsedStrategyPrompt } from '../services/aiPromptParser';
 import { groqGenerateStrategy } from '../services/groqApi';
 import { StockLogo } from './StockLogo';
 import { Sparkles } from 'lucide-react';
+import { ALL_CANONICAL_STRATEGIES } from '../services/canonicalStrategies';
 
 interface BacktestStudioProps {
   onStrategyUpdated?: (strategy: AlgoStrategy) => void;
   initialSymbol?: string;
+  initialStrategy?: AlgoStrategy | null;
 }
 
 interface StudioStrategyOption {
@@ -55,12 +57,197 @@ interface StudioStrategyOption {
 }
 
 const DEFAULT_STUDIO_STRATEGIES: StudioStrategyOption[] = [
+  // 1. Flagship Nifty 50 Daily Trend-Pullback Chandelier
+  {
+    id: 'algo-nifty-trend-pullback-chandelier',
+    name: 'Nifty 50 Daily - Trend-Pullback Chandelier (Pine Script v5)',
+    category: 'Trend Following',
+    strategyType: 'TREND_PULLBACK_CHANDELIER',
+    targetSymbol: 'NIFTY 50',
+    timeframe: '1d',
+    params: {
+      strategyType: 'TREND_PULLBACK_CHANDELIER',
+      fastEmaLength: 50,
+      slowEmaLength: 200,
+      slopeLookback: 20,
+      adxLength: 14,
+      adxMin: 20.0,
+      rsiPullbackLen: 5,
+      rsiOversold: 30.0,
+      rsiOverbought: 70.0,
+      swingStopLookback: 5,
+      atrPeriod: 14,
+      atrFloorMultiplier: 1.0,
+      chandelierAtrMultiplier: 3.0,
+      timeStopBars: 30,
+      maxNotionalPct: 100,
+      allowShort: true,
+      initialCapital: 1000000,
+      riskPerTradePct: 1.0,
+      slippagePoints: 2,
+      brokeragePerOrder: 20,
+      positionMode: 'BOTH',
+      dataProvider: 'yahoo',
+      historyRange: 'max',
+    },
+  },
+  // 2. PSAR Strategy on NIFTY 50 Daily
+  {
+    id: 'algo-psar-strategy-nifty',
+    name: 'PSAR Strategy - NIFTY 50 Daily',
+    category: 'Parabolic SAR Trend',
+    strategyType: 'PSAR_SMA100',
+    targetSymbol: 'NIFTY 50',
+    timeframe: '1d',
+    params: {
+      strategyType: 'PSAR_SMA100',
+      tradeDir: 'Buy Only',
+      smaLength: 100,
+      slLookback: 1,
+      rrRatio: 4.0,
+      maxRiskPercent: 9.0,
+      riskPerTradePct: 3.0,
+      psarStart: 0.01,
+      psarStep: 0.01,
+      psarMax: 0.10,
+      initialCapital: 100000,
+      positionMode: 'LONG_ONLY',
+      dataProvider: 'yahoo',
+      historyRange: 'max',
+    },
+  },
+  // 3. PSAR Strategy on BANKNIFTY Daily
+  {
+    id: 'algo-psar-strategy-banknifty',
+    name: 'PSAR Strategy - BANKNIFTY Daily',
+    category: 'Parabolic SAR Trend',
+    strategyType: 'PSAR_SMA100',
+    targetSymbol: 'BANKNIFTY',
+    timeframe: '1d',
+    params: {
+      strategyType: 'PSAR_SMA100',
+      tradeDir: 'Buy Only',
+      smaLength: 100,
+      slLookback: 1,
+      rrRatio: 4.0,
+      maxRiskPercent: 9.0,
+      riskPerTradePct: 3.0,
+      psarStart: 0.01,
+      psarStep: 0.01,
+      psarMax: 0.10,
+      initialCapital: 100000,
+      positionMode: 'LONG_ONLY',
+      dataProvider: 'yahoo',
+      historyRange: 'max',
+    },
+  },
+  // 4. PSAR Strategy on RELIANCE Daily
+  {
+    id: 'algo-psar-strategy-reliance',
+    name: 'PSAR Strategy - RELIANCE Daily',
+    category: 'Parabolic SAR Trend',
+    strategyType: 'PSAR_SMA100',
+    targetSymbol: 'RELIANCE',
+    timeframe: '1d',
+    params: {
+      strategyType: 'PSAR_SMA100',
+      tradeDir: 'Buy Only',
+      smaLength: 100,
+      slLookback: 1,
+      rrRatio: 4.0,
+      maxRiskPercent: 9.0,
+      riskPerTradePct: 3.0,
+      psarStart: 0.01,
+      psarStep: 0.01,
+      psarMax: 0.10,
+      initialCapital: 100000,
+      positionMode: 'LONG_ONLY',
+      dataProvider: 'yahoo',
+      historyRange: 'max',
+    },
+  },
+  // 5. PSAR Strategy on HDFCBANK Daily
+  {
+    id: 'algo-psar-strategy-hdfcbank',
+    name: 'PSAR Strategy - HDFCBANK Daily',
+    category: 'Parabolic SAR Trend',
+    strategyType: 'PSAR_SMA100',
+    targetSymbol: 'HDFCBANK',
+    timeframe: '1d',
+    params: {
+      strategyType: 'PSAR_SMA100',
+      tradeDir: 'Buy Only',
+      smaLength: 100,
+      slLookback: 1,
+      rrRatio: 4.0,
+      maxRiskPercent: 9.0,
+      riskPerTradePct: 3.0,
+      psarStart: 0.01,
+      psarStep: 0.01,
+      psarMax: 0.10,
+      initialCapital: 100000,
+      positionMode: 'LONG_ONLY',
+      dataProvider: 'yahoo',
+      historyRange: 'max',
+    },
+  },
+  // 6. PSAR Strategy on ICICIBANK Daily
+  {
+    id: 'algo-psar-strategy-icicibank',
+    name: 'PSAR Strategy - ICICIBANK Daily',
+    category: 'Parabolic SAR Trend',
+    strategyType: 'PSAR_SMA100',
+    targetSymbol: 'ICICIBANK',
+    timeframe: '1d',
+    params: {
+      strategyType: 'PSAR_SMA100',
+      tradeDir: 'Buy Only',
+      smaLength: 100,
+      slLookback: 1,
+      rrRatio: 4.0,
+      maxRiskPercent: 9.0,
+      riskPerTradePct: 3.0,
+      psarStart: 0.01,
+      psarStep: 0.01,
+      psarMax: 0.10,
+      initialCapital: 100000,
+      positionMode: 'LONG_ONLY',
+      dataProvider: 'yahoo',
+      historyRange: 'max',
+    },
+  },
+  // 7. PSAR Strategy on AXISBANK Daily
+  {
+    id: 'algo-psar-strategy-axisbank',
+    name: 'PSAR Strategy - AXISBANK Daily',
+    category: 'Parabolic SAR Trend',
+    strategyType: 'PSAR_SMA100',
+    targetSymbol: 'AXISBANK',
+    timeframe: '1d',
+    params: {
+      strategyType: 'PSAR_SMA100',
+      tradeDir: 'Buy Only',
+      smaLength: 100,
+      slLookback: 1,
+      rrRatio: 4.0,
+      maxRiskPercent: 9.0,
+      riskPerTradePct: 3.0,
+      psarStart: 0.01,
+      psarStep: 0.01,
+      psarMax: 0.10,
+      initialCapital: 100000,
+      positionMode: 'LONG_ONLY',
+      dataProvider: 'yahoo',
+      historyRange: 'max',
+    },
+  },
+  // 8. Asia-London-NY FVG Inversion
   {
     id: 'algo-asia-london-ny-fvg',
     name: 'Asia-London-NY FVG Inversion (Pine Script v5)',
     category: 'Session Liquidity Inversion',
     strategyType: 'TREND_PULLBACK_CHANDELIER',
-    targetSymbol: 'EUR/USD · GBP/USD · GC=F · NIFTY 50',
+    targetSymbol: 'NIFTY 50',
     timeframe: '15m',
     params: {
       strategyType: 'TREND_PULLBACK_CHANDELIER',
@@ -71,15 +258,88 @@ const DEFAULT_STUDIO_STRATEGIES: StudioStrategyOption[] = [
       riskPerTradePct: 1.0,
       allowShort: true,
       positionMode: 'BOTH',
+      dataProvider: 'yahoo',
+      historyRange: 'max',
     },
   },
+  // 9. Opening Range Breakout (ORB 5M)
+  {
+    id: 'algo-gandiva-orb',
+    name: 'Opening Range Breakout (ORB 5M)',
+    category: 'Opening Range Breakout',
+    strategyType: 'OPENING_RANGE',
+    targetSymbol: 'NIFTY 50',
+    timeframe: '5m',
+    params: {
+      strategyType: 'OPENING_RANGE',
+      orbTimeframeMinutes: 5,
+      orbSlBodyPct: 0.70,
+      orbRiskReward: 1.5,
+      orbRiskPerTradeINR: 1000,
+      initialCapital: 100000,
+      riskPerTradePct: 1.0,
+      slippagePoints: 1.0,
+      brokeragePerOrder: 20,
+      positionMode: 'BOTH',
+    },
+  },
+  // 10. Stochastic Momentum & ATR Filter
+  {
+    id: 'algo-matsya-core',
+    name: 'Stochastic Momentum & ATR Filter',
+    category: 'Stochastic Oscillator',
+    strategyType: 'STOCHASTIC',
+    targetSymbol: 'NIFTY 50',
+    timeframe: '15m',
+    params: {
+      strategyType: 'STOCHASTIC',
+      stochKPeriod: 14,
+      stochSmooth: 3,
+      stochDPeriod: 3,
+      stochOverbought: 80,
+      stochOversold: 20,
+      atrSlMultiplier: 1.2,
+      atrTpMultiplier: 3.6,
+      useTrailingStop: true,
+      initialCapital: 100000,
+      riskPerTradePct: 1.0,
+      positionMode: 'BOTH',
+    },
+  },
+  // Remaining canonical strategies mapped from ALL_CANONICAL_STRATEGIES
+  ...ALL_CANONICAL_STRATEGIES.filter(
+    (s) =>
+      ![
+        'algo-nifty-trend-pullback-chandelier',
+        'algo-psar-strategy-nifty',
+        'algo-psar-strategy-banknifty',
+        'algo-psar-strategy-reliance',
+        'algo-psar-strategy-hdfcbank',
+        'algo-psar-strategy-icicibank',
+        'algo-psar-strategy-axisbank',
+        'algo-asia-london-ny-fvg',
+        'algo-gandiva-orb',
+        'algo-matsya-core',
+      ].includes(s.id)
+  ).map((strat) => ({
+    id: strat.id,
+    name: strat.name,
+    category: strat.category,
+    strategyType: ((strat.defaultParams?.strategyType as any) || 'TREND_PULLBACK_CHANDELIER') as any,
+    params: strat.defaultParams,
+    targetSymbol: strat.targetSymbol,
+    timeframe: strat.timeframe || '1d',
+    isCustom: false,
+  })),
 ];
 
-export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdated, initialSymbol }) => {
+export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdated, initialSymbol, initialStrategy }) => {
   const [studioTab, setStudioTab] = useState<'SINGLE' | 'BASKET'>('SINGLE');
   const [saveToast, setSaveToast] = useState<string | null>(null);
   const [strategyOptions, setStrategyOptions] = useState<StudioStrategyOption[]>(DEFAULT_STUDIO_STRATEGIES);
-  const [selectedStrategyId, setSelectedStrategyId] = useState<string>('algo-asia-london-ny-fvg');
+  const [selectedStrategyId, setSelectedStrategyId] = useState<string>(
+    initialStrategy?.id || 'algo-nifty-trend-pullback-chandelier'
+  );
   const [selectedStock, setSelectedStock] = useState<NseStock>(() => {
     if (initialSymbol) {
       const match = POPULAR_NSE_STOCKS.find(
@@ -143,10 +403,31 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
   }, [initialSymbol, allStocks]);
 
   useEffect(() => {
-    // Zero mock database policy: Always lock in the authentic Asia-London-NY FVG Strategy
-    setStrategyOptions(DEFAULT_STUDIO_STRATEGIES);
-    setSelectedStrategyId('algo-asia-london-ny-fvg');
-  }, []);
+    // Load stored strategies and canonical strategies
+    const stored = getStoredStrategies();
+    const storedOptions: StudioStrategyOption[] = stored
+      .filter((s) => !DEFAULT_STUDIO_STRATEGIES.some((d) => d.id === s.id))
+      .map((s) => ({
+        id: s.id,
+        name: s.name,
+        category: s.category || 'Custom Strategy',
+        strategyType: (s.defaultParams?.strategyType as any) || 'TREND_PULLBACK_CHANDELIER',
+        params: s.defaultParams,
+        targetSymbol: s.targetSymbol,
+        timeframe: s.timeframe || '1d',
+        isCustom: true,
+      }));
+
+    const combined = [...DEFAULT_STUDIO_STRATEGIES, ...storedOptions];
+    setStrategyOptions(combined);
+
+    // Initial strategy selection: honor initialStrategy, or default to Nifty 50 Daily
+    const targetId = initialStrategy?.id || 'algo-nifty-trend-pullback-chandelier';
+    const found = combined.find((o) => o.id === targetId) || combined[0];
+    if (found) {
+      handleSelectStrategyOption(found.id);
+    }
+  }, [initialStrategy]);
 
   const currentFundamentalStock = useMemo(() => {
     return (
@@ -408,6 +689,14 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
             instrumentKey: selectedStock.instrument_key,
             timeframe,
           });
+          // Seamless fallback to daily data if intraday stream is quiet
+          if (!data || data.length === 0) {
+            data = await fetchHistoricalDailyCandles({
+              stock: selectedStock,
+              provider: dataProvider,
+              range: historyRange === 'max' ? '1y' : historyRange,
+            });
+          }
         }
         if (active) {
           setCandles(data);
@@ -766,60 +1055,58 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
               </div>
             </div>
 
-            {timeframe === '1d' && (
-              <div className="flex items-center gap-2">
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                    History Range
-                  </label>
-                  <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl">
-                    {[
-                      { id: 'max', label: 'Max (Inception)' },
-                      { id: '10y', label: '10Y' },
-                      { id: '5y', label: '5Y' },
-                      { id: '3y', label: '3Y' },
-                      { id: '1y', label: '1Y' },
-                      { id: '300d', label: '300D' },
-                      { id: 'custom', label: 'Custom' },
-                    ].map((r) => (
-                      <button
-                        key={r.id}
-                        type="button"
-                        onClick={() => setHistoryRange(r.id as any)}
-                        className={`px-2 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
-                          historyRange === r.id ? 'bg-black text-white' : 'text-gray-500 hover:text-black'
-                        }`}
-                      >
-                        {r.label}
-                      </button>
-                    ))}
+            <div className="flex items-center gap-2">
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                  History Range
+                </label>
+                <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl">
+                  {[
+                    { id: 'max', label: 'Max (Inception)' },
+                    { id: '10y', label: '10Y' },
+                    { id: '5y', label: '5Y' },
+                    { id: '3y', label: '3Y' },
+                    { id: '1y', label: '1Y' },
+                    { id: '300d', label: '300D' },
+                    { id: 'custom', label: 'Custom' },
+                  ].map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => setHistoryRange(r.id as any)}
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                        historyRange === r.id ? 'bg-primary text-white shadow-xs' : 'text-gray-600 hover:text-black'
+                      }`}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {historyRange === 'custom' && (
+                <div className="flex items-center gap-1.5 pt-4">
+                  <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 px-2 py-1 rounded-xl">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase font-mono">From:</span>
+                    <input
+                      type="date"
+                      value={customFromDate}
+                      onChange={(e) => setCustomFromDate(e.target.value)}
+                      className="bg-transparent text-xs font-mono font-bold text-black focus:outline-none"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 px-2 py-1 rounded-xl">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase font-mono">To:</span>
+                    <input
+                      type="date"
+                      value={customToDate}
+                      onChange={(e) => setCustomToDate(e.target.value)}
+                      className="bg-transparent text-xs font-mono font-bold text-black focus:outline-none"
+                    />
                   </div>
                 </div>
-
-                {historyRange === 'custom' && (
-                  <div className="flex items-center gap-1.5 pt-4">
-                    <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 px-2 py-1 rounded-xl">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase font-mono">From:</span>
-                      <input
-                        type="date"
-                        value={customFromDate}
-                        onChange={(e) => setCustomFromDate(e.target.value)}
-                        className="bg-transparent text-xs font-mono font-bold text-black focus:outline-none"
-                      />
-                    </div>
-                    <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 px-2 py-1 rounded-xl">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase font-mono">To:</span>
-                      <input
-                        type="date"
-                        value={customToDate}
-                        onChange={(e) => setCustomToDate(e.target.value)}
-                        className="bg-transparent text-xs font-mono font-bold text-black focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Right: Stream Badge & Run */}
