@@ -12,6 +12,7 @@ import { UpstoxSettingsModal } from './components/UpstoxSettingsModal';
 import { MarketPulseInsights } from './components/MarketPulseInsights';
 import { AuthPage } from './components/AuthPage';
 import { ForexPortal } from './components/ForexPortal';
+import { PaperTradingSection } from './components/PaperTradingSection';
 import { AlgoStrategy } from './types/algoMarketplace';
 import {
   getStoredStrategies,
@@ -26,6 +27,9 @@ function getViewFromPath(pathname: string, strategies: AlgoStrategy[]): { view: 
   
   if (cleanPath === '/' || cleanPath === '') {
     return { view: 'landing', strategy: null };
+  }
+  if (cleanPath.startsWith('/dashboard') || cleanPath === '/paper-trading' || cleanPath === '/papertrading') {
+    return { view: 'papertrading', strategy: null };
   }
   if (cleanPath === '/trading-algorithms') {
     return { view: 'marketplace', strategy: null };
@@ -61,6 +65,8 @@ function getPathForView(view: AppView, strategy?: AlgoStrategy | null): string {
   switch (view) {
     case 'landing':
       return '/';
+    case 'papertrading':
+      return '/dashboard';
     case 'marketplace':
       return '/trading-algorithms';
     case 'backtest':
@@ -103,7 +109,7 @@ export function App() {
 
   // Synchronize browser history and popstate events
   useEffect(() => {
-    const handlePopState = (event: PopStateEvent) => {
+    const handlePopState = () => {
       const match = getViewFromPath(window.location.pathname, strategies);
       setActiveView(match.view);
       if (match.strategy) {
@@ -165,7 +171,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-on-surface flex flex-col font-sans selection:bg-primary selection:text-on-primary antialiased">
+    <div className="min-h-screen bg-background text-on-surface flex flex-col font-sans selection:bg-secondary selection:text-white antialiased">
       {/* High-frequency Quants Live Ticker Header & Nav unified in fixed header */}
       <header className="fixed top-0 w-full z-50">
         <QuantTerminalHeader
@@ -182,7 +188,7 @@ export function App() {
       </header>
 
       {/* Main View Router (pt-[98px] accounts for the 98px combined fixed header + borders) */}
-      <main className="w-full pt-[98px] px-margin bg-background flex-1 flex flex-col">
+      <main className={`w-full pt-[98px] bg-background flex-1 flex flex-col ${activeView === 'papertrading' ? 'px-0' : 'px-margin'}`}>
         {activeView === 'landing' && (
           <LandingPage
             onNavigateToView={(view) => navigateTo(view)}
@@ -196,6 +202,11 @@ export function App() {
             }}
             customStrategies={strategies}
           />
+        )}
+
+        {/* First-Class Live Paper Trading Desk (Direct simulation - zero landing page) */}
+        {activeView === 'papertrading' && (
+          <PaperTradingSection />
         )}
 
         {activeView === 'auth' && (
@@ -238,11 +249,11 @@ export function App() {
 
         {activeView === 'detail' && !selectedStrategy && (
           <div className="w-full py-16 text-center space-y-4">
-            <h2 className="text-xl font-bold text-on-surface">No Strategy Selected</h2>
+            <h2 className="text-xl font-bold text-primary font-headline">No Strategy Selected</h2>
             <p className="text-sm text-text-muted">Select an audited quantitative strategy from the algorithm marketplace.</p>
             <button
               onClick={() => navigateTo('marketplace')}
-              className="px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md shadow-xs hover:bg-primary-container transition-all"
+              className="px-4 py-2 bg-primary text-white rounded-lg font-label-md text-label-md shadow-xs hover:bg-secondary transition-all"
             >
               Browse Marketplace
             </button>
@@ -286,18 +297,19 @@ export function App() {
         onClose={() => setIsSettingsOpen(false)}
       />
 
-      {/* Footer Minimal Notice (Matching Stitch Exactly) */}
-      <footer className="w-full bg-surface-card border-t border-border-subtle px-margin py-space-sm select-none">
+      {/* Footer Minimal Notice */}
+      <footer className="w-full bg-white border-t border-border-subtle px-margin py-space-sm select-none">
         <div className="flex flex-col md:flex-row items-center justify-between gap-space-sm font-mono-sm text-mono-sm text-text-muted">
           <div className="flex items-center gap-space-sm">
             <span className="w-2 h-2 rounded-full bg-bullish" />
-            <span>Real Bar-by-Bar Vectorized Quantitative Backtesting</span>
+            <span className="text-primary font-semibold">Apex Quant Trading Workstation</span>
+            <span>· Live Virtual &amp; Algorithmic Desks</span>
           </div>
           <div>
             Institutional Systematic Strategy Engineering · Multi-Asset Portfolio Allocation
           </div>
-          <div>
-            Apex Quant Research Workstation
+          <div className="text-primary font-medium">
+            FundingPips / Cendrix Light Institutional UI
           </div>
         </div>
       </footer>

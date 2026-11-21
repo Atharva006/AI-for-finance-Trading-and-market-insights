@@ -3,7 +3,7 @@ import { ALL_CANONICAL_STRATEGIES } from '../services/canonicalStrategies';
 import { AlgoStrategy } from '../types/algoMarketplace';
 
 interface LandingPageProps {
-  onNavigateToView: (view: 'marketplace' | 'backtest' | 'flow' | 'detail' | 'admin' | 'insights' | 'auth' | 'forex') => void;
+  onNavigateToView: (view: 'landing' | 'papertrading' | 'marketplace' | 'backtest' | 'flow' | 'detail' | 'admin' | 'insights' | 'auth' | 'forex') => void;
   onSelectStrategy?: (strategyId: string) => void;
   customStrategies?: AlgoStrategy[];
 }
@@ -45,16 +45,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               <div className="flex flex-wrap items-center gap-space-md">
                 <button
-                  onClick={() => onNavigateToView('forex')}
-                  className="inline-flex items-center gap-space-sm px-space-lg py-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors shadow-sm cursor-pointer active:scale-95"
+                  onClick={() => onNavigateToView('papertrading')}
+                  className="inline-flex items-center gap-space-sm px-space-lg py-3 rounded-lg bg-secondary text-white font-label-md text-label-md hover:bg-secondary/90 transition-all shadow-sm cursor-pointer active:scale-95"
                 >
-                  <span>Launch Live Execution Desk</span>
+                  <span className="material-symbols-outlined text-[18px]">candlestick_chart</span>
+                  <span>Launch Virtual Paper Trading Desk (₹10L)</span>
+                </button>
+
+                <button
+                  onClick={() => onNavigateToView('forex')}
+                  className="inline-flex items-center gap-space-sm px-space-lg py-3 rounded-lg bg-primary text-white font-label-md text-label-md hover:bg-primary-container transition-all shadow-sm cursor-pointer active:scale-95"
+                >
+                  <span>Asia-London-NY FVG Desk</span>
                   <span className="material-symbols-outlined text-[18px]">bolt</span>
                 </button>
 
                 <a
                   href="#algorithms-section"
-                  className="inline-flex items-center gap-space-sm px-space-lg py-3 rounded-lg bg-surface-card text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors shadow-sm border border-border-subtle"
+                  className="inline-flex items-center gap-space-sm px-space-lg py-3 rounded-lg bg-surface-card text-primary font-label-md text-label-md hover:bg-surface-container transition-colors shadow-sm border border-border-subtle"
                 >
                   <span>Explore Deployments</span>
                 </a>
@@ -233,6 +241,56 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="mt-auto pt-space-sm font-mono-sm text-mono-sm text-bullish font-semibold">
                 WALK-FORWARD: 84.2% ROBUST
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 2.5 SECTION: Virtual Paper Trading Desk Feature Card */}
+        <section className="w-full py-space-lg">
+          <div className="w-full bg-white rounded-2xl p-6 sm:p-8 border border-border-subtle shadow-card flex flex-col lg:flex-row items-center justify-between gap-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-secondary/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="flex flex-col gap-3 max-w-2xl relative z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-container border border-border-subtle self-start text-xs font-mono font-semibold text-primary">
+                <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
+                <span>INTEGRATED LIVE SIMULATOR · ₹10,00,000 VIRTUAL DESK</span>
+              </div>
+              <h2 className="font-headline text-2xl sm:text-3xl font-bold text-primary tracking-tight">
+                Institutional Paper Trading with Real-Time NSE &amp; MCX Feeds
+              </h2>
+              <p className="text-sm text-text-secondary leading-relaxed">
+                Experience realistic live virtual execution with ₹10 Lakh demo balance. Trade Indian Equities, NIFTY/BANKNIFTY Options &amp; Futures, and MCX Commodities (Gold, Silver, Crude Oil) with real book depth, multi-leg order ticketing, and live MTM P&amp;L analytics. Zero landing page hurdle, zero risk.
+              </p>
+              <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-text-muted pt-1">
+                <span className="inline-flex items-center gap-1.5 text-primary font-semibold">
+                  <span className="material-symbols-outlined text-[16px] text-bullish">check_circle</span>
+                  MarketWatch &amp; Depth
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-primary font-semibold">
+                  <span className="material-symbols-outlined text-[16px] text-bullish">check_circle</span>
+                  Option Chain &amp; Greeks
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-primary font-semibold">
+                  <span className="material-symbols-outlined text-[16px] text-bullish">check_circle</span>
+                  Positions &amp; Holdings Ledger
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-primary font-semibold">
+                  <span className="material-symbols-outlined text-[16px] text-bullish">check_circle</span>
+                  MCX Commodities Desk
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row lg:flex-col items-center gap-3 shrink-0 relative z-10 w-full sm:w-auto">
+              <button
+                onClick={() => onNavigateToView('papertrading')}
+                className="w-full sm:w-auto px-6 py-3.5 bg-secondary hover:bg-secondary/90 text-white font-semibold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">candlestick_chart</span>
+                <span>Open Paper Trading Desk</span>
+              </button>
+              <span className="text-[11px] font-mono text-text-muted text-center">
+                Preloaded with ₹10,00,000 virtual margin
+              </span>
             </div>
           </div>
         </section>
