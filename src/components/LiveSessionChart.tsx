@@ -14,6 +14,9 @@ import {
   Eye,
   Sliders,
   Compass,
+  Code2,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 interface LiveSessionChartProps {
@@ -33,7 +36,314 @@ export const LiveSessionChart: React.FC<LiveSessionChartProps> = ({
 }) => {
   const [showExplanation, setShowExplanation] = useState<boolean>(true);
   const [showAnnotations, setShowAnnotations] = useState<boolean>(true);
+  const [showScriptModal, setShowScriptModal] = useState<boolean>(false);
+  const [copiedScript, setCopiedScript] = useState<boolean>(false);
   const [hoverBarIndex, setHoverBarIndex] = useState<number | null>(null);
+
+  const pineScriptV5Code = `//@version=5
+strategy("Asia-London-NY FVG Inversion", overlay=true, max_boxes_count=500, max_lines_count=500, initial_capital=10000)
+
+// =========================================================
+// INPUTS
+// =========================================================
+tz        = input.string("UTC", "Session Timezone", tooltip="Match your broker/chart timezone (e.g., UTC, America/New_York, Asia/Kolkata)")
+asiaSess  = input.session("1800-0000", "Asia Session")
+lonSess   = input.session("0000-0600", "London Session")
+nySess    = input.session("1300-2200", "New York Session")
+
+riskReward     = input.float(2.0, "Risk : Reward", step=0.1)
+maxRiskPercent = input.float(0.95, "Max SL Distance (%)", step=0.05)
+fixedRiskUSD   = input.float(100.0, "Fixed Risk per Trade ($)", step=10.0)
+
+// London Trading Days
+lonMon = input.bool(true,  "Lon Mon", group="London Trading Days", inline="ld1")
+lonTue = input.bool(false, "Lon Tue", group="London Trading Days", inline="ld1")
+lonWed = input.bool(true,  "Lon Wed", group="London Trading Days", inline="ld1")
+lonThu = input.bool(true,  "Lon Thu", group="London Trading Days", inline="ld2")
+lonFri = input.bool(false, "Lon Fri", group="London Trading Days", inline="ld2")
+
+// New York Trading Days
+nyMon = input.bool(false, "NY Mon", group="New York Trading Days", inline="nd1")
+nyTue = input.bool(true,  "NY Tue", group="New York Trading Days", inline="nd1")
+nyWed = input.bool(false, "NY Wed", group="New York Trading Days", inline="nd1")
+nyThu = input.bool(true,  "NY Thu", group="New York Trading Days", inline="nd2")
+nyFri = input.bool(false, "NY Fri", group="New York Trading Days", inline="nd2")
+
+// Colors
+asiaColor   = input.color(color.new(color.gray, 85), "Asia Box", group="Visuals")
+lonColor    = input.color(color.new(color.silver, 85), "London Box", group="Visuals")
+nyColor     = input.color(color.new(color.navy, 85), "NY Box", group="Visuals")
+fvgActColor = input.color(color.new(color.orange, 75), "Active FVG", group="Visuals")
+fvgInvColor = input.color(color.new(color.purple, 75), "Inverted FVG", group="Visuals")
+slColor     = input.color(color.red, "SL Line", group="Visuals")
+
+// =========================================================
+// HELPERS
+// =========================================================
+inAsia   = not na(time(timeframe.period, asiaSess, tz))
+inLondon = not na(time(timeframe.period, lonSess, tz))
+inNy     = not na(time(timeframe.period, nySess, tz))
+
+isLonDay() =>
+    (dayofweek == dayofweek.monday and lonMon) or (dayofweek == dayofweek.tuesday and lonTue) or (dayofweek == dayofweek.wednesday and lonWed) or (dayofweek == dayofweek.thursday and lonThu) or (dayofweek == dayofweek.friday and lonFri)
+
+isNyDay() =>
+    (dayofweek == dayofweek.monday and nyMon) or (dayofweek == dayofweek.tuesday and nyTue) or (dayofweek == dayofweek.wednesday and nyWed) or (dayofweek == dayofweek.thursday and nyThu) or (dayofweek == dayofweek.friday and nyFri)
+
+calcQty(entryPrice, slPrice) =>
+    slDist = math.abs(entryPrice - slPrice)
+    slDist > 0 ? fixedRiskUSD / (slDist * syminfo.pointvalue) : 0.0
+
+// =========================================================
+// STATE VARIABLES
+// =========================================================
+var float asiaHigh = na, var float asiaLow = na
+var float lonHigh  = na, var float lonLow  = na
+var float nyHigh   = na, var float nyLow   = na
+
+var int asiaStartBar = na, var int lonStartBar = na, var int nyStartBar = na
+var box asiaBox = na, var box lonBox = na, var box nyBox = na
+
+// London Setup State
+var bool  lonOrderPlaced = false
+var bool  lonSweptHigh   = false, var bool lonSweptLow = false
+var float lonFvgTop      = na,    var float lonFvgBot  = na
+var bool  lonFvgInv      = false
+var float lonSL          = na
+var box   lonFvgBox      = na
+var line  lonSlLine      = na
+
+// New York Setup State
+var bool  nyOrderPlaced = false
+var bool  nySweptHigh   = false, var bool nySweptLow = false
+var float nyFvgTop      = na,    var float nyFvgBot  = na
+var bool  nyFvgInv      = false
+var float nySL          = na
+var box   nyFvgBox      = na
+var line  nySlLine      = na
+
+// =========================================================
+// 1. ASIA SESSION (Marks Range & Resets Daily State)
+// =========================================================
+if inAsia
+    if not inAsia[1]
+        asiaStartBar := bar_index
+        asiaHigh     := high
+        asiaLow      := low
+        asiaBox      := box.new(bar_index, asiaHigh, bar_index + 1, asiaLow, bgcolor=asiaColor, border_color=na)
+
+        lonStartBar := na, lonHigh := na, lonLow := na
+        lonOrderPlaced := false, lonSweptHigh := false, lonSweptLow := false
+        lonFvgTop := na, lonFvgBot := na, lonFvgInv := false, lonSL := na
+        lonFvgBox := na, lonSlLine := na
+
+        nyStartBar := na, nyHigh := na, nyLow := na
+        nyOrderPlaced := false, nySweptHigh := false, nySweptLow := false
+        nyFvgTop := na, nyFvgBot := na, nyFvgInv := false, nySL := na
+        nyFvgBox := na, nySlLine := na
+    else
+        asiaHigh := math.max(asiaHigh, high)
+        asiaLow  := math.min(asiaLow, low)
+        box.set_top(asiaBox, asiaHigh)
+        box.set_bottom(asiaBox, asiaLow)
+        box.set_right(asiaBox, bar_index + 1)
+
+// =========================================================
+// 2. LONDON SESSION (Trades Asia Range, Marks London Range)
+// =========================================================
+if inLondon and not na(asiaHigh)
+    if not inLondon[1]
+        lonStartBar := bar_index
+        lonHigh     := high
+        lonLow      := low
+        lonBox      := box.new(bar_index, lonHigh, bar_index + 1, lonLow, bgcolor=lonColor, border_color=na)
+    else
+        lonHigh := math.max(lonHigh, high)
+        lonLow  := math.min(lonLow, low)
+        box.set_top(lonBox, lonHigh)
+        box.set_bottom(lonBox, lonLow)
+        box.set_right(lonBox, bar_index + 1)
+
+    if not na(lonFvgBox)
+        box.set_right(lonFvgBox, bar_index + 1)
+    if not na(lonSlLine)
+        line.set_x2(lonSlLine, bar_index + 1)
+
+    if not lonOrderPlaced
+        if high >= asiaHigh and not lonSweptLow
+            lonSweptHigh := true
+        if low <= asiaLow and not lonSweptHigh
+            lonSweptLow := true
+
+        if lonSweptHigh
+            if not lonFvgInv and low > high[2] and (bar_index - 2) >= lonStartBar
+                lonFvgTop := low
+                lonFvgBot := high[2]
+                if not na(lonFvgBox)
+                    box.delete(lonFvgBox)
+                lonFvgBox := box.new(bar_index - 2, lonFvgTop, bar_index + 1, lonFvgBot, bgcolor=fvgActColor, border_color=na)
+
+            if not na(lonFvgTop) and not lonFvgInv and close < lonFvgBot
+                lonFvgInv := true
+                box.set_bgcolor(lonFvgBox, fvgInvColor)
+
+                float calcSL = 0.0
+                for i = 0 to 7
+                    if close[i] <= lonFvgTop and close[i] >= lonFvgBot
+                        continue
+                    calcSL := math.max(calcSL, math.max(open[i], close[i]))
+                if calcSL == 0.0
+                    for i = 0 to 4
+                        calcSL := math.max(calcSL, math.max(open[i], close[i]))
+                lonSL := calcSL
+                lonSlLine := line.new(bar_index, lonSL, bar_index + 1, lonSL, color=slColor, style=line.style_dashed, width=2)
+
+                float entryP = lonFvgBot
+                if lonSL > entryP and ((lonSL - entryP) / entryP) * 100.0 <= maxRiskPercent and isLonDay()
+                    float tpP = entryP - ((lonSL - entryP) * riskReward)
+                    float qty = calcQty(entryP, lonSL)
+                    if qty > 0
+                        strategy.entry("Lon_Short", strategy.short, qty=qty, limit=entryP)
+                        strategy.exit("Lon_Short_Exit", "Lon_Short", stop=lonSL, limit=tpP)
+                        lonOrderPlaced := true
+
+        if lonSweptLow
+            if not lonFvgInv and high < low[2] and (bar_index - 2) >= lonStartBar
+                lonFvgBot := high
+                lonFvgTop := low[2]
+                if not na(lonFvgBox)
+                    box.delete(lonFvgBox)
+                lonFvgBox := box.new(bar_index - 2, lonFvgTop, bar_index + 1, lonFvgBot, bgcolor=fvgActColor, border_color=na)
+
+            if not na(lonFvgBot) and not lonFvgInv and close > lonFvgTop
+                lonFvgInv := true
+                box.set_bgcolor(lonFvgBox, fvgInvColor)
+
+                float calcSL = 9999999.0
+                for i = 0 to 7
+                    if close[i] <= lonFvgTop and close[i] >= lonFvgBot
+                        continue
+                    calcSL := math.min(calcSL, math.min(open[i], close[i]))
+                if calcSL == 9999999.0
+                    for i = 0 to 4
+                        calcSL := math.min(calcSL, math.min(open[i], close[i]))
+                lonSL := calcSL
+                lonSlLine := line.new(bar_index, lonSL, bar_index + 1, lonSL, color=slColor, style=line.style_dashed, width=2)
+
+                float entryP = lonFvgTop
+                if lonSL < entryP and ((entryP - lonSL) / entryP) * 100.0 <= maxRiskPercent and isLonDay()
+                    float tpP = entryP + ((entryP - lonSL) * riskReward)
+                    float qty = calcQty(entryP, lonSL)
+                    if qty > 0
+                        strategy.entry("Lon_Long", strategy.long, qty=qty, limit=entryP)
+                        strategy.exit("Lon_Long_Exit", "Lon_Long", stop=lonSL, limit=tpP)
+                        lonOrderPlaced := true
+
+if not inLondon and inLondon[1]
+    strategy.cancel("Lon_Short")
+    strategy.cancel("Lon_Long")
+
+// =========================================================
+// 3. NEW YORK SESSION (Trades London Range, Marks NY Range)
+// =========================================================
+if inNy and not na(lonHigh)
+    if not inNy[1]
+        nyStartBar := bar_index
+        nyHigh     := high
+        nyLow      := low
+        nyBox      := box.new(bar_index, nyHigh, bar_index + 1, nyLow, bgcolor=nyColor, border_color=na)
+    else
+        nyHigh := math.max(nyHigh, high)
+        nyLow  := math.min(nyLow, low)
+        box.set_top(nyBox, nyHigh)
+        box.set_bottom(nyBox, nyLow)
+        box.set_right(nyBox, bar_index + 1)
+
+    if not na(nyFvgBox)
+        box.set_right(nyFvgBox, bar_index + 1)
+    if not na(nySlLine)
+        line.set_x2(nySlLine, bar_index + 1)
+
+    if not nyOrderPlaced
+        if high >= lonHigh and not nySweptLow
+            nySweptHigh := true
+        if low <= lonLow and not nySweptHigh
+            nySweptLow := true
+
+        if nySweptHigh
+            if not nyFvgInv and low > high[2] and (bar_index - 2) >= nyStartBar
+                nyFvgTop := low
+                nyFvgBot := high[2]
+                if not na(nyFvgBox)
+                    box.delete(nyFvgBox)
+                nyFvgBox := box.new(bar_index - 2, nyFvgTop, bar_index + 1, nyFvgBot, bgcolor=fvgActColor, border_color=na)
+
+            if not na(nyFvgTop) and not nyFvgInv and close < nyFvgBot
+                nyFvgInv := true
+                box.set_bgcolor(nyFvgBox, fvgInvColor)
+
+                float calcSL = 0.0
+                for i = 0 to 7
+                    if close[i] <= nyFvgTop and close[i] >= nyFvgBot
+                        continue
+                    calcSL := math.max(calcSL, math.max(open[i], close[i]))
+                if calcSL == 0.0
+                    for i = 0 to 4
+                        calcSL := math.max(calcSL, math.max(open[i], close[i]))
+                nySL := calcSL
+                nySlLine := line.new(bar_index, nySL, bar_index + 1, nySL, color=slColor, style=line.style_dashed, width=2)
+
+                float entryP = nyFvgBot
+                if nySL > entryP and ((nySL - entryP) / entryP) * 100.0 <= maxRiskPercent and isNyDay()
+                    float tpP = entryP - ((nySL - entryP) * riskReward)
+                    float qty = calcQty(entryP, nySL)
+                    if qty > 0
+                        strategy.entry("NY_Short", strategy.short, qty=qty, limit=entryP)
+                        strategy.exit("NY_Short_Exit", "NY_Short", stop=nySL, limit=tpP)
+                        nyOrderPlaced := true
+
+        if nySweptLow
+            if not nyFvgInv and high < low[2] and (bar_index - 2) >= nyStartBar
+                nyFvgBot := high
+                nyFvgTop := low[2]
+                if not na(nyFvgBox)
+                    box.delete(nyFvgBox)
+                nyFvgBox := box.new(bar_index - 2, nyFvgTop, bar_index + 1, nyFvgBot, bgcolor=fvgActColor, border_color=na)
+
+            if not na(nyFvgBot) and not nyFvgInv and close > nyFvgTop
+                nyFvgInv := true
+                box.set_bgcolor(nyFvgBox, fvgInvColor)
+
+                float calcSL = 9999999.0
+                for i = 0 to 7
+                    if close[i] <= nyFvgTop and close[i] >= nyFvgBot
+                        continue
+                    calcSL := math.min(calcSL, math.min(open[i], close[i]))
+                if calcSL == 9999999.0
+                    for i = 0 to 4
+                        calcSL := math.min(calcSL, math.min(open[i], close[i]))
+                nySL := calcSL
+                nySlLine := line.new(bar_index, nySL, bar_index + 1, nySL, color=slColor, style=line.style_dashed, width=2)
+
+                float entryP = nyFvgTop
+                if nySL < entryP and ((entryP - nySL) / entryP) * 100.0 <= maxRiskPercent and isNyDay()
+                    float tpP = entryP + ((entryP - nySL) * riskReward)
+                    float qty = calcQty(entryP, nySL)
+                    if qty > 0
+                        strategy.entry("NY_Long", strategy.long, qty=qty, limit=entryP)
+                        strategy.exit("NY_Long_Exit", "NY_Long", stop=nySL, limit=tpP)
+                        nyOrderPlaced := true
+
+if not inNy and inNy[1]
+    strategy.cancel("NY_Short")
+    strategy.cancel("NY_Long")
+`;
+
+  const handleCopyScript = () => {
+    navigator.clipboard.writeText(pineScriptV5Code);
+    setCopiedScript(true);
+    setTimeout(() => setCopiedScript(false), 2500);
+  };
 
   // Take the last 60 visible bars for clean inspection
   const visibleCandles = useMemo(() => {
@@ -142,6 +452,20 @@ export const LiveSessionChart: React.FC<LiveSessionChartProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* View Pine Script v5 Code & Copy Button */}
+          <button
+            onClick={() => setShowScriptModal(!showScriptModal)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+              showScriptModal
+                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                : 'bg-white border-blue-300 text-blue-700 hover:bg-blue-50'
+            }`}
+            title="View TradingView Pine Script v5 Code"
+          >
+            <Code2 className="w-3.5 h-3.5" />
+            <span>Pine Script Code</span>
+          </button>
+
           {/* Toggle On-Chart Annotation Drawings */}
           <button
             onClick={() => setShowAnnotations(!showAnnotations)}
@@ -178,7 +502,16 @@ export const LiveSessionChart: React.FC<LiveSessionChartProps> = ({
               <Sparkles className="w-4 h-4 text-emerald-600" />
               <span>Strategy Blueprint: Asia-London-NY FVG Inversion</span>
             </span>
-            <span className="text-[10px] font-mono text-gray-400">PINE SCRIPT v5 ENGINE</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleCopyScript}
+                className="flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 hover:border-black rounded text-[11px] font-bold text-black shadow-xs transition-all active:scale-95"
+              >
+                {copiedScript ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copiedScript ? 'Copied Pine Script!' : 'Copy TradingView Code'}</span>
+              </button>
+              <span className="text-[10px] font-mono text-gray-400">PINE SCRIPT v5</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
@@ -212,6 +545,33 @@ export const LiveSessionChart: React.FC<LiveSessionChartProps> = ({
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 2b. TradingView Pine Script v5 Code Modal Viewer */}
+      {showScriptModal && (
+        <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-700 text-xs font-mono text-neutral-200 space-y-3 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
+            <div className="flex items-center gap-2">
+              <Code2 className="w-4 h-4 text-emerald-400" />
+              <span className="font-bold text-white text-xs">
+                Official TradingView Pine Script v5 Source Code
+              </span>
+            </div>
+            <button
+              onClick={handleCopyScript}
+              className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-bold transition-all shadow-xs active:scale-95"
+            >
+              {copiedScript ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedScript ? 'Copied to Clipboard!' : 'Copy Code'}</span>
+            </button>
+          </div>
+          <p className="text-[11px] text-neutral-400 font-sans">
+            Paste this directly into your TradingView Pine Editor on any EURUSD 15-minute chart to see identical bar-by-bar executions and FVG boxes.
+          </p>
+          <pre className="max-h-60 overflow-y-auto p-3 bg-black/80 rounded-lg text-[10px] text-neutral-300 font-mono leading-relaxed select-text border border-neutral-800">
+            {pineScriptV5Code}
+          </pre>
         </div>
       )}
 
