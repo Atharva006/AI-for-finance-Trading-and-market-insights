@@ -510,12 +510,91 @@ export class UpstoxProvider implements MarketDataProvider {
         return merged;
       }
 
-      // If Upstox API returned empty/429, generate continuous live market candles anchored to the live price
+      // If Upstox API returned empty/429, fetch authentic live exchange candles from Yahoo Finance
+      const yahooCandles = await this.fetchYahooFallbackCandles(instrumentKey, interval);
+      if (yahooCandles.length > 0) return yahooCandles;
+
       return this.generateResilientCandles(instrumentKey, interval);
     } catch (err) {
-      console.warn('Failed to fetch Upstox candles, using live-anchored resilient candles:', err);
+      console.warn('Failed to fetch Upstox candles, trying authentic Yahoo feed:', err);
+      const yahooCandles = await this.fetchYahooFallbackCandles(instrumentKey, interval);
+      if (yahooCandles.length > 0) return yahooCandles;
       return this.generateResilientCandles(instrumentKey, interval);
     }
+  }
+
+  private async fetchYahooFallbackCandles(instrumentKey: string, interval: CandleInterval): Promise<OHLCV[]> {
+    try {
+      const upper = instrumentKey.toUpperCase();
+      let yahooSymbol = '^NSEI';
+      if (upper.includes('BANKNIFTY') || upper.includes('BANK NIFTY')) yahooSymbol = '^NSEBANK';
+      else if (upper.includes('SENSEX')) yahooSymbol = '^BSESN';
+      else if (upper.includes('GOLD')) yahooSymbol = 'GC=F';
+      else if (upper.includes('SILVER')) yahooSymbol = 'SI=F';
+      else if (upper.includes('CRUDE')) yahooSymbol = 'CL=F';
+      else if (upper.includes('NATURALGAS')) yahooSymbol = 'NG=F';
+      else if (upper.includes('EUR')) yahooSymbol = 'EURUSD=X';
+      else if (upper.includes('GBP')) yahooSymbol = 'GBPUSD=X';
+      else if (upper.includes('USDINR')) yahooSymbol = 'USDINR=X';
+      else {
+        const master = INDIAN_INSTRUMENTS_MASTER.find(
+          (i) => i.instrument_key === instrumentKey || INSTRUMENT_KEY_ALIASES[i.instrument_key] === instrumentKey
+        );
+        const cleanSym = master ? master.tradingsymbol.split(' ')[0] : instrumentKey.replace(/^.*\|/, '');
+        yahooSymbol = `${cleanSym}.NS`;
+      }
+
+      let yInterval = '15m';
+      let yRange = '5d';
+      if (interval === '1minute' || interval === '5minute') {
+        yInterval = '5m';
+        yRange = '1d';
+      } else if (interval === '15minute') {
+        yInterval = '15m';
+        yRange = '5d';
+      } else if (interval === '30minute' || interval === '1hour') {
+        yInterval = '60m';
+        yRange = '1mo';
+      } else if (interval === 'day') {
+        yInterval = '1d';
+        yRange = '1y';
+      }
+
+      const res = await fetch(`/yahoo-api/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?interval=${yInterval}&range=${yRange}`);
+      if (res.ok) {
+        const json = await res.json();
+        const result = json.chart?.result?.[0];
+        if (result) {
+          const timestamps: number[] = result.timestamp || [];
+          const quote = result.indicators?.quote?.[0] || {};
+          const opens: (number | null)[] = quote.open || [];
+          const highs: (number | null)[] = quote.high || [];
+          const lows: (number | null)[] = quote.low || [];
+          const closes: (number | null)[] = quote.close || [];
+          const volumes: (number | null)[] = quote.volume || [];
+
+          const candles: OHLCV[] = [];
+          for (let i = 0; i < timestamps.length; i++) {
+            const o = opens[i];
+            const h = highs[i];
+            const l = lows[i];
+            const c = closes[i];
+            const v = volumes[i] ?? 100;
+            if (o == null || h == null || l == null || c == null) continue;
+            candles.push({
+              time: timestamps[i],
+              open: Number(o.toFixed(2)),
+              high: Number(h.toFixed(2)),
+              low: Number(l.toFixed(2)),
+              close: Number(c.toFixed(2)),
+              volume: v,
+            });
+          }
+          if (candles.length > 0) return candles;
+        }
+      }
+    } catch (_) {}
+    return [];
   }
 
   private generateResilientCandles(
@@ -540,12 +619,12 @@ export class UpstoxProvider implements MarketDataProvider {
         else if (master.tradingsymbol.includes('NATURALGAS')) basePrice = 248.5;
         else if (master.tradingsymbol.includes('COPPER')) basePrice = 842.3;
         else if (master.tradingsymbol.includes('ZINC')) basePrice = 265.4;
-        else if (master.tradingsymbol.includes('NIFTY 50') || master.tradingsymbol.startsWith('NIFTY')) basePrice = 25150;
-        else if (master.tradingsymbol.includes('BANK NIFTY') || master.tradingsymbol.startsWith('BANKNIFTY')) basePrice = 51200;
-        else if (master.tradingsymbol.includes('SENSEX')) basePrice = 81800;
-        else if (master.tradingsymbol.includes('RELIANCE')) basePrice = 1350;
-        else if (master.tradingsymbol.includes('TATASTEEL')) basePrice = 160.5;
-        else if (master.tradingsymbol.includes('HDFCBANK')) basePrice = 1720;
+        else if (master.tradingsymbol.includes('NIFTY 50') || master.tradingsymbol.startsWith('NIFTY')) basePrice = 25800.6;
+        else if (master.tradingsymbol.includes('BANK NIFTY') || master.tradingsymbol.startsWith('BANKNIFTY')) basePrice = 64635.2;
+        else if (master.tradingsymbol.includes('SENSEX')) basePrice = 83919.7;
+        else if (master.tradingsymbol.includes('RELIANCE')) basePrice = 1377.5;
+        else if (master.tradingsymbol.includes('TATASTEEL')) basePrice = 148.5;
+        else if (master.tradingsymbol.includes('HDFCBANK')) basePrice = 846;
         else basePrice = 1000;
       } else {
         basePrice = 1000;
@@ -565,27 +644,17 @@ export class UpstoxProvider implements MarketDataProvider {
     const startSec = alignedNow - (count - 1) * intervalSeconds;
 
     const candles: OHLCV[] = [];
-    let current = basePrice * (1 - (Math.random() * 0.015 - 0.0075));
-    const volatility = Math.max(0.5, basePrice * 0.0022); // 0.22% realistic candle volatility
+    let current = basePrice;
 
     for (let i = 0; i < count; i++) {
       const time = startSec + i * intervalSeconds;
-      const isLast = i === count - 1;
-      
-      const open = Math.round(current * 100) / 100;
-      // Drift gently towards basePrice for the last candles
-      const targetDrift = (basePrice - open) / Math.max(1, count - i);
-      let close = isLast ? basePrice : Math.round((open + targetDrift + (Math.random() - 0.49) * volatility) * 100) / 100;
-      if (close <= 0) close = open;
-
-      const wickUpper = Math.random() * volatility * 0.65;
-      const wickLower = Math.random() * volatility * 0.65;
-      const high = Math.round((Math.max(open, close) + wickUpper) * 100) / 100;
-      const low = Math.round((Math.min(open, close) - wickLower) * 100) / 100;
-      const volume = Math.floor(800 + Math.random() * 5200);
+      const open = current;
+      const close = current;
+      const high = current;
+      const low = current;
+      const volume = 1500;
 
       candles.push({ time, open, high, low, close, volume });
-      current = close;
     }
 
     return candles;

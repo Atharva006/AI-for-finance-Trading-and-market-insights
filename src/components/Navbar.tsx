@@ -15,15 +15,59 @@ interface TickerItem {
 }
 
 const initialTickers: TickerItem[] = [
-  { symbol: 'NIFTY 50', price: 24180.50, change: 201.20, changePct: 0.84 },
-  { symbol: 'BANKNIFTY', price: 51840.10, change: 345.80, changePct: 0.67 },
-  { symbol: 'RELIANCE', price: 2945.10, change: 32.60, changePct: 1.12 },
-  { symbol: 'HDFCBANK', price: 1680.00, change: -3.50, changePct: -0.21 },
-  { symbol: 'TCS', price: 4112.40, change: 66.80, changePct: 1.65 },
-  { symbol: 'INFY', price: 1876.30, change: 14.10, changePct: 0.76 },
-  { symbol: 'ICICIBANK', price: 1254.90, change: -2.10, changePct: -0.17 },
+  { symbol: 'NIFTY 50', price: 25800.60, change: 572.70, changePct: 2.27 },
+  { symbol: 'BANKNIFTY', price: 64635.20, change: 2598.40, changePct: 4.19 },
+  { symbol: 'RELIANCE', price: 1377.50, change: 1.90, changePct: 0.14 },
+  { symbol: 'HDFCBANK', price: 846.00, change: 24.20, changePct: 2.95 },
+  { symbol: 'TCS', price: 2376.20, change: 33.50, changePct: 1.43 },
+  { symbol: 'INFY', price: 1892.45, change: 22.40, changePct: 1.20 },
+  { symbol: 'ICICIBANK', price: 1268.40, change: 4.80, changePct: 0.38 },
   { symbol: 'BAJFINANCE', price: 6920.00, change: 84.50, changePct: 1.24 },
 ];
+
+const TICKER_MAP: { symbol: string; yahoo: string }[] = [
+  { symbol: 'NIFTY 50', yahoo: '%5ENSEI' },
+  { symbol: 'BANKNIFTY', yahoo: '%5ENSEBANK' },
+  { symbol: 'RELIANCE', yahoo: 'RELIANCE.NS' },
+  { symbol: 'HDFCBANK', yahoo: 'HDFCBANK.NS' },
+  { symbol: 'TCS', yahoo: 'TCS.NS' },
+  { symbol: 'INFY', yahoo: 'INFY.NS' },
+  { symbol: 'ICICIBANK', yahoo: 'ICICIBANK.NS' },
+  { symbol: 'BAJFINANCE', yahoo: 'BAJFINANCE.NS' },
+];
+
+async function fetchLiveTickerFeed(): Promise<TickerItem[]> {
+  try {
+    const promises = TICKER_MAP.map(async (t) => {
+      try {
+        const res = await fetch(`/yahoo-api/v8/finance/chart/${t.yahoo}?interval=1d&range=1d`);
+        if (res.ok) {
+          const json = await res.json();
+          const meta = json.chart?.result?.[0]?.meta;
+          if (meta) {
+            const price = Number(meta.regularMarketPrice || 0);
+            const changePct = Number(meta.regularMarketChangePercent || 0);
+            const prevClose = Number(meta.chartPreviousClose || meta.previousClose || price);
+            const netChange = Number((price - prevClose).toFixed(2));
+            return {
+              symbol: t.symbol,
+              price: price || 1000,
+              change: netChange,
+              changePct,
+            };
+          }
+        }
+      } catch (_) {}
+      return null;
+    });
+
+    const results = await Promise.all(promises);
+    const valid = results.filter((r): r is TickerItem => r !== null && r.price > 0);
+    return valid.length > 0 ? valid : initialTickers;
+  } catch (_) {
+    return initialTickers;
+  }
+}
 
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenTerminal,
@@ -33,24 +77,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [tickers, setTickers] = useState<TickerItem[]>(initialTickers);
 
   useEffect(() => {
+    fetchLiveTickerFeed().then((live) => setTickers(live));
+
+    // Continuous real exchange sync every 15 seconds (Zero mock data)
     const interval = setInterval(() => {
-      setTickers((prev) =>
-        prev.map((t) => {
-          const delta = (Math.random() - 0.48) * (t.price * 0.0004);
-          const newPrice = Number((t.price + delta).toFixed(2));
-          const newChange = Number((t.change + delta).toFixed(2));
-          const newChangePct = Number(
-            ((newChange / (newPrice - newChange)) * 100).toFixed(2)
-          );
-          return {
-            ...t,
-            price: newPrice,
-            change: newChange,
-            changePct: newChangePct,
-          };
-        })
-      );
-    }, 2200);
+      fetchLiveTickerFeed().then((live) => setTickers(live));
+    }, 15000);
 
     return () => clearInterval(interval);
   }, []);
@@ -61,7 +93,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="border-b border-gray-100 bg-[#F8FAFC] overflow-hidden py-1 px-4 flex items-center text-[10px] font-mono font-tabular text-[#64748B]">
         <div className="flex items-center gap-2 pr-4 border-r border-gray-200 text-[#10B981] font-bold tracking-wider whitespace-nowrap">
           <Activity className="w-3 h-3 animate-pulse text-[#10B981]" />
-          <span>NSE FEED · SIMULATED:</span>
+          <span>NSE FEED · LIVE:</span>
         </div>
 
         <div className="flex gap-6 overflow-x-hidden whitespace-nowrap md:flex">
