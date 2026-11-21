@@ -87,7 +87,7 @@ export const MasterNavbar: React.FC<MasterNavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-40 apple-glass-nav select-none font-sans bg-white/95 backdrop-blur-md border-b border-[#D9E2F2]">
+    <header className="w-full z-40 apple-glass-nav select-none font-sans bg-white/95 backdrop-blur-md border-b border-[#D9E2F2]">
       <div className="w-full mx-auto px-4 h-14 flex items-center justify-between gap-3">
         
         {/* ── Left Side: Brand Wordmark & Session Pill ─────────────────────── */}

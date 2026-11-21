@@ -19,7 +19,7 @@ export default function DashboardLayout() {
     <div className="min-h-[calc(100vh-98px)] flex flex-col bg-[#FCFCFC] text-[#111114] font-sans selection:bg-[#536CF0] selection:text-white overflow-x-hidden antialiased">
       <SEO title="Virtual Trading Desk — Apex Quant Workstation" noindex={true} />
       {/* ── 1. FundingPips Top Navigation Bar (Positioned under Workstation Header) ── */}
-      <div className="sticky top-[98px] z-40">
+      <div className="w-full shrink-0 z-40 bg-white">
         <MasterNavbar
           onOpenSearch={() => setIsSearchOpen(true)}
           onOpenReset={() => setIsResetOpen(true)}
@@ -31,7 +31,7 @@ export default function DashboardLayout() {
       {/* ── 2. Split Layout: Persistent MarketWatch + Fluid Workspace ──────── */}
       <div className="flex-1 flex overflow-hidden w-full max-w-full">
         {/* Persistent Left MarketWatch on Desktop */}
-        <aside className="hidden lg:block w-[320px] xl:w-[350px] shrink-0 h-[calc(100vh-154px)] sticky top-[154px] overflow-hidden border-r border-[#D9E2F2] bg-[#FFFFFF] z-10 shadow-[1px_0_4px_rgba(0,34,90,0.02)]">
+        <aside className="hidden lg:block w-[320px] xl:w-[350px] shrink-0 h-[calc(100vh-154px)] overflow-hidden border-r border-[#D9E2F2] bg-[#FFFFFF] z-10 shadow-[1px_0_4px_rgba(0,34,90,0.02)]">
           <MarketWatch />
         </aside>
 
