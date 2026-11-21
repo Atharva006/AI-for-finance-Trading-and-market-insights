@@ -592,21 +592,23 @@ export const DhanStrategyDetail: React.FC<DhanStrategyDetailProps> = ({
           <div className="flex flex-col gap-space-sm">
             <div className="flex flex-wrap items-center gap-space-sm">
               <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight">{strategy.name}</h1>
-              <span className="px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface font-mono-sm text-mono-sm">15m</span>
+              <span className="px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface font-mono-sm text-mono-sm font-semibold uppercase">{selectedTimeframe}</span>
               <span className="inline-flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-bullish-tint text-bullish font-label-sm text-label-sm uppercase font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-bullish"></span>
-                SEBI AUDITED
+                LIVE FEED AUDITED
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-space-md font-mono-sm text-mono-sm text-text-muted">
               <span className="inline-flex items-center gap-space-xs">
                 <span className="material-symbols-outlined text-[15px]">key</span>
-                <span>INSTRUMENT: <strong className="text-on-surface font-medium">NSE_INDEX|{selectedStock.symbol}</strong></span>
+                <span>INSTRUMENT: <strong className="text-on-surface font-medium">{selectedStock.symbol}</strong></span>
               </span>
               <span>·</span>
-              <span>ENGINE: <strong className="text-on-surface font-medium">Vectorized Bar-by-Bar</strong></span>
+              <span>FEED: <strong className="text-on-surface font-medium">{dataProvider === 'yahoo' && selectedTimeframe === '1d' ? 'Yahoo Historical' : 'Upstox Direct API'}</strong></span>
               <span>·</span>
-              <span>STYLE: <strong className="text-on-surface font-medium">{strategy.style}</strong></span>
+              <span>TIMEFRAME: <strong className="text-bullish font-medium">{selectedTimeframe.toUpperCase()}</strong></span>
+              <span>·</span>
+              <span>RANGE: <strong className="text-on-surface font-medium">{historyRange.toUpperCase()}</strong></span>
             </div>
           </div>
           {/* Right: Capital Tier, Margin & Paper Trading Toggle */}
@@ -663,9 +665,11 @@ export const DhanStrategyDetail: React.FC<DhanStrategyDetailProps> = ({
             <div className="flex items-center justify-between mb-space-md">
               <div className="flex items-center gap-space-sm">
                 <span className="font-mono-sm text-mono-sm text-text-muted">01 ·</span>
-                <h2 className="font-headline-sm text-headline-sm text-on-surface">Institutional Audit Matrix</h2>
+                <h2 className="font-headline-sm text-headline-sm text-on-surface">Live Quantitative Audit Matrix</h2>
               </div>
-              <span className="font-mono-sm text-mono-sm text-text-muted">LOOKBACK: 36 MONTHS</span>
+              <span className="font-mono-sm text-mono-sm text-text-muted">
+                {candles.length > 0 ? `${candles.length} LIVE BARS (${selectedTimeframe.toUpperCase()})` : 'SYNCING LIVE FEED...'}
+              </span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-gutter">
               <div className="bg-surface-container-low rounded-lg p-space-md flex flex-col justify-between gap-space-xs">
