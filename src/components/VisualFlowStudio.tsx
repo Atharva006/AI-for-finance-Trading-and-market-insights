@@ -892,11 +892,11 @@ export const VisualFlowStudio: React.FC<VisualFlowStudioProps> = ({ initialStock
 
   return (
     <div className="space-y-6">
-      {/* Toast Alert */}
+      {/* Toast Alert (Stitch Light Theme) */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#0A0A0D] text-white px-5 py-3 rounded-2xl shadow-2xl border border-neutral-700 flex items-center gap-3 text-xs font-mono animate-bounce">
-          <Check className="w-4 h-4 text-emerald-400" />
-          <span>{toastMsg}</span>
+        <div className="fixed bottom-6 right-6 z-50 bg-surface-card text-on-surface px-5 py-3 rounded-xl shadow-xl border border-border-subtle flex items-center gap-3 text-xs font-mono animate-bounce">
+          <Check className="w-4 h-4 text-bullish" />
+          <span className="font-semibold">{toastMsg}</span>
         </div>
       )}
 
@@ -1056,7 +1056,7 @@ export const VisualFlowStudio: React.FC<VisualFlowStudioProps> = ({ initialStock
             <div className="flex items-center gap-2">
               <button
                 onClick={handleQuickConnect}
-                className="px-4 py-1.5 bg-[#0A0A0D] text-white rounded-xl text-xs font-bold hover:bg-neutral-800 shadow-sm"
+                className="px-4 py-1.5 bg-primary text-on-primary rounded-xl text-xs font-bold hover:bg-primary-container shadow-sm cursor-pointer"
               >
                 Add Wire Connection
               </button>
@@ -1255,12 +1255,12 @@ export const VisualFlowStudio: React.FC<VisualFlowStudioProps> = ({ initialStock
 
           {/* Active Wiring Helper Banner */}
           {activeConnectionStart && (
-            <div className="absolute top-4 left-4 z-30 bg-[#0A0A0D] text-white px-3 py-1.5 rounded-xl shadow-lg border border-neutral-700 flex items-center gap-2 text-xs font-mono animate-in fade-in">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span className="text-[11px]">Click any glowing input port to wire (Click background to cancel)</span>
+            <div className="absolute top-4 left-4 z-30 bg-surface-card text-on-surface px-3 py-1.5 rounded-xl shadow-lg border border-border-subtle flex items-center gap-2 text-xs font-mono animate-in fade-in">
+              <span className="w-2 h-2 rounded-full bg-bullish animate-ping" />
+              <span className="text-[11px] font-semibold">Click any glowing input port to wire (Click background to cancel)</span>
               <button
                 onClick={() => setActiveConnectionStart(null)}
-                className="ml-2 px-1 rounded hover:bg-neutral-800 text-gray-400 hover:text-white"
+                className="ml-2 px-1 rounded hover:bg-surface-container text-text-muted hover:text-on-surface cursor-pointer"
               >
                 ✕
               </button>
@@ -1407,7 +1407,7 @@ export const VisualFlowStudio: React.FC<VisualFlowStudioProps> = ({ initialStock
                 <div className="px-3 py-2 border-b border-gray-100 bg-[#FAFAFC] rounded-t-2xl flex items-center justify-between">
                   <div className="flex items-center gap-1.5 truncate">
                     {stepNum ? (
-                      <span className="w-4 h-4 rounded-full bg-[#0A0A0D] text-white flex items-center justify-center text-[10px] font-bold font-mono shrink-0">
+                      <span className="w-4 h-4 rounded-full bg-primary text-on-primary flex items-center justify-center text-[10px] font-bold font-mono shrink-0">
                         {stepNum}
                       </span>
                     ) : (
@@ -1691,7 +1691,7 @@ export const VisualFlowStudio: React.FC<VisualFlowStudioProps> = ({ initialStock
                   <Code2 className="w-3 h-3 text-emerald-600" />
                   <span>Pine Script Equivalent</span>
                 </div>
-                <pre className="p-2.5 bg-[#0A0A0D] text-emerald-400 rounded-xl text-[11px] overflow-x-auto">
+                <pre className="p-2.5 bg-surface-container-low text-on-surface border border-border-subtle rounded-xl text-[11px] overflow-x-auto font-mono">
                   {selectedDoc.pineScriptEquiv}
                 </pre>
               </div>
@@ -1852,9 +1852,9 @@ export const VisualFlowStudio: React.FC<VisualFlowStudioProps> = ({ initialStock
             </span>
             <button
               onClick={() => setIsDoctorModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0A0A0D] hover:bg-neutral-800 text-white rounded-xl text-xs font-mono font-bold shadow-sm transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-container text-on-primary rounded-xl text-xs font-mono font-bold shadow-sm transition-all cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              <Sparkles className="w-3.5 h-3.5 text-bullish" />
               <span>AI Strategy Doctor (Monte Carlo Audit)</span>
             </button>
           </div>
@@ -1916,30 +1916,30 @@ export const VisualFlowStudio: React.FC<VisualFlowStudioProps> = ({ initialStock
             initialCapital={result.initialCapital}
           />
 
-          {/* Real-Time Node Execution Logs Terminal */}
-          <div className="bg-[#0A0A0D] text-white p-6 rounded-2xl shadow-xl border border-neutral-800 space-y-3 font-mono">
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-800 text-xs">
+          {/* Real-Time Node Execution Logs Terminal (Stitch Light Theme) */}
+          <div className="bg-surface-container-low text-on-surface p-6 rounded-xl shadow-sm border border-border-subtle space-y-3 font-mono">
+            <div className="flex items-center justify-between pb-3 border-b border-border-subtle text-xs">
               <div className="flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-emerald-400" />
-                <span className="font-bold text-gray-200">Visual Flow Node Execution Logs Terminal</span>
+                <Terminal className="w-4 h-4 text-primary" />
+                <span className="font-bold text-on-surface">Visual Flow Node Execution Logs Terminal</span>
               </div>
-              <span className="text-[10px] text-gray-500">Node Orchestration Engine v2.0 · Strict DAG Order</span>
+              <span className="text-[10px] text-text-muted">Node Orchestration Engine v2.0 · Strict DAG Order</span>
             </div>
 
             <div className="max-h-60 overflow-y-auto space-y-1.5 text-xs pr-2">
               {result.logs.map((lg) => (
                 <div key={lg.id} className="flex items-start gap-2.5 leading-relaxed">
-                  <span className="text-gray-500 shrink-0 text-[11px]">[{lg.time}]</span>
-                  <span className="text-blue-400 font-bold shrink-0">[{lg.nodeTitle}]</span>
+                  <span className="text-text-muted shrink-0 text-[11px]">[{lg.time}]</span>
+                  <span className="text-secondary font-bold shrink-0">[{lg.nodeTitle}]</span>
                   <span
                     className={
                       lg.level === 'success'
-                        ? 'text-emerald-400'
+                        ? 'text-bullish font-semibold'
                         : lg.level === 'trade'
-                        ? 'text-emerald-300'
+                        ? 'text-bullish font-medium'
                         : lg.level === 'warn'
-                        ? 'text-rose-400'
-                        : 'text-gray-300'
+                        ? 'text-bearish font-semibold'
+                        : 'text-text-secondary'
                     }
                   >
                     {lg.message}

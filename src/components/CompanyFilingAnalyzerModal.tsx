@@ -83,8 +83,8 @@ export const CompanyFilingAnalyzerModal: React.FC<CompanyFilingAnalyzerModalProp
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#0A0A0D] flex items-center justify-center text-emerald-400 shadow-md">
-              <FileText className="w-5 h-5 text-emerald-400" />
+            <div className="w-10 h-10 rounded-2xl bg-surface-container-low border border-border-subtle flex items-center justify-center text-bullish shadow-xs">
+              <FileText className="w-5 h-5 text-bullish" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -352,9 +352,9 @@ export const CompanyFilingAnalyzerModal: React.FC<CompanyFilingAnalyzerModalProp
                   onOpenFlowCanvas(stock.symbol);
                   onClose();
                 }}
-                className="px-4 py-2 bg-[#0A0A0D] hover:bg-neutral-800 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 active:scale-95"
+                className="px-4 py-2 bg-primary hover:bg-primary-container text-on-primary rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
               >
-                <Workflow className="w-3.5 h-3.5 text-emerald-400" />
+                <Workflow className="w-3.5 h-3.5 text-bullish" />
                 <span>Open in Flow Canvas</span>
               </button>
             )}

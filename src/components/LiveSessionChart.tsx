@@ -17,6 +17,7 @@ import {
   Code2,
   Copy,
   Check,
+  X,
 } from 'lucide-react';
 
 interface LiveSessionChartProps {
@@ -547,56 +548,66 @@ if not inNy and inNy[1]
             <span className="material-symbols-outlined text-[14px]">info</span>
             <span>{showExplanation ? 'Hide Guide' : 'Explain'}</span>
           </button>
+
+          {/* View Pine Script v5 Button (Stitch Screen 8) */}
+          <button
+            onClick={() => setShowScriptModal(true)}
+            className="inline-flex items-center gap-1.5 px-space-md py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors cursor-pointer shadow-xs active:scale-95"
+            type="button"
+          >
+            <Code2 className="w-4 h-4" />
+            <span>View Pine Script v5</span>
+          </button>
         </div>
       </div>
 
       {/* 2. Interactive Strategy Explanation Guide */}
       {showExplanation && (
-        <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 text-xs font-sans space-y-3 animate-in fade-in duration-200">
+        <div className="p-4 rounded-xl bg-surface-container-low border border-border-subtle text-xs font-sans space-y-3 animate-in fade-in duration-200">
           <div className="flex items-center justify-between">
-            <span className="font-bold text-black text-xs uppercase tracking-wider flex items-center gap-2">
+            <span className="font-bold text-on-surface text-xs uppercase tracking-wider flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-emerald-600" />
               <span>Strategy Blueprint: Asia-London-NY FVG Inversion</span>
             </span>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopyScript}
-                className="flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 hover:border-black rounded text-[11px] font-bold text-black shadow-xs transition-all active:scale-95"
+                className="flex items-center gap-1 px-2.5 py-1 bg-surface-card border border-border-subtle hover:border-primary rounded text-[11px] font-bold text-on-surface shadow-xs transition-all active:scale-95"
               >
-                {copiedScript ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedScript ? <Check className="w-3.5 h-3.5 text-bullish" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copiedScript ? 'Copied Pine Script!' : 'Copy TradingView Code'}</span>
               </button>
-              <span className="text-[10px] font-mono text-gray-400">PINE SCRIPT v5</span>
+              <span className="text-[10px] font-mono text-text-muted">PINE SCRIPT v5</span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
-            <div className="p-3 bg-white rounded-lg border border-gray-200 space-y-1">
-              <div className="flex items-center gap-1.5 font-bold text-black text-[11px]">
+            <div className="p-3 bg-surface-card rounded-lg border border-border-subtle space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-on-surface text-[11px]">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
                 <span>1. Asia Liquidity Box (18-00 UTC)</span>
               </div>
-              <p className="text-[11px] text-gray-600 leading-relaxed font-mono">
+              <p className="text-[11px] text-text-secondary leading-relaxed font-mono">
                 The engine records <strong>Asia High & Low</strong> as yellow dashed liquidity boundaries. Stop-losses of retail traders cluster outside this range.
               </p>
             </div>
 
-            <div className="p-3 bg-white rounded-lg border border-gray-200 space-y-1">
-              <div className="flex items-center gap-1.5 font-bold text-black text-[11px]">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+            <div className="p-3 bg-surface-card rounded-lg border border-border-subtle space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-on-surface text-[11px]">
+                <span className="w-2.5 h-2.5 rounded-full bg-secondary" />
                 <span>2. London Liquidity Sweep (00-06 UTC)</span>
               </div>
-              <p className="text-[11px] text-gray-600 leading-relaxed font-mono">
+              <p className="text-[11px] text-text-secondary leading-relaxed font-mono">
                 Price pierces above/below Asia range (liquidity sweep). A 3-bar Fair Value Gap (FVG) forms during the aggressive expansion.
               </p>
             </div>
 
-            <div className="p-3 bg-white rounded-lg border border-gray-200 space-y-1">
-              <div className="flex items-center gap-1.5 font-bold text-black text-[11px]">
+            <div className="p-3 bg-surface-card rounded-lg border border-border-subtle space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-on-surface text-[11px]">
                 <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
                 <span>3. Inversion Trigger & 1:2 R:R Exit</span>
               </div>
-              <p className="text-[11px] text-gray-600 leading-relaxed font-mono">
+              <p className="text-[11px] text-text-secondary leading-relaxed font-mono">
                 When a candle closes back through the FVG (inversion), a limit order fills on the FVG edge with body-filtered SL and 1:2 TP.
               </p>
             </div>
@@ -604,30 +615,43 @@ if not inNy and inNy[1]
         </div>
       )}
 
-      {/* 2b. TradingView Pine Script v5 Code Modal Viewer */}
+      {/* 2b. TradingView Pine Script v5 Code Modal (Stitch Screen 8 100% Light Theme) */}
       {showScriptModal && (
-        <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-700 text-xs font-mono text-neutral-200 space-y-3 animate-in fade-in duration-200">
-          <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
-            <div className="flex items-center gap-2">
-              <Code2 className="w-4 h-4 text-emerald-400" />
-              <span className="font-bold text-white text-xs">
-                Official TradingView Pine Script v5 Source Code
-              </span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-on-surface/40 backdrop-blur-sm p-space-md animate-in fade-in duration-150">
+          <div className="w-full max-w-3xl bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-xl flex flex-col gap-space-md max-h-[85vh]">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-space-sm">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-bullish"></span>
+                <span className="font-title-md text-title-md text-on-surface font-semibold">
+                  Asia-London-NY FVG Inversion (Pine Script v5)
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-forex-tint border border-secondary text-secondary font-mono-sm text-mono-sm">
+                  15m EXECUTION
+                </span>
+              </div>
+              <div className="flex items-center gap-space-sm">
+                <button
+                  onClick={handleCopyScript}
+                  className="inline-flex items-center gap-1.5 px-space-md py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-md text-label-md transition-colors cursor-pointer"
+                >
+                  {copiedScript ? <Check className="w-4 h-4 text-bullish" /> : <Copy className="w-4 h-4" />}
+                  <span>{copiedScript ? 'Copied' : 'Copy Script'}</span>
+                </button>
+                <button
+                  onClick={() => setShowScriptModal(false)}
+                  className="p-1 rounded-lg hover:bg-surface-container-low text-text-muted hover:text-on-surface cursor-pointer transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
-            <button
-              onClick={handleCopyScript}
-              className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-bold transition-all shadow-xs active:scale-95"
-            >
-              {copiedScript ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedScript ? 'Copied to Clipboard!' : 'Copy Code'}</span>
-            </button>
+            <p className="font-body-sm text-body-sm text-text-secondary">
+              Paste directly into TradingView Pine Editor on any EUR/USD or GBP/USD 15-minute chart. Computes bar-by-bar session liquidity sweeps, Fair Value Gaps, and 1:2 R:R dynamic limit fills.
+            </p>
+            <pre className="flex-1 overflow-y-auto p-space-md rounded-lg bg-surface-container-low border border-border-subtle font-mono-sm text-mono-sm text-on-surface overflow-x-auto leading-relaxed select-text">
+              {pineScriptV5Code}
+            </pre>
           </div>
-          <p className="text-[11px] text-neutral-400 font-sans">
-            Paste this directly into your TradingView Pine Editor on any EURUSD 15-minute chart to see identical bar-by-bar executions and FVG boxes.
-          </p>
-          <pre className="max-h-60 overflow-y-auto p-3 bg-black/80 rounded-lg text-[10px] text-neutral-300 font-mono leading-relaxed select-text border border-neutral-800">
-            {pineScriptV5Code}
-          </pre>
         </div>
       )}
 
@@ -639,12 +663,12 @@ if not inNy and inNy[1]
         >
           <defs>
             <linearGradient id="forexPriceGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#2563EB" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#2563EB" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#006780" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#006780" stopOpacity="0.0" />
             </linearGradient>
           </defs>
 
-          {/* 1. SESSION BACKGROUND BOXES (One Frame Context) */}
+          {/* 1. SESSION BACKGROUND BOXES (One Frame Context matching Stitch Screen 8) */}
           {/* Asia Session Background Zone (18:00 - 00:00 UTC) */}
           {sessionRanges.asiaBars.length > 0 && (
             <g>
@@ -653,9 +677,9 @@ if not inNy and inNy[1]
                 y={padding.top}
                 width={Math.max(20, getX(sessionRanges.asiaBars[sessionRanges.asiaBars.length - 1]) - getX(sessionRanges.asiaBars[0]) + candleW * 2)}
                 height={chartH}
-                fill="#FEF3C7"
-                fillOpacity="0.45"
-                stroke="#FDE68A"
+                fill="#eeeef0"
+                fillOpacity="0.70"
+                stroke="#E5E7EB"
                 strokeWidth="1"
                 rx="4"
               />
@@ -664,10 +688,10 @@ if not inNy and inNy[1]
                 y={padding.top + 14}
                 fontSize="9"
                 fontWeight="bold"
-                fill="#B45309"
-                fontFamily="monospace"
+                fill="#6B7280"
+                fontFamily="JetBrains Mono, monospace"
               >
-                ASIA RANGE BOX (18:00 - 00:00)
+                ASIA 18:00–00:00 UTC
               </text>
             </g>
           )}
@@ -680,9 +704,9 @@ if not inNy and inNy[1]
                 y={padding.top}
                 width={Math.max(20, getX(sessionRanges.londonBars[sessionRanges.londonBars.length - 1]) - getX(sessionRanges.londonBars[0]) + candleW * 2)}
                 height={chartH}
-                fill="#DBEAFE"
-                fillOpacity="0.45"
-                stroke="#BFDBFE"
+                fill="#ECFEFF"
+                fillOpacity="0.85"
+                stroke="#006780"
                 strokeWidth="1"
                 rx="4"
               />
@@ -691,10 +715,10 @@ if not inNy and inNy[1]
                 y={padding.top + 14}
                 fontSize="9"
                 fontWeight="bold"
-                fill="#1D4ED8"
-                fontFamily="monospace"
+                fill="#006780"
+                fontFamily="JetBrains Mono, monospace"
               >
-                LONDON SESSION BOX (00:00 - 06:00)
+                LONDON SWEEP 00:00–06:00 UTC
               </text>
             </g>
           )}
@@ -707,9 +731,9 @@ if not inNy and inNy[1]
                 y={padding.top}
                 width={Math.max(20, getX(sessionRanges.nyBars[sessionRanges.nyBars.length - 1]) - getX(sessionRanges.nyBars[0]) + candleW * 2)}
                 height={chartH}
-                fill="#EDE9FE"
-                fillOpacity="0.45"
-                stroke="#DDD6FE"
+                fill="#f3f3f5"
+                fillOpacity="0.75"
+                stroke="#E5E7EB"
                 strokeWidth="1"
                 rx="4"
               />
@@ -718,10 +742,10 @@ if not inNy and inNy[1]
                 y={padding.top + 14}
                 fontSize="9"
                 fontWeight="bold"
-                fill="#6D28D9"
-                fontFamily="monospace"
+                fill="#47464b"
+                fontFamily="JetBrains Mono, monospace"
               >
-                NEW YORK SESSION BOX (13:00 - 22:00)
+                NEW YORK 13:00–22:00 UTC
               </text>
             </g>
           )}
@@ -774,8 +798,8 @@ if not inNy and inNy[1]
                     y={getY(sessionRanges.asiaHigh) - 18}
                     width="190"
                     height="16"
-                    fill="#FEF3C7"
-                    stroke="#D97706"
+                    fill="#eeeef0"
+                    stroke="#c8c5cb"
                     strokeWidth="0.8"
                     rx="3"
                   />
@@ -784,8 +808,8 @@ if not inNy and inNy[1]
                     y={getY(sessionRanges.asiaHigh) - 6}
                     fontSize="9"
                     fontWeight="bold"
-                    fill="#92400E"
-                    fontFamily="monospace"
+                    fill="#47464b"
+                    fontFamily="JetBrains Mono, monospace"
                   >
                     ★ ASIA HIGH (Buy-side Liquidity Pool)
                   </text>
@@ -800,7 +824,7 @@ if not inNy and inNy[1]
                     y1={getY(sessionRanges.asiaLow)}
                     x2={width - padding.right}
                     y2={getY(sessionRanges.asiaLow)}
-                    stroke="#D97706"
+                    stroke="#47464b"
                     strokeWidth="1.5"
                     strokeDasharray="4 4"
                   />
@@ -809,8 +833,8 @@ if not inNy and inNy[1]
                     y={getY(sessionRanges.asiaLow) + 4}
                     width="195"
                     height="16"
-                    fill="#FEF3C7"
-                    stroke="#D97706"
+                    fill="#eeeef0"
+                    stroke="#c8c5cb"
                     strokeWidth="0.8"
                     rx="3"
                   />
@@ -819,8 +843,8 @@ if not inNy and inNy[1]
                     y={getY(sessionRanges.asiaLow) + 16}
                     fontSize="9"
                     fontWeight="bold"
-                    fill="#92400E"
-                    fontFamily="monospace"
+                    fill="#47464b"
+                    fontFamily="JetBrains Mono, monospace"
                   >
                     ★ ASIA LOW (Sell-side Liquidity Pool)
                   </text>
@@ -845,7 +869,7 @@ if not inNy and inNy[1]
                       y1={entryY}
                       x2={endX}
                       y2={entryY}
-                      stroke="#4F46E5"
+                      stroke="#006780"
                       strokeWidth="1.2"
                       strokeDasharray="2 2"
                     />
@@ -855,17 +879,19 @@ if not inNy and inNy[1]
                       y1={tpY}
                       x2={endX}
                       y2={tpY}
-                      stroke="#16A34A"
+                      stroke="#059669"
                       strokeWidth="1.2"
+                      strokeDasharray="6 4"
                     />
                     <text
                       x={endX + 4}
                       y={tpY + 3}
                       fontSize="8"
                       fontWeight="bold"
-                      fill="#16A34A"
+                      fill="#059669"
+                      fontFamily="JetBrains Mono, monospace"
                     >
-                      TP (1:2)
+                      TP (1:2.0)
                     </text>
 
                     {/* Stop-Loss line */}
@@ -874,15 +900,17 @@ if not inNy and inNy[1]
                       y1={slY}
                       x2={endX}
                       y2={slY}
-                      stroke="#DC2626"
+                      stroke="#E11D48"
                       strokeWidth="1.2"
+                      strokeDasharray="6 4"
                     />
                     <text
                       x={endX + 4}
                       y={slY + 3}
                       fontSize="8"
                       fontWeight="bold"
-                      fill="#DC2626"
+                      fill="#E11D48"
+                      fontFamily="JetBrains Mono, monospace"
                     >
                       SL
                     </text>
@@ -900,11 +928,11 @@ if not inNy and inNy[1]
                 d={lineAreaPath}
                 fill="url(#forexPriceGrad)"
               />
-              {/* Primary Price Trend Line */}
+              {/* Primary Price Trend Line (Matching Stitch Screen 8 #006780) */}
               <path
                 d={linePath}
                 fill="none"
-                stroke="#2563EB"
+                stroke="#006780"
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -988,7 +1016,7 @@ if not inNy and inNy[1]
                   cx={x}
                   cy={y}
                   r="5"
-                  fill={isBuy ? '#16A34A' : '#DC2626'}
+                  fill={isBuy ? '#059669' : '#E11D48'}
                   stroke="#FFFFFF"
                   strokeWidth="2"
                 />
@@ -998,17 +1026,17 @@ if not inNy and inNy[1]
                   <g>
                     <path
                       d={`M ${x} ${isBuy ? y + 6 : y - 6} L ${x + 12} ${isBuy ? y + 22 : y - 22} L ${x + 120} ${isBuy ? y + 22 : y - 22}`}
-                      stroke="#4F46E5"
+                      stroke={isBuy ? '#059669' : '#E11D48'}
                       strokeWidth="1"
                       fill="none"
                     />
                     <rect
                       x={x + 10}
                       y={isBuy ? y + 14 : y - 36}
-                      width="125"
+                      width="135"
                       height="20"
-                      fill="#EEF2FF"
-                      stroke="#6366F1"
+                      fill={isBuy ? '#ECFDF5' : '#FFF1F2'}
+                      stroke={isBuy ? '#059669' : '#E11D48'}
                       strokeWidth="0.8"
                       rx="3"
                     />
@@ -1017,7 +1045,8 @@ if not inNy and inNy[1]
                       y={isBuy ? y + 28 : y - 22}
                       fontSize="9"
                       fontWeight="bold"
-                      fill="#3730A3"
+                      fill={isBuy ? '#059669' : '#E11D48'}
+                      fontFamily="JetBrains Mono, monospace"
                     >
                       {isBuy ? '▲ FVG Inversion Long' : '▼ FVG Inversion Short'}
                     </text>

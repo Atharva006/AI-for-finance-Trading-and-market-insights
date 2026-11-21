@@ -379,7 +379,7 @@ export const MarketPulseInsights: React.FC<MarketPulseInsightsProps> = ({
                         </button>
                         <button
                           onClick={() => onOpenFlowWithStock(stock.symbol)}
-                          className="px-2.5 py-1 bg-[#0A0A0D] hover:bg-neutral-800 text-white rounded-lg text-xs font-bold transition-all shadow-xs"
+                          className="px-2.5 py-1 bg-primary hover:bg-primary-container text-on-primary rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
                           title={`Open ${stock.symbol} in n8n Visual Flow Studio`}
                         >
                           Flow Canvas

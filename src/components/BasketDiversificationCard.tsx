@@ -33,8 +33,8 @@ export const BasketDiversificationCard: React.FC<BasketDiversificationCardProps>
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0A0A0D] flex items-center justify-center text-white shadow-sm">
-            <PieChart className="w-5 h-5 text-emerald-400" />
+          <div className="w-10 h-10 rounded-xl bg-surface-container-low border border-border-subtle flex items-center justify-center text-primary shadow-xs">
+            <PieChart className="w-5 h-5 text-bullish" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -113,11 +113,11 @@ export const BasketDiversificationCard: React.FC<BasketDiversificationCardProps>
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
                       idx === 0
-                        ? 'bg-[#0A0A0D]'
+                        ? 'bg-primary'
                         : idx === 1
-                        ? 'bg-emerald-500'
+                        ? 'bg-bullish'
                         : idx === 2
-                        ? 'bg-blue-500'
+                        ? 'bg-secondary'
                         : 'bg-neutral-400'
                     }`}
                     style={{ width: `${Math.min(100, sec.weightPct)}%` }}
@@ -193,10 +193,10 @@ export const BasketDiversificationCard: React.FC<BasketDiversificationCardProps>
 
                   <button
                     onClick={() => onAddSuggestion(sugg)}
-                    className="shrink-0 px-3.5 py-2 bg-[#0A0A0D] hover:bg-neutral-800 text-white rounded-xl text-xs font-bold font-mono flex items-center gap-1.5 shadow-sm transition-all active:scale-95 group-hover:bg-emerald-600"
+                    className="shrink-0 px-3.5 py-2 bg-primary hover:bg-primary-container text-on-primary rounded-xl text-xs font-bold font-mono flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
                     title={`Add ${sugg.primaryStock.symbol} to basket`}
                   >
-                    <Plus className="w-3.5 h-3.5 text-emerald-400 group-hover:text-white" />
+                    <Plus className="w-3.5 h-3.5 text-bullish" />
                     <span>Add to Basket</span>
                   </button>
                 </div>

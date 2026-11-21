@@ -353,9 +353,30 @@ fixedRiskUSD   = input.float(100.0, "Fixed Risk per Trade ($)", step=10.0)
             </div>
 
             <div className="grid grid-cols-2 gap-space-sm pt-space-xs">
-              <div className="p-space-sm rounded-lg bg-surface-container-low border border-border-subtle flex items-center justify-between">
-                <span className="font-label-sm text-label-sm text-text-muted uppercase">Target R:R</span>
-                <span className="font-mono-md text-mono-md text-bullish font-bold">1 : 2.0</span>
+              <div className="p-space-sm rounded-lg bg-surface-container-low border border-border-subtle flex flex-col gap-1">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase">Target R:R Ratio</span>
+                <div className="flex items-center gap-1 font-mono-sm">
+                  {[1.5, 2.0, 2.5, 3.0].map((rr) => (
+                    <button
+                      key={rr}
+                      type="button"
+                      onClick={() => {
+                        const newParams = { ...params, riskReward: rr };
+                        setParams(newParams);
+                        if (candles.length > 0) {
+                          setBacktestResult(runSessionSweepBacktest(candles, selectedPair, newParams, accountCapitalUSD, usdInrRate));
+                        }
+                      }}
+                      className={`px-2 py-0.5 rounded text-xs font-bold transition-all cursor-pointer ${
+                        params.riskReward === rr
+                          ? 'bg-bullish text-white shadow-xs'
+                          : 'bg-surface-card border border-border-subtle text-text-secondary hover:text-on-surface'
+                      }`}
+                    >
+                      1:{rr.toFixed(1)}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="p-space-sm rounded-lg bg-surface-container-low border border-border-subtle flex items-center justify-between">
                 <span className="font-label-sm text-label-sm text-text-muted uppercase">Position Sizing</span>
@@ -364,7 +385,7 @@ fixedRiskUSD   = input.float(100.0, "Fixed Risk per Trade ($)", step=10.0)
             </div>
           </div>
 
-          {/* Right: Execution Control Hub */}
+          {/* Right: Execution Control Hub (Stitch Screen 8) */}
           <div className="lg:col-span-7 bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-sm flex flex-col justify-between gap-space-md">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
               <div className="flex items-center gap-space-sm">
@@ -378,6 +399,36 @@ fixedRiskUSD   = input.float(100.0, "Fixed Risk per Trade ($)", step=10.0)
                 <span className="font-semibold">{currentTimeUtc}</span>
                 <span>·</span>
                 <span>{currentSessionName}</span>
+              </div>
+            </div>
+
+            {/* Unique Real-Time State Machine Progression Strip */}
+            <div className="p-space-sm rounded-lg bg-surface-container-low border border-border-subtle flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <span className="font-label-sm text-label-sm text-text-muted uppercase tracking-wider">Session Pipeline Telemetry</span>
+                <span className="font-mono-sm text-mono-sm text-secondary font-semibold">STATE: READY</span>
+              </div>
+              <div className="grid grid-cols-4 gap-1 text-[11px] font-mono">
+                <div className="p-1.5 rounded bg-surface-card border border-border-subtle text-center">
+                  <div className="text-text-muted text-[9px] uppercase font-bold">Phase 1</div>
+                  <div className="font-semibold text-on-surface truncate">Asia Range</div>
+                  <div className="text-[9px] text-text-muted">18:00–00:00</div>
+                </div>
+                <div className="p-1.5 rounded bg-forex-tint border border-secondary text-center">
+                  <div className="text-secondary text-[9px] uppercase font-bold">Phase 2</div>
+                  <div className="font-semibold text-secondary truncate">London Sweep</div>
+                  <div className="text-[9px] text-secondary">00:00–06:00</div>
+                </div>
+                <div className="p-1.5 rounded bg-bullish-tint border border-bullish text-center">
+                  <div className="text-bullish text-[9px] uppercase font-bold">Phase 3</div>
+                  <div className="font-semibold text-bullish truncate">FVG Inversion</div>
+                  <div className="text-[9px] text-bullish">Limit Fill</div>
+                </div>
+                <div className="p-1.5 rounded bg-surface-card border border-border-subtle text-center">
+                  <div className="text-text-muted text-[9px] uppercase font-bold">Phase 4</div>
+                  <div className="font-semibold text-on-surface truncate">1:2 R:R Exit</div>
+                  <div className="text-[9px] text-text-muted">Dynamic Sizing</div>
+                </div>
               </div>
             </div>
 
@@ -464,13 +515,16 @@ fixedRiskUSD   = input.float(100.0, "Fixed Risk per Trade ($)", step=10.0)
                 </div>
               </div>
 
-              {/* Circuit Breaker */}
-              <div className="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low border border-border-subtle">
-                <div className="flex flex-col">
-                  <span className="font-label-md text-label-md text-on-surface font-semibold">Adverse Loss Brake</span>
-                  <span className="font-body-sm text-body-sm text-text-muted">Auto-halt execution</span>
+              {/* Circuit Breaker (Stitch Screen 8) */}
+              <div className="flex items-center justify-between p-space-sm rounded-lg bg-bearish-tint border border-bearish/30">
+                <div className="flex items-center gap-space-sm">
+                  <span className="material-symbols-outlined text-bearish text-[20px]">gpp_maybe</span>
+                  <div className="flex flex-col">
+                    <span className="font-label-md text-label-md text-on-surface font-semibold">Circuit Breaker</span>
+                    <span className="font-body-sm text-body-sm text-bearish">Halt after {circuitBreakerLosses} consecutive losses</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 font-mono-sm">
+                <div className="flex items-center gap-2">
                   <input
                     type="number"
                     step="1"
@@ -478,9 +532,11 @@ fixedRiskUSD   = input.float(100.0, "Fixed Risk per Trade ($)", step=10.0)
                     max="10"
                     value={circuitBreakerLosses}
                     onChange={(e) => setCircuitBreakerLosses(parseInt(e.target.value) || 3)}
-                    className="w-16 px-2 py-1 bg-surface-card border border-border-subtle rounded text-center text-on-surface font-bold"
+                    className="w-12 px-1.5 py-0.5 bg-surface-card border border-bearish/30 rounded text-center text-bearish font-mono-sm text-mono-sm font-bold"
                   />
-                  <span className="text-text-muted text-xs">trades</span>
+                  <span className="px-space-sm py-0.5 rounded-full bg-surface-card border border-bearish/40 font-mono-sm text-mono-sm text-bearish font-bold">
+                    ARMED
+                  </span>
                 </div>
               </div>
             </div>

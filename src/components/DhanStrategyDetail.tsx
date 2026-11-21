@@ -496,6 +496,65 @@ export const DhanStrategyDetail: React.FC<DhanStrategyDetailProps> = ({
     ? `${dynamicPath} L ${dynamicCoords[dynamicCoords.length - 1].x.toFixed(1)} ${chartH - padY} L ${dynamicCoords[0].x.toFixed(1)} ${chartH - padY} Z`
     : '';
 
+  // Real SVG Line Chart for Stitch Screen 3 Cumulative Equity (viewBox 0 0 720 200)
+  const stitchEquitySvg = useMemo(() => {
+    if (!backtestResult?.equityCurve || backtestResult.equityCurve.length < 2) {
+      return {
+        strategyLine: 'M0,175 L60,160 L120,148 L180,132 L240,138 L300,110 L360,96 L420,82 L480,88 L540,60 L600,45 L660,28 L720,16',
+        strategyArea: 'M0,175 L60,160 L120,148 L180,132 L240,138 L300,110 L360,96 L420,82 L480,88 L540,60 L600,45 L660,28 L720,16 L720,190 L0,190 Z',
+        benchmarkLine: 'M0,175 L60,168 L120,172 L180,158 L240,162 L300,148 L360,152 L420,138 L480,142 L540,128 L600,132 L660,118 L720,112',
+        peakEquity: (strategy.marginRequired * 2.484),
+        totalReturnPct: 148.4,
+      };
+    }
+    const curve = backtestResult.equityCurve;
+    const values = curve.map((p) => p.equity);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const range = max - min || 1;
+    const peak = max;
+    const totalReturn = backtestResult.metrics.totalReturnPct;
+
+    const points = curve.map((p, i) => {
+      const x = (i / (curve.length - 1)) * 720;
+      const y = 185 - ((p.equity - min) / range) * 165;
+      return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    const strategyLine = points.join(' ');
+    const strategyArea = `${strategyLine} L 720 190 L 0 190 Z`;
+
+    const benchPoints = curve.map((p, i) => {
+      const x = (i / (curve.length - 1)) * 720;
+      const benchVal = p.benchmarkEquity || p.equity * 0.7;
+      const y = 185 - ((benchVal - min) / range) * 165;
+      return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${Math.max(10, Math.min(190, y)).toFixed(1)}`;
+    });
+    const benchmarkLine = benchPoints.join(' ');
+
+    return { strategyLine, strategyArea, benchmarkLine, peakEquity: peak, totalReturnPct: totalReturn };
+  }, [backtestResult, strategy]);
+
+  // Real SVG Line Chart for Stitch Screen 3 Underwater Drawdown (viewBox 0 0 720 90)
+  const stitchDrawdownSvg = useMemo(() => {
+    if (!backtestResult?.equityCurve || backtestResult.equityCurve.length < 2) {
+      return {
+        line: 'M0,10 L60,10 L100,24 L140,10 L210,10 L240,48 L280,18 L320,10 L440,10 L480,68 L520,28 L560,10 L640,10 L670,22 L720,10',
+        area: 'M0,10 L60,10 L100,24 L140,10 L210,10 L240,48 L280,18 L320,10 L440,10 L480,68 L520,28 L560,10 L640,10 L670,22 L720,10 L720,10 Z',
+        maxDd: backtestResult?.metrics.maxDrawdownPct ?? 6.42,
+      };
+    }
+    const curve = backtestResult.equityCurve;
+    const maxDdVal = Math.max(0.1, ...curve.map((p) => p.drawdownPct));
+    const points = curve.map((p, i) => {
+      const x = (i / (curve.length - 1)) * 720;
+      const y = 10 + (p.drawdownPct / maxDdVal) * 70;
+      return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    const line = points.join(' ');
+    const area = `${line} L 720 10 L 0 10 Z`;
+    return { line, area, maxDd: maxDdVal };
+  }, [backtestResult]);
+
   // Sample values for ORB 5M Visualizer (derived from current stock price)
   const basePrice = candles.length > 0 ? candles[0].close : 2500;
   const sampleOrbHigh = Number((basePrice * 1.004).toFixed(2));
@@ -712,7 +771,7 @@ export const DhanStrategyDetail: React.FC<DhanStrategyDetailProps> = ({
               <div className="flex items-center gap-space-md font-mono-sm text-mono-sm">
                 <span className="inline-flex items-center gap-space-xs text-bullish">
                   <span className="w-2.5 h-2.5 rounded-full bg-bullish"></span>
-                  {strategy.name} (+148.4%)
+                  {strategy.name} (+{stitchEquitySvg.totalReturnPct.toFixed(1)}%)
                 </span>
                 <span className="inline-flex items-center gap-space-xs text-text-muted">
                   <span className="w-2.5 h-2.5 rounded-full bg-text-muted"></span>
@@ -725,15 +784,15 @@ export const DhanStrategyDetail: React.FC<DhanStrategyDetailProps> = ({
             <div className="w-full bg-surface-container-low rounded-lg p-space-md">
               <div className="flex items-center justify-between mb-space-xs font-mono-sm text-mono-sm text-text-muted">
                 <span>EQUITY CURVE (₹{strategy.marginRequired.toLocaleString('en-IN')} BASE)</span>
-                <span className="text-bullish font-semibold">PEAK: ₹{(strategy.marginRequired * 2.484).toLocaleString('en-IN')}</span>
+                <span className="text-bullish font-semibold">PEAK: ₹{Math.round(stitchEquitySvg.peakEquity).toLocaleString('en-IN')}</span>
               </div>
               <svg className="w-full h-48 overflow-visible" preserveAspectRatio="none" viewBox="0 0 720 200">
                 <line className="text-surface-container-highest" stroke="currentColor" strokeDasharray="4 4" strokeWidth="1" x1="0" x2="720" y1="40" y2="40" />
                 <line className="text-surface-container-highest" stroke="currentColor" strokeDasharray="4 4" strokeWidth="1" x1="0" x2="720" y1="95" y2="95" />
                 <line className="text-surface-container-highest" stroke="currentColor" strokeDasharray="4 4" strokeWidth="1" x1="0" x2="720" y1="150" y2="150" />
-                <path className="text-text-muted" d="M0,175 L60,168 L120,172 L180,158 L240,162 L300,148 L360,152 L420,138 L480,142 L540,128 L600,132 L660,118 L720,112" fill="none" stroke="currentColor" strokeDasharray="4 3" strokeWidth="1.75" />
-                <path className="text-bullish opacity-10" d="M0,175 L60,160 L120,148 L180,132 L240,138 L300,110 L360,96 L420,82 L480,88 L540,60 L600,45 L660,28 L720,16 L720,190 L0,190 Z" fill="currentColor" />
-                <path className="text-bullish" d="M0,175 L60,160 L120,148 L180,132 L240,138 L300,110 L360,96 L420,82 L480,88 L540,60 L600,45 L660,28 L720,16" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" />
+                <path className="text-text-muted" d={stitchEquitySvg.benchmarkLine} fill="none" stroke="currentColor" strokeDasharray="4 3" strokeWidth="1.75" />
+                <path className="text-bullish opacity-10" d={stitchEquitySvg.strategyArea} fill="currentColor" />
+                <path className="text-bullish" d={stitchEquitySvg.strategyLine} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" />
               </svg>
             </div>
 
@@ -742,13 +801,13 @@ export const DhanStrategyDetail: React.FC<DhanStrategyDetailProps> = ({
               <div className="flex items-center justify-between mb-space-xs font-mono-sm text-mono-sm text-text-muted">
                 <span>UNDERWATER DRAWDOWN (%)</span>
                 <span className="text-bearish font-semibold">
-                  MAX DD: -{backtestResult?.metrics.maxDrawdownPct !== undefined ? backtestResult.metrics.maxDrawdownPct.toFixed(2) : '6.42'}%
+                  MAX DD: -{stitchDrawdownSvg.maxDd.toFixed(2)}%
                 </span>
               </div>
               <svg className="w-full h-24 overflow-visible" preserveAspectRatio="none" viewBox="0 0 720 90">
                 <line className="text-surface-container-highest" stroke="currentColor" strokeWidth="1" x1="0" x2="720" y1="10" y2="10" />
-                <path className="text-bearish opacity-15" d="M0,10 L60,10 L100,24 L140,10 L210,10 L240,48 L280,18 L320,10 L440,10 L480,68 L520,28 L560,10 L640,10 L670,22 L720,10 Z" fill="currentColor" />
-                <path className="text-bearish" d="M0,10 L60,10 L100,24 L140,10 L210,10 L240,48 L280,18 L320,10 L440,10 L480,68 L520,28 L560,10 L640,10 L670,22 L720,10" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+                <path className="text-bearish opacity-15" d={stitchDrawdownSvg.area} fill="currentColor" />
+                <path className="text-bearish" d={stitchDrawdownSvg.line} fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
               </svg>
             </div>
           </section>
@@ -1147,8 +1206,8 @@ class NiftyAlphaV4(bt.Strategy):
                         <button
                           key={tf}
                           onClick={() => setSelectedTimeframe(tf)}
-                          className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
-                            selectedTimeframe === tf ? 'bg-[#0A0A0D] text-white' : 'text-gray-600 hover:text-black'
+                          className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                            selectedTimeframe === tf ? 'bg-primary text-on-primary shadow-xs' : 'text-text-secondary hover:text-on-surface'
                           }`}
                         >
                           {tf.toUpperCase()}
@@ -1159,26 +1218,26 @@ class NiftyAlphaV4(bt.Strategy):
 
                   {/* Free Data Provider Toggle */}
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-gray-500">Provider:</span>
-                    <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-gray-200 shadow-sm">
+                    <span className="text-xs font-bold text-text-muted">Provider:</span>
+                    <div className="flex items-center gap-1 bg-surface-card p-1 rounded-xl border border-border-subtle shadow-sm">
                       <button
                         type="button"
                         onClick={() => setDataProvider('yahoo')}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                          dataProvider === 'yahoo' ? 'bg-[#0A0A0D] text-white' : 'text-gray-600 hover:text-black'
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                          dataProvider === 'yahoo' ? 'bg-primary text-on-primary shadow-xs' : 'text-text-secondary hover:text-on-surface'
                         }`}
                       >
-                        <Globe className="w-3 h-3 text-emerald-400" />
+                        <Globe className="w-3 h-3 text-bullish" />
                         <span>Yahoo Finance (Free Daily · Inception)</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => setDataProvider('upstox')}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                          dataProvider === 'upstox' ? 'bg-[#0A0A0D] text-white' : 'text-gray-600 hover:text-black'
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                          dataProvider === 'upstox' ? 'bg-primary text-on-primary shadow-xs' : 'text-text-secondary hover:text-on-surface'
                         }`}
                       >
-                        <Database className="w-3 h-3 text-blue-400" />
+                        <Database className="w-3 h-3 text-secondary" />
                         <span>Upstox Live API</span>
                       </button>
                     </div>
@@ -1247,7 +1306,7 @@ class NiftyAlphaV4(bt.Strategy):
 
                   <button
                     onClick={handleRecalculate}
-                    className="flex items-center gap-1.5 px-4 py-1.5 bg-[#0A0A0D] text-white rounded-xl text-xs font-bold shadow-sm hover:bg-neutral-800 active:scale-95"
+                    className="flex items-center gap-1.5 px-4 py-1.5 bg-primary text-on-primary rounded-xl text-xs font-bold shadow-sm hover:bg-primary-container active:scale-95 cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>Recalculate Engine</span>
@@ -2300,21 +2359,21 @@ class NiftyAlphaV4(bt.Strategy):
                         setHasCopiedCode(true);
                         setTimeout(() => setHasCopiedCode(false), 2000);
                       }}
-                      className="flex items-center gap-1.5 px-3 py-1 bg-black text-white rounded-lg text-xs font-bold transition-all"
+                      className="flex items-center gap-1.5 px-3 py-1 bg-surface-card border border-border-subtle hover:border-primary text-on-surface rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
                     >
-                      {hasCopiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      {hasCopiedCode ? <Check className="w-3.5 h-3.5 text-bullish" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{hasCopiedCode ? 'Copied' : 'Copy Script'}</span>
                     </button>
                   </div>
-                  <pre className="p-4 bg-[#0A0A0D] text-gray-200 rounded-xl font-mono text-[11px] leading-relaxed overflow-x-auto select-all">
+                  <pre className="bg-surface-container-low rounded-lg p-space-md overflow-x-auto font-mono-sm text-mono-sm text-on-surface leading-relaxed select-all border border-border-subtle">
                     {PINE_SCRIPT_SOURCE}
                   </pre>
                 </div>
               )}
 
-              <div className="p-5 rounded-2xl bg-[#FAFAFC] border border-gray-200 space-y-3">
-                <h4 className="font-bold text-sm text-[#0A0A0D]">Strategy Prompt & Institutional Rules</h4>
-                <div className="p-4 bg-white rounded-xl border border-gray-200 font-mono text-[11px] leading-relaxed whitespace-pre-wrap text-gray-800">
+              <div className="p-5 rounded-2xl bg-surface-container-low border border-border-subtle space-y-3">
+                <h4 className="font-bold text-sm text-on-surface">Strategy Prompt & Institutional Rules</h4>
+                <div className="p-4 bg-surface-card rounded-xl border border-border-subtle font-mono text-[11px] leading-relaxed whitespace-pre-wrap text-on-surface">
                   {strategy.promptRules || strategy.description}
                 </div>
               </div>

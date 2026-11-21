@@ -50,8 +50,8 @@ export const UpstoxSettingsModal: React.FC<UpstoxSettingsModalProps> = ({ isOpen
         {/* Header */}
         <div className="p-6 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#0A0A0D] flex items-center justify-center text-white font-bold">
-              <Key className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-surface-container-low border border-border-subtle flex items-center justify-center text-primary font-bold shadow-xs">
+              <Key className="w-5 h-5 text-secondary" />
             </div>
             <div>
               <h2 className="font-bold text-base text-[#0A0A0D]">Upstox API Gateway</h2>
@@ -134,7 +134,7 @@ export const UpstoxSettingsModal: React.FC<UpstoxSettingsModalProps> = ({ isOpen
 
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-[#0A0A0D] hover:bg-neutral-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all"
+            className="px-5 py-2 bg-primary text-on-primary hover:bg-primary-container font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
           >
             Save & Continue
           </button>

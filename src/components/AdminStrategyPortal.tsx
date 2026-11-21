@@ -377,7 +377,7 @@ export const AdminStrategyPortal: React.FC<AdminStrategyPortalProps> = ({
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-[#FAFAFC]">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#0A0A0D] text-white flex items-center justify-center font-bold text-sm">
+                <div className="w-8 h-8 rounded-xl bg-primary text-on-primary flex items-center justify-center font-bold text-sm shadow-xs">
                   +
                 </div>
                 <div>
@@ -752,8 +752,8 @@ export const AdminStrategyPortal: React.FC<AdminStrategyPortalProps> = ({
                         <button
                           type="button"
                           onClick={() => setUseTrailingStop(!useTrailingStop)}
-                          className={`w-full py-1.5 rounded-lg font-bold text-xs transition-colors ${
-                            useTrailingStop ? 'bg-[#0A0A0D] text-white' : 'bg-gray-200 text-gray-700'
+                          className={`w-full py-1.5 rounded-lg font-bold text-xs transition-colors cursor-pointer ${
+                            useTrailingStop ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'
                           }`}
                         >
                           {useTrailingStop ? 'ENABLED' : 'DISABLED'}
@@ -849,7 +849,7 @@ export const AdminStrategyPortal: React.FC<AdminStrategyPortalProps> = ({
                 <button
                   type="submit"
                   disabled={isCompiling}
-                  className="px-6 py-2.5 bg-[#0A0A0D] hover:bg-black text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 disabled:opacity-50"
+                  className="px-6 py-2.5 bg-primary hover:bg-primary-container text-on-primary font-bold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   {isCompiling ? (
                     <>

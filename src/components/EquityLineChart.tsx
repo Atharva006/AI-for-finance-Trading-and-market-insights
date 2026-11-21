@@ -182,23 +182,23 @@ export const EquityLineChart: React.FC<EquityLineChartProps> = ({
           )}
         </svg>
 
-        {/* Dynamic HTML Tooltip on Hover */}
+        {/* Dynamic HTML Tooltip on Hover (Stitch 100% Light Theme) */}
         {hoveredPoint && (
           <div
-            className="absolute pointer-events-none bg-[#0A0A0D] text-white p-2.5 rounded-xl shadow-xl text-xs font-mono space-y-0.5 z-20 border border-neutral-700"
+            className="absolute pointer-events-none bg-surface-card text-on-surface p-2.5 rounded-xl shadow-xl text-xs font-mono space-y-0.5 z-20 border border-border-subtle"
             style={{
               left: `${(hoveredPoint.x / width) * 100}%`,
               top: `${Math.max(10, (hoveredPoint.y / height) * 100 - 35)}%`,
               transform: 'translate(-50%, -100%)',
             }}
           >
-            <div className="text-[10px] text-gray-400 font-semibold">{hoveredPoint.pt.time}</div>
-            <div className="font-bold text-sm">
+            <div className="text-[10px] text-text-muted font-semibold">{hoveredPoint.pt.time}</div>
+            <div className="font-bold text-sm text-on-surface">
               ₹{hoveredPoint.pt.equity.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
             </div>
             <div className="text-[11px] flex items-center justify-between gap-3 pt-0.5">
-              <span className="text-gray-400">Return:</span>
-              <span className={hoveredPoint.pt.equity >= initialCapital ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
+              <span className="text-text-muted">Return:</span>
+              <span className={hoveredPoint.pt.equity >= initialCapital ? 'text-bullish font-bold' : 'text-bearish font-bold'}>
                 {hoveredPoint.pt.equity >= initialCapital ? '+' : ''}
                 {(((hoveredPoint.pt.equity - initialCapital) / initialCapital) * 100).toFixed(2)}%
               </span>

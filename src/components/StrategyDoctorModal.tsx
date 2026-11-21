@@ -84,8 +84,8 @@ export const StrategyDoctorModal: React.FC<StrategyDoctorModalProps> = ({
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#0A0A0D] flex items-center justify-center text-emerald-400 shadow-md">
-              <Sparkles className="w-5 h-5 text-emerald-400" />
+            <div className="w-10 h-10 rounded-2xl bg-surface-container-low border border-border-subtle flex items-center justify-center text-bullish shadow-xs">
+              <Sparkles className="w-5 h-5 text-bullish" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -316,7 +316,7 @@ export const StrategyDoctorModal: React.FC<StrategyDoctorModalProps> = ({
         <div className="pt-3 border-t border-gray-100 flex items-center justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 bg-[#0A0A0D] text-white hover:bg-neutral-800 rounded-xl text-xs font-bold shadow-sm transition-all"
+            className="px-5 py-2.5 bg-primary text-on-primary hover:bg-primary-container rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer"
           >
             Apply & Close Audit
           </button>

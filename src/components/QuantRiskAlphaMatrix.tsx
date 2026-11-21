@@ -38,8 +38,8 @@ export const QuantRiskAlphaMatrix: React.FC<QuantRiskAlphaMatrixProps> = ({
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0A0A0D] flex items-center justify-center text-white shadow-sm">
-            <Activity className="w-5 h-5 text-emerald-400" />
+          <div className="w-10 h-10 rounded-xl bg-surface-container-low border border-border-subtle flex items-center justify-center text-bullish shadow-xs">
+            <Activity className="w-5 h-5 text-bullish" />
           </div>
           <div>
             <div className="flex items-center gap-2">

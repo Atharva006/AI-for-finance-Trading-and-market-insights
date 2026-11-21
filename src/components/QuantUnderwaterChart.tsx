@@ -64,30 +64,30 @@ export const QuantUnderwaterChart: React.FC<QuantUnderwaterChartProps> = ({
   const fillD = `${pathD} L ${lastX} ${baselineY} L ${firstX} ${baselineY} Z`;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4 select-none font-mono">
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-gray-100">
+    <div className="bg-surface-card rounded-xl border border-border-subtle shadow-sm p-6 space-y-4 select-none font-mono">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-border-subtle">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#0A0A0D] flex items-center justify-center text-rose-400">
-            <TrendingDown className="w-4 h-4 text-rose-400" />
+          <div className="w-8 h-8 rounded-lg bg-bearish-tint border border-bearish/20 flex items-center justify-center text-bearish">
+            <TrendingDown className="w-4 h-4 text-bearish" />
           </div>
           <div>
-            <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">
+            <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider block">
               Quant Excursion Telemetry
             </span>
-            <h4 className="text-sm font-extrabold text-[#0A0A0D] font-sans">
+            <h4 className="text-sm font-bold text-on-surface font-sans">
               Underwater Drawdown Profile (High-Water Mark Excursions)
             </h4>
           </div>
         </div>
 
         <div className="flex items-center gap-3 text-xs">
-          <div className="px-3 py-1 bg-rose-50 border border-rose-200 rounded-lg text-rose-700">
-            <span className="text-[9px] uppercase font-bold block text-rose-500">Max Excursion</span>
+          <div className="px-3 py-1 bg-bearish-tint border border-bearish/30 rounded-lg text-bearish">
+            <span className="text-[9px] uppercase font-bold block opacity-80">Max Excursion</span>
             <span className="text-sm font-bold">{underwaterData.maxDD.toFixed(2)}%</span>
           </div>
 
-          <div className="px-3 py-1 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
-            <span className="text-[9px] uppercase font-bold block text-gray-400">Peak Re-entries</span>
+          <div className="px-3 py-1 bg-surface-container-low border border-border-subtle rounded-lg text-on-surface">
+            <span className="text-[9px] uppercase font-bold block text-text-muted">Peak Re-entries</span>
             <span className="text-sm font-bold">
               {underwaterData.points.filter((p) => p.isAth).length} ATHs
             </span>
@@ -100,8 +100,8 @@ export const QuantUnderwaterChart: React.FC<QuantUnderwaterChartProps> = ({
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto min-w-[600px] text-xs">
           <defs>
             <linearGradient id="underwaterGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#EF4444" stopOpacity="0.35" />
-              <stop offset="100%" stopColor="#EF4444" stopOpacity="0.05" />
+              <stop offset="0%" stopColor="#E11D48" stopOpacity="0.30" />
+              <stop offset="100%" stopColor="#E11D48" stopOpacity="0.02" />
             </linearGradient>
           </defs>
 
@@ -161,7 +161,7 @@ export const QuantUnderwaterChart: React.FC<QuantUnderwaterChartProps> = ({
           <path d={fillD} fill="url(#underwaterGrad)" />
 
           {/* Underwater Line */}
-          <path d={pathD} fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" />
+          <path d={pathD} fill="none" stroke="#E11D48" strokeWidth="2" strokeLinecap="round" />
 
           {/* ATH Dots on 0% line */}
           {underwaterData.points.map((pt, idx) => {

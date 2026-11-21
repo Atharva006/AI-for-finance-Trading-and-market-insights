@@ -252,11 +252,11 @@ export const BasketPortfolioStudio: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Toast Notification */}
+      {/* Toast Notification (Stitch 100% Light Theme) */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#0A0A0D] text-white px-5 py-3 rounded-2xl shadow-2xl border border-neutral-700 flex items-center gap-3 text-xs font-mono animate-bounce">
-          <Check className="w-4 h-4 text-emerald-400" />
-          <span>{toastMsg}</span>
+        <div className="fixed bottom-6 right-6 z-50 bg-surface-card text-on-surface px-5 py-3 rounded-xl shadow-xl border border-border-subtle flex items-center gap-3 text-xs font-mono animate-bounce">
+          <Check className="w-4 h-4 text-bullish" />
+          <span className="font-semibold">{toastMsg}</span>
         </div>
       )}
 
@@ -861,7 +861,7 @@ export const BasketPortfolioStudio: React.FC = () => {
               </button>
               <button
                 onClick={handleAddItem}
-                className="px-5 py-2 bg-[#0A0A0D] text-white rounded-xl text-xs font-bold hover:bg-neutral-800 shadow-sm transition-all"
+                className="px-5 py-2 bg-primary text-on-primary rounded-xl text-xs font-bold hover:bg-primary-container shadow-sm transition-all cursor-pointer"
               >
                 Add to Basket
               </button>
