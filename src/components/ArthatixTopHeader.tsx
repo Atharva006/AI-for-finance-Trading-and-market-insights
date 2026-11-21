@@ -51,14 +51,15 @@ const SEARCH_INDEX: SearchItem[] = [
   { id: 'inst-gbpusd', title: 'GBP/USD', subtitle: 'British Pound / US Dollar FX Spot', category: 'instrument', symbol: 'GBP/USD', badge: 'FOREX' },
   { id: 'inst-usdinr', title: 'USD/INR', subtitle: 'US Dollar / Indian Rupee Currency Pair', category: 'instrument', symbol: 'USD/INR', badge: 'CURRENCY' },
 
-  // Destinations
+  // Destinations (Strictly unified canonical names matching sidebar & views)
+  { id: 'dest-overview', title: 'Market Overview', subtitle: 'NSE real-time telemetry, tick data and market breadth', category: 'destination', view: 'landing', badge: 'Overview' },
   { id: 'dest-paper', title: 'Paper Trading Desk', subtitle: 'Virtual simulated execution desk with real-time L2 orderbook', category: 'destination', view: 'papertrading', badge: 'Desk' },
   { id: 'dest-backtest', title: 'Backtest Studio', subtitle: 'Walk-forward strategy backtesting engine with slippage & commission', category: 'destination', view: 'backtest', badge: 'Studio' },
   { id: 'dest-market', title: 'Algo Marketplace', subtitle: 'Audited quantitative strategies with Sharpe & Drawdown analytics', category: 'destination', view: 'marketplace', badge: 'Market' },
-  { id: 'dest-heatmaps', title: 'Market Heatmaps', subtitle: 'Interactive TradingView SENSEX / Nifty 50 market breadth map', category: 'destination', view: 'heatmap', badge: 'Map' },
-  { id: 'dest-insights', title: 'Market Insights', subtitle: 'Fundamental pulse, valuation ratios, institutional radar', category: 'destination', view: 'insights', badge: 'Pulse' },
-  { id: 'dest-flow', title: 'Flow Canvas', subtitle: 'n8n-style visual algorithmic automation & workflow studio', category: 'destination', view: 'flow', badge: 'Canvas' },
-  { id: 'dest-fvg', title: 'FVG strategy', subtitle: 'Asia-London-NY Fair Value Gap session liquidity algorithmic model', category: 'destination', view: 'forex', badge: 'Algo' },
+  { id: 'dest-heatmaps', title: 'Market Heatmaps', subtitle: 'Interactive TradingView SENSEX / Nifty 50 market breadth map', category: 'destination', view: 'heatmap', badge: 'Heatmap' },
+  { id: 'dest-insights', title: 'Market Insights', subtitle: 'Fundamental pulse, valuation ratios, institutional radar', category: 'destination', view: 'insights', badge: 'Insights' },
+  { id: 'dest-flow', title: 'Flow Canvas', subtitle: 'Visual algorithmic automation and workflow studio', category: 'destination', view: 'flow', badge: 'Canvas' },
+  { id: 'dest-fvg', title: 'FVG Trading Desk', subtitle: 'Asia-London-NY Fair Value Gap session liquidity algorithmic desk', category: 'destination', view: 'forex', badge: 'Desk' },
   { id: 'dest-compiler', title: 'Strategy Compiler', subtitle: 'Institutional strategy code generator and risk governance', category: 'destination', view: 'admin', badge: 'Audit' },
 ];
 
@@ -326,11 +327,11 @@ export const ArthatixTopHeader: React.FC<ArthatixTopHeaderProps> = ({
               ? 'bg-[#2563EB] text-white shadow-sm'
               : 'bg-[#EFF6FF] text-[#1E40AF] border border-[#BFDBFE] hover:bg-[#DBEAFE]'
           }`}
-          title="Switch to Virtual Paper Trading Desk"
-          aria-label="Switch to Virtual Paper Trading Desk"
+          title="Paper Trading Desk"
+          aria-label="Paper Trading Desk"
         >
           <Activity className="w-3.5 h-3.5" />
-          <span>Paper Desk</span>
+          <span>Paper Trading Desk</span>
         </button>
 
         <button
@@ -340,11 +341,11 @@ export const ArthatixTopHeader: React.FC<ArthatixTopHeaderProps> = ({
               ? 'bg-[#0F172A] text-white shadow-sm'
               : 'bg-[#F8FAFC] border border-[#E2E8F0] text-[#334155] hover:bg-[#F1F5F9]'
           }`}
-          title="Asia-London-NY FVG Liquidity Desk"
-          aria-label="Open Asia-London-NY FVG Liquidity Desk"
+          title="FVG Trading Desk"
+          aria-label="FVG Trading Desk"
         >
           <TrendingUp className="w-3.5 h-3.5 text-[#2563EB]" />
-          <span>FVG Algo</span>
+          <span>FVG Trading Desk</span>
         </button>
 
         <div className="h-5 w-px bg-[#E2E8F0] mx-0.5" />

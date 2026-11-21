@@ -811,7 +811,7 @@ export const BasketPortfolioStudio: React.FC = () => {
                 onChange={(e) => setSelectedStrategy(e.target.value as BasketStrategyType)}
                 className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs font-bold text-[#0A0A0D] focus:outline-none focus:border-black"
               >
-                <option value="TREND_PULLBACK_CHANDELIER">Nifty50 Daily Trend-Pullback 1% Risk Chandelier</option>
+                <option value="TREND_PULLBACK_CHANDELIER">Nifty 50 Daily Trend-Pullback</option>
                 <option value="PSAR_SMA100">PSAR + SMA 100 Trend Following</option>
                 <option value="OPENING_RANGE">ORB 5M Breakout (Pure Price Action)</option>
                 <option value="STOCHASTIC">Stochastic Momentum Oscillator (%K, %D)</option>

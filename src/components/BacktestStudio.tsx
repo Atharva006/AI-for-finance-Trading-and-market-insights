@@ -466,7 +466,7 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
 
     if (strategyMode === 'TREND_PULLBACK_CHANDELIER') {
       targetId = `algo-nifty-trend-pullback-chandelier`;
-      stratName = `Nifty50 Daily Trend-Pullback | 1% Risk | Chandelier`;
+      stratName = `Nifty 50 Daily Trend-Pullback`;
     } else if (!stratName || strategyMode === 'PSAR_SMA100') {
       targetId = `algo-psar-strategy-${symbolSlug}`;
       stratName = `PSAR Strategy - ${symbolClean}`;

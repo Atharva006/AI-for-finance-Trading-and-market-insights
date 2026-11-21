@@ -306,7 +306,7 @@ export const ArthatixOverviewDashboard: React.FC<ArthatixOverviewDashboardProps>
             className="px-3.5 py-1.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-xs transition-colors shadow-2xs flex items-center gap-1.5 active:scale-95"
           >
             <Activity className="w-3.5 h-3.5" />
-            <span>Open Paper Desk</span>
+            <span>Paper Trading Desk</span>
           </button>
         </div>
       </div>
@@ -545,7 +545,7 @@ export const ArthatixOverviewDashboard: React.FC<ArthatixOverviewDashboardProps>
             onClick={() => onNavigate('insights')}
             className="text-[#2563EB] hover:text-[#1D4ED8] font-semibold text-xs shrink-0 flex items-center gap-0.5 active:scale-95 ml-2"
           >
-            <span>Pulse</span>
+            <span>Market Insights</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -562,7 +562,7 @@ export const ArthatixOverviewDashboard: React.FC<ArthatixOverviewDashboardProps>
             onClick={() => onNavigate('papertrading')}
             className="text-[#2563EB] hover:text-[#1D4ED8] font-semibold text-xs flex items-center gap-0.5 active:scale-95"
           >
-            <span>Trade Desk</span>
+            <span>Paper Trading Desk</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -603,7 +603,7 @@ export const ArthatixOverviewDashboard: React.FC<ArthatixOverviewDashboardProps>
                       }}
                       className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#EEF3FF] text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition-colors"
                     >
-                      Backtest
+                      Backtest Studio
                     </button>
                   </td>
                 </tr>
@@ -624,7 +624,7 @@ export const ArthatixOverviewDashboard: React.FC<ArthatixOverviewDashboardProps>
             onClick={() => onNavigate('heatmap')}
             className="text-[#2563EB] hover:text-[#1D4ED8] font-semibold text-xs flex items-center gap-0.5 active:scale-95"
           >
-            <span>Full Heatmap</span>
+            <span>Market Heatmaps</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -941,13 +941,13 @@ export const ArthatixOverviewDashboard: React.FC<ArthatixOverviewDashboardProps>
               onClick={() => onNavigate('forex')}
               className="flex-1 py-1.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-xs transition-colors text-center active:scale-95 shadow-2xs"
             >
-              Launch FVG Terminal
+              FVG Trading Desk
             </button>
             <button
               onClick={() => onNavigate('marketplace')}
               className="py-1.5 px-3 rounded-lg bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-[#334155] font-semibold text-xs transition-colors active:scale-95"
             >
-              All Strategies
+              Algo Marketplace
             </button>
           </div>
         </div>

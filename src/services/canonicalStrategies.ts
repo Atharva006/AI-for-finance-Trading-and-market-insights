@@ -1453,7 +1453,7 @@ export const PSAR_STRATEGY_AXISBANK: AlgoStrategy = {
 
 export const NIFTY_TREND_PULLBACK_CHANDELIER_STRATEGY: AlgoStrategy = {
   id: "algo-nifty-trend-pullback-chandelier",
-  name: "Nifty50 Daily Trend-Pullback | 1% Risk | Chandelier",
+  name: "Nifty 50 Daily Trend-Pullback",
   tagline: "50/200 EMA Regime · RSI(5) Pullback · 1% Dynamic Risk · 3.0x ATR Chandelier Exit",
   category: "Trend Following",
   style: "Trend-Pullback Swing (Pine Script v5)",
@@ -1873,7 +1873,7 @@ export const NIFTY_TREND_PULLBACK_CHANDELIER_STRATEGY: AlgoStrategy = {
 // Flagship FVG Strategy
 export const ASIA_LONDON_NY_FVG_STRATEGY: AlgoStrategy = {
   id: 'algo-asia-london-ny-fvg',
-  name: 'Asia-London-NY FVG Inversion (Pine Script v5)',
+  name: 'Asia-London-NY FVG Strategy',
   tagline: 'Asia Liquidity Sweep · London FVG Inversion · 1:2.0 Dynamic Risk-Reward · Vectorized Execution',
   category: 'Session Liquidity Inversion',
   style: 'ICT Session Sweep / FVG Inversion',
