@@ -1,4 +1,4 @@
-import { Candle, Trade, ExitReason } from '../types/backtest';
+import { Candle, Trade, ExitReason, EquityPoint } from '../types/backtest';
 
 export interface ForexPairInfo {
   symbol: string;         // e.g. 'EURUSD=X', 'GC=F'
@@ -151,7 +151,8 @@ export interface ForexBacktestResult {
     cagrPct: number;
     totalPipsGained: number;
   };
-  equityCurve: {
+  equityCurve: EquityPoint[];
+  equityCurveUSD: {
     time: string;
     equityUSD: number;
     drawdownPct: number;
@@ -222,7 +223,8 @@ export function runSessionSweepBacktest(
         cagrPct: 0,
         totalPipsGained: 0,
       },
-      equityCurve: [{ time: 'N/A', equityUSD: initialCapitalUSD, drawdownPct: 0 }],
+      equityCurve: [{ time: 'N/A', equity: initialCapitalUSD, benchmarkEquity: initialCapitalUSD, drawdownPct: 0 }],
+      equityCurveUSD: [{ time: 'N/A', equityUSD: initialCapitalUSD, drawdownPct: 0 }],
     };
   }
 
@@ -233,8 +235,11 @@ export function runSessionSweepBacktest(
   let maxDrawdownPct = 0;
   let totalPips = 0;
 
-  const equityCurve: { time: string; equityUSD: number; drawdownPct: number }[] = [
+  const equityCurveUSD: { time: string; equityUSD: number; drawdownPct: number }[] = [
     { time: candles[0].time, equityUSD: initialCapitalUSD, drawdownPct: 0 },
+  ];
+  const equityCurve: EquityPoint[] = [
+    { time: candles[0].time, equity: initialCapitalUSD, benchmarkEquity: initialCapitalUSD, drawdownPct: 0 },
   ];
 
   // Strategy State tracking matching Pine Script
@@ -722,10 +727,17 @@ export function runSessionSweepBacktest(
       }
     }
 
-    equityCurve.push({
+    const ddPctCurrent = peakEquityUSD > 0 ? ((peakEquityUSD - currentEquityUSD) / peakEquityUSD) * 100 : 0;
+    equityCurveUSD.push({
       time: c.time,
       equityUSD: currentEquityUSD,
-      drawdownPct: peakEquityUSD > 0 ? ((peakEquityUSD - currentEquityUSD) / peakEquityUSD) * 100 : 0,
+      drawdownPct: ddPctCurrent,
+    });
+    equityCurve.push({
+      time: c.time,
+      equity: currentEquityUSD,
+      benchmarkEquity: initialCapitalUSD,
+      drawdownPct: ddPctCurrent,
     });
   }
 
@@ -781,5 +793,6 @@ export function runSessionSweepBacktest(
       totalPipsGained: Number(totalPips.toFixed(1)),
     },
     equityCurve,
+    equityCurveUSD,
   };
 }

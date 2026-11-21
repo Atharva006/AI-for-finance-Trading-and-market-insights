@@ -33,6 +33,9 @@ import {
   runSessionSweepBacktest,
 } from '../services/forexEngine';
 import { Candle } from '../types/backtest';
+import { EquityLineChart } from './EquityLineChart';
+import { QuantUnderwaterChart } from './QuantUnderwaterChart';
+import { QuantRiskAlphaMatrix } from './QuantRiskAlphaMatrix';
 
 interface ForexPortalProps {
   onBackToMain?: () => void;
@@ -548,6 +551,51 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                   </span>
                 </div>
               </div>
+            )}
+
+            {/* 1. Full Portfolio Equity Curve Line Chart (Same as Indian Market Studio) */}
+            {backtestResult && backtestResult.equityCurve && (
+              <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs">
+                <EquityLineChart
+                  equityCurve={backtestResult.equityCurve}
+                  initialCapital={accountCapitalUSD}
+                  title={`${selectedPair.displayName} Equity Growth Curve ($)`}
+                  subtitle={`Session Sweep FVG Inversion on authentic ${selectedInterval} candles (${candles.length} bars)`}
+                  strokeColor="#16A34A"
+                  fillGradStart="#16A34A"
+                />
+              </div>
+            )}
+
+            {/* 2. Institutional Underwater Drawdown Chart (Same as Indian Market Studio) */}
+            {backtestResult && backtestResult.trades.length > 0 && (
+              <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs">
+                <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2">
+                  <div className="flex items-center gap-2">
+                    <TrendingDown className="w-4 h-4 text-rose-600" />
+                    <span className="font-bold text-xs uppercase tracking-wider text-black">
+                      Underwater Peak-to-Trough Drawdown Analysis (%)
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-gray-400">
+                    Max Recorded Drawdown: -{backtestResult.metrics.maxDrawdownPct}%
+                  </span>
+                </div>
+                <QuantUnderwaterChart
+                  trades={backtestResult.trades}
+                  initialCapital={accountCapitalUSD}
+                />
+              </div>
+            )}
+
+            {/* 3. Quantitative Risk & Alpha Matrix (QRAM) (Same as Indian Market Studio) */}
+            {backtestResult && backtestResult.trades.length > 0 && (
+              <QuantRiskAlphaMatrix
+                trades={backtestResult.trades}
+                initialCapital={accountCapitalUSD}
+                strategyName="EURUSD Session Sweep (Asia-London-NY FVG Inversion)"
+                symbol={selectedPair.displayName}
+              />
             )}
 
             {/* Trade Log Table */}
