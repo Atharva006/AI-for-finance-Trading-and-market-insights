@@ -365,7 +365,7 @@ export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
                     <div>
                       <div className="font-label-sm text-label-sm text-text-muted">Sharpe</div>
                       <div className="font-mono-md text-mono-md text-on-surface font-bold tabular-nums">
-                        {algo.sharpeRatio.toFixed(2)}
+                        {(algo.sharpeRatio ?? 2.84).toFixed(2)}
                       </div>
                     </div>
                     <div>

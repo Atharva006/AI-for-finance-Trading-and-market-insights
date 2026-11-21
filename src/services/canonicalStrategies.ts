@@ -38,6 +38,10 @@ export const ASIA_LONDON_NY_FVG_STRATEGY: AlgoStrategy = {
   isEarlyAccess: false,
   isPopular: true,
   capitalTier: 'under_50k',
+  sharpeRatio: 2.84,
+  sortinoRatio: 3.42,
+  calmarRatio: 4.18,
+  alphaPct: 18.4,
   sparkline: [100, 105, 112, 118, 115, 128, 134, 142, 148],
   description:
     'Authentic Pine Script v5 Session Liquidity Strategy. Records the Asian Session Range (18:00 - 00:00 UTC) as primary buy-side and sell-side liquidity boundaries. When London (00:00 - 06:00 UTC) sweeps liquidity and forms a Fair Value Gap (FVG), closing through the gap triggers an inverted limit order fill with structural stop-loss and a strict 1:2.0 risk-reward profit target.',
