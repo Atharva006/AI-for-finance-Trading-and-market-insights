@@ -18,7 +18,7 @@ import { AlgoStrategy } from '../types/algoMarketplace';
 import { StockLogo } from './StockLogo';
 
 interface LandingPageProps {
-  onNavigateToView: (view: 'marketplace' | 'backtest' | 'flow' | 'detail' | 'admin' | 'insights' | 'auth') => void;
+  onNavigateToView: (view: 'marketplace' | 'backtest' | 'flow' | 'detail' | 'admin' | 'insights' | 'auth' | 'forex') => void;
   onSelectStrategy?: (strategyId: string) => void;
   customStrategies?: AlgoStrategy[];
 }
@@ -81,6 +81,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToView, onSe
 
           {/* Right Action: Sign In & Open Dashboard */}
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => onNavigateToView('forex')}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-2 border border-cyan-300 text-cyan-900 bg-cyan-50/70 hover:bg-cyan-100 rounded-lg text-xs font-bold transition-all shadow-xs"
+            >
+              <span>NRI Forex Desk</span>
+            </button>
             <button
               onClick={() => onNavigateToView('auth')}
               className="px-3.5 py-2 border border-gray-200 hover:border-black text-gray-700 hover:text-black rounded-lg text-xs font-semibold transition-all bg-white"

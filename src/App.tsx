@@ -11,6 +11,7 @@ import { AdminStrategyPortal } from './components/AdminStrategyPortal';
 import { UpstoxSettingsModal } from './components/UpstoxSettingsModal';
 import { MarketPulseInsights } from './components/MarketPulseInsights';
 import { AuthPage } from './components/AuthPage';
+import { ForexPortal } from './components/ForexPortal';
 import { AlgoStrategy } from './types/algoMarketplace';
 import {
   getStoredStrategies,
@@ -46,6 +47,9 @@ function getViewFromPath(pathname: string, strategies: AlgoStrategy[]): { view: 
   if (cleanPath === '/admin') {
     return { view: 'admin', strategy: null };
   }
+  if (cleanPath === '/forex' || cleanPath === '/nri-forex-portal') {
+    return { view: 'forex', strategy: null };
+  }
   if (cleanPath === '/auth' || cleanPath === '/sign-in') {
     return { view: 'auth', strategy: null };
   }
@@ -69,6 +73,8 @@ function getPathForView(view: AppView, strategy?: AlgoStrategy | null): string {
       return '/market-insights';
     case 'admin':
       return '/admin';
+    case 'forex':
+      return '/forex';
     case 'auth':
       return '/auth';
     default:
@@ -160,6 +166,12 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-[#F5F5F7] text-[#151515] flex flex-col font-sans selection:bg-black selection:text-white antialiased">
+      {/* High-frequency Quants Live Ticker Header */}
+      <QuantTerminalHeader
+        onOpenForex={() => navigateTo('forex')}
+        activeView={activeView}
+      />
+
       {/* Main Navigation Bar (Clean Light-Grey Institutional UI) */}
       {activeView !== 'landing' && activeView !== 'auth' && (
         <DhanNavbar
@@ -267,6 +279,12 @@ export function App() {
               }}
             />
           </div>
+        )}
+
+        {activeView === 'forex' && (
+          <ForexPortal
+            onBackToMain={() => navigateTo('marketplace')}
+          />
         )}
       </main>
 

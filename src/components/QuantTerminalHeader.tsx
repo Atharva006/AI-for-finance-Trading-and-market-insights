@@ -4,9 +4,18 @@ import {
   ShieldCheck,
   Sparkles,
   Layers,
+  Globe2,
 } from 'lucide-react';
 
-export const QuantTerminalHeader: React.FC = () => {
+interface QuantTerminalHeaderProps {
+  onOpenForex?: () => void;
+  activeView?: string;
+}
+
+export const QuantTerminalHeader: React.FC<QuantTerminalHeaderProps> = ({
+  onOpenForex,
+  activeView,
+}) => {
   return (
     <div className="bg-[#050508] border-b border-neutral-800 text-neutral-300 font-mono text-[11px] px-4 py-1.5 select-none overflow-x-auto no-scrollbar">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 shrink-0">
@@ -23,7 +32,7 @@ export const QuantTerminalHeader: React.FC = () => {
           </div>
         </div>
 
-        {/* Center Telemetry: Quant Parameters */}
+        {/* Center Telemetry: Quant Parameters & Forex Portal Switch */}
         <div className="hidden lg:flex items-center gap-4 text-neutral-400 text-[10px]">
           <div>
             NIFTY 50-EMA: <strong className="text-emerald-400">72% Above</strong>
@@ -43,11 +52,26 @@ export const QuantTerminalHeader: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Telemetry: Compliance Status */}
+        {/* Right Telemetry: NRI / Forex Portal Button & Compliance Status */}
         <div className="flex items-center gap-2">
+          {onOpenForex && (
+            <button
+              onClick={onOpenForex}
+              className={`flex items-center gap-1.5 px-2 py-0.5 rounded border transition-all text-[10px] font-bold ${
+                activeView === 'forex'
+                  ? 'bg-cyan-950/90 border-cyan-500 text-cyan-300 shadow-xs'
+                  : 'bg-neutral-900 border-cyan-800/80 text-cyan-400 hover:bg-cyan-950/50'
+              }`}
+              title="Launch NRI & Global Forex Desk"
+            >
+              <Globe2 className="w-3 h-3 text-cyan-400" />
+              <span>NRI / FOREX DESK (EUR·GBP)</span>
+            </button>
+          )}
+
           <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-400 text-[10px]">
             <ShieldCheck className="w-3 h-3 text-emerald-400" />
-            <span>SEBI COMPLIANT · PAPER TRADING ONLY</span>
+            <span>SEBI & FEMA COMPLIANT</span>
           </div>
         </div>
       </div>

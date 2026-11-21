@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Compass, Sliders, Workflow, Activity, Plus, TrendingUp, User, LogOut } from 'lucide-react';
+import { Compass, Sliders, Workflow, Activity, Plus, TrendingUp, User, LogOut, Globe2 } from 'lucide-react';
 import { getStoredLocalUser, signOutUser, AuthUserProfile } from '../services/supabaseAuth';
 
-export type AppView = 'landing' | 'marketplace' | 'backtest' | 'flow' | 'detail' | 'admin' | 'insights' | 'auth';
+export type AppView = 'landing' | 'marketplace' | 'backtest' | 'flow' | 'detail' | 'admin' | 'insights' | 'auth' | 'forex';
 
 interface DhanNavbarProps {
   activeView: AppView;
@@ -122,6 +122,21 @@ export const DhanNavbar: React.FC<DhanNavbarProps> = ({
             </button>
 
             <button
+              onClick={() => setActiveView('forex')}
+              className={`py-4 transition-colors relative flex items-center gap-1.5 ${
+                activeView === 'forex'
+                  ? 'text-[#0A0A0D] font-bold border-b-2 border-[#0A0A0D]'
+                  : 'text-gray-500 hover:text-black'
+              }`}
+            >
+              <Globe2 className="w-4 h-4 text-cyan-600" />
+              <span>NRI Forex Desk</span>
+              <span className="text-[10px] bg-cyan-50 text-cyan-800 border border-cyan-200 px-1.5 py-0.5 rounded-full font-mono font-bold">
+                EUR/GBP
+              </span>
+            </button>
+
+            <button
               onClick={() => setActiveView('admin')}
               className={`py-4 transition-colors relative flex items-center gap-1.5 ${
                 activeView === 'admin'
@@ -136,6 +151,20 @@ export const DhanNavbar: React.FC<DhanNavbarProps> = ({
 
         {/* Right: Quick Action Controls & User Account */}
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setActiveView('forex')}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all border ${
+              activeView === 'forex'
+                ? 'bg-cyan-50 text-cyan-900 border-cyan-300 shadow-xs'
+                : 'bg-white border-cyan-200/80 text-cyan-800 hover:bg-cyan-50/50'
+            }`}
+            title="Switch to NRI / Global Currency Trading Desk"
+          >
+            <Globe2 className="w-3.5 h-3.5 text-cyan-600" />
+            <span className="hidden sm:inline">NRI / Forex Portal</span>
+            <span className="sm:hidden">Forex</span>
+          </button>
+
           <button
             onClick={() => setActiveView('marketplace')}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
