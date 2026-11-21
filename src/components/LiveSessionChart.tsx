@@ -459,23 +459,23 @@ if not inNy and inNy[1]
   }, [visibleCandles, trades]);
 
   return (
-    <div className="bg-neutral-900/90 backdrop-blur-md border border-neutral-800 rounded-2xl p-5 shadow-lg font-mono select-none space-y-4">
+    <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs font-mono select-none space-y-4">
       {/* 1. Header with Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-800 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-xs shadow-[0_0_15px_rgba(255,85,0,0.5)]">
-            <Crosshair className="w-5 h-5 text-yellow-200" />
+          <div className="w-9 h-9 rounded-xl bg-[#0A0A0D] flex items-center justify-center text-white font-bold text-xs shadow-xs">
+            <Crosshair className="w-5 h-5 text-emerald-400" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-sm text-white tracking-tight font-sans">
+              <span className="font-bold text-sm text-[#0A0A0D] tracking-tight font-sans">
                 Live {pairName} Session Sweep Visualizer &amp; Drawing Engine
               </span>
-              <span className="text-[10px] bg-orange-500/20 text-orange-300 border border-orange-500/30 px-2.5 py-0.5 rounded font-bold">
+              <span className="text-[10px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-bold">
                 {interval} Bar Stream
               </span>
             </div>
-            <span className="text-[11px] text-neutral-400 block font-sans">
+            <span className="text-[11px] text-gray-400 block font-sans">
               Dynamic liquidity sweeps, FVG boxes, SL/TP lines &amp; on-chart comments
             </span>
           </div>
@@ -483,13 +483,13 @@ if not inNy and inNy[1]
 
         <div className="flex items-center gap-2">
           {/* Chart View Toggle: Line vs Candlestick */}
-          <div className="flex items-center bg-black/60 p-0.5 rounded-lg border border-neutral-800 text-xs">
+          <div className="flex items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200 text-xs">
             <button
               onClick={() => setChartMode('line')}
               className={`px-3 py-1 rounded-md font-bold transition-all ${
                 chartMode === 'line'
-                  ? 'bg-orange-600 text-white shadow-xs'
-                  : 'text-neutral-400 hover:text-white'
+                  ? 'bg-black text-white shadow-xs'
+                  : 'text-gray-600 hover:text-black'
               }`}
             >
               Line Chart
@@ -498,8 +498,8 @@ if not inNy and inNy[1]
               onClick={() => setChartMode('candles')}
               className={`px-3 py-1 rounded-md font-bold transition-all ${
                 chartMode === 'candles'
-                  ? 'bg-orange-600 text-white shadow-xs'
-                  : 'text-neutral-400 hover:text-white'
+                  ? 'bg-black text-white shadow-xs'
+                  : 'text-gray-600 hover:text-black'
               }`}
             >
               Candles
@@ -512,7 +512,7 @@ if not inNy and inNy[1]
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
               showScriptModal
                 ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                : 'bg-neutral-900 border-neutral-700 text-blue-400 hover:bg-neutral-800'
+                : 'bg-white border-blue-300 text-blue-700 hover:bg-blue-50'
             }`}
             title="View TradingView Pine Script v5 Code"
           >
@@ -525,8 +525,8 @@ if not inNy and inNy[1]
             onClick={() => setShowAnnotations(!showAnnotations)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
               showAnnotations
-                ? 'bg-orange-500/20 text-orange-300 border-orange-500/50'
-                : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
+                ? 'bg-black text-white border-black'
+                : 'bg-white border-gray-200 text-gray-600 hover:border-black'
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
@@ -538,12 +538,12 @@ if not inNy and inNy[1]
             onClick={() => setShowExplanation(!showExplanation)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
               showExplanation
-                ? 'bg-neutral-800 text-yellow-300 border-yellow-500/40'
-                : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
+                ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                : 'bg-white border-gray-200 text-gray-600 hover:border-black'
             }`}
           >
-            <Info className="w-3.5 h-3.5" />
-            <span>Info Explainer</span>
+            <Info className="w-3.5 h-3.5 text-emerald-700" />
+            <span>{showExplanation ? 'Hide Guide' : 'Explain Strategy'}</span>
           </button>
         </div>
       </div>
@@ -630,15 +630,15 @@ if not inNy and inNy[1]
       )}
 
       {/* 3. The Live Candlestick & Drawing Overlay SVG */}
-      <div className="relative w-full overflow-x-auto bg-[#0A0B0E] rounded-xl border border-neutral-800 p-2 shadow-inner">
+      <div className="relative w-full overflow-x-auto bg-[#FAFAFA] rounded-xl border border-gray-200 p-2">
         <svg
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-auto block select-none"
         >
           <defs>
             <linearGradient id="forexPriceGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#F97316" stopOpacity="0.35" />
-              <stop offset="100%" stopColor="#F97316" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#2563EB" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#2563EB" stopOpacity="0.0" />
             </linearGradient>
           </defs>
 
@@ -735,14 +735,14 @@ if not inNy and inNy[1]
                   y1={y}
                   x2={width - padding.right}
                   y2={y}
-                  stroke="#262626"
+                  stroke="#E5E7EB"
                   strokeDasharray="3 3"
                 />
                 <text
                   x={width - padding.right + 8}
                   y={y + 3}
                   fontSize="10"
-                  fill="#737373"
+                  fill="#9CA3AF"
                   fontFamily="monospace"
                 >
                   {price.toFixed(4)}
@@ -902,7 +902,7 @@ if not inNy and inNy[1]
               <path
                 d={linePath}
                 fill="none"
-                stroke="#F97316"
+                stroke="#2563EB"
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -918,8 +918,8 @@ if not inNy and inNy[1]
                     cx={x}
                     cy={y}
                     r={isHovered ? 5 : 2}
-                    fill={isHovered ? '#FB923C' : '#FFFFFF'}
-                    stroke="#EA580C"
+                    fill={isHovered ? '#2563EB' : '#FFFFFF'}
+                    stroke="#2563EB"
                     strokeWidth={isHovered ? 2.5 : 1.2}
                     onMouseEnter={() => setHoverBarIndex(idx)}
                     onMouseLeave={() => setHoverBarIndex(null)}
