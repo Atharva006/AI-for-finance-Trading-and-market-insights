@@ -127,62 +127,6 @@ export const DEFAULT_SESSION_SWEEP_PARAMS: SessionSweepStrategyParams = {
   nyFri: false,
 };
 
-export type ForexStrategyType = 'SESSION_SWEEP_FVG' | 'EMA_MOMENTUM_CROSS' | 'LONDON_ORB_BREAKOUT' | 'CUSTOM_BUILDER';
-
-export interface ForexStrategyDefinition {
-  id: ForexStrategyType;
-  name: string;
-  tagline: string;
-  description: string;
-  defaultParams: SessionSweepStrategyParams;
-}
-
-export const FOREX_STRATEGIES: ForexStrategyDefinition[] = [
-  {
-    id: 'SESSION_SWEEP_FVG',
-    name: 'Asia-London-NY FVG Inversion',
-    tagline: 'Pine Script v5 Institutional ICT Session Sweeps',
-    description: 'Marks Asia range liquidity, triggers on London/NY sweeps when candle closes through Fair Value Gap with body-filtered SL and 1:2 RR target.',
-    defaultParams: DEFAULT_SESSION_SWEEP_PARAMS,
-  },
-  {
-    id: 'EMA_MOMENTUM_CROSS',
-    name: '15m Dual EMA Trend Surge',
-    tagline: 'Fast 9/21 Exponential Trend Following',
-    description: 'Enters on 15m bullish/bearish EMA cross confirmation with dynamic ATR stop-loss and trailing 1:2.0 profit extension.',
-    defaultParams: {
-      ...DEFAULT_SESSION_SWEEP_PARAMS,
-      riskReward: 2.0,
-      maxRiskPercent: 0.85,
-      fixedRiskUSD: 100.0,
-    },
-  },
-  {
-    id: 'LONDON_ORB_BREAKOUT',
-    name: 'London Opening Range Breakout',
-    tagline: '07:00-08:00 UTC Volume Expansion',
-    description: 'Capitalizes on the massive London bank opening liquidity injection by bracketing the initial 1-hour range with strict risk control.',
-    defaultParams: {
-      ...DEFAULT_SESSION_SWEEP_PARAMS,
-      riskReward: 1.5,
-      maxRiskPercent: 0.75,
-      fixedRiskUSD: 100.0,
-    },
-  },
-  {
-    id: 'CUSTOM_BUILDER',
-    name: '+ Add Custom Strategy',
-    tagline: 'User-Calibrated Algorithmic Execution',
-    description: 'Configure custom risk-to-reward ratios, execution sessions, and risk limits for bespoke algorithmic deployment.',
-    defaultParams: {
-      ...DEFAULT_SESSION_SWEEP_PARAMS,
-      riskReward: 2.5,
-      maxRiskPercent: 1.0,
-      fixedRiskUSD: 100.0,
-    },
-  },
-];
-
 export interface ForexBacktestResult {
   symbol: string;
   pairInfo: ForexPairInfo;
@@ -190,7 +134,6 @@ export interface ForexBacktestResult {
   trades: Trade[];
   isWaitingForUserStrategy: boolean;
   strategyName: string;
-  strategyId?: ForexStrategyType;
   metrics: {
     totalTrades: number;
     winTrades: number;
@@ -253,12 +196,9 @@ export function runSessionSweepBacktest(
   pairInfo: ForexPairInfo,
   params: SessionSweepStrategyParams = DEFAULT_SESSION_SWEEP_PARAMS,
   initialCapitalUSD = 25000,
-  usdInrRate = 92.67,
-  strategyType: ForexStrategyType = 'SESSION_SWEEP_FVG',
-  customStrategyName?: string
+  usdInrRate = 92.67
 ): ForexBacktestResult {
-  const chosenStrategy = FOREX_STRATEGIES.find((s) => s.id === strategyType) || FOREX_STRATEGIES[0];
-  const activeStrategyName = customStrategyName || `${pairInfo.displayName} · ${chosenStrategy.name}`;
+  const activeStrategyName = `${pairInfo.displayName} · Asia-London-NY FVG Inversion (Pine Script v5)`;
 
   if (!candles || candles.length < 5) {
     return {
@@ -268,7 +208,6 @@ export function runSessionSweepBacktest(
       trades: [],
       isWaitingForUserStrategy: false,
       strategyName: activeStrategyName,
-      strategyId: strategyType,
       metrics: {
         totalTrades: 0,
         winTrades: 0,
@@ -838,7 +777,6 @@ export function runSessionSweepBacktest(
     trades,
     isWaitingForUserStrategy: false,
     strategyName: activeStrategyName,
-    strategyId: strategyType,
     metrics: {
       totalTrades,
       winTrades,

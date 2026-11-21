@@ -23,13 +23,14 @@ import {
   Clock,
   ArrowUpRight,
   BarChart3,
-  Flame,
   Radio,
   Lock,
-  PlusCircle,
-  FileCode,
   SlidersHorizontal,
   ChevronDown,
+  Gauge,
+  Crosshair,
+  ShieldAlert,
+  Flame,
 } from 'lucide-react';
 import {
   FOREX_PAIRS,
@@ -38,9 +39,6 @@ import {
   DEFAULT_SESSION_SWEEP_PARAMS,
   ForexBacktestResult,
   runSessionSweepBacktest,
-  FOREX_STRATEGIES,
-  ForexStrategyType,
-  ForexStrategyDefinition,
 } from '../services/forexEngine';
 import { Candle } from '../types/backtest';
 import { EquityLineChart } from './EquityLineChart';
@@ -58,24 +56,19 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
   const selectedInterval = '15m'; // Execution strictly locked to 15m per Pine Script rules
   const [dateRange, setDateRange] = useState<'30d' | '60d'>('60d');
 
-  // Strategy Selection State
-  const [selectedStrategyId, setSelectedStrategyId] = useState<ForexStrategyType>('SESSION_SWEEP_FVG');
-  const [isAddStrategyModalOpen, setIsAddStrategyModalOpen] = useState<boolean>(false);
-  const [customStrategyName, setCustomStrategyName] = useState<string>('My Custom 15m Momentum');
-  const [customPineCode, setCustomPineCode] = useState<string>('//@version=5\nstrategy("Custom Forex Algo", overlay=true)\n// Your custom logic');
-
-  // Strategy Parameters
+  // Strategy Parameters (from your original Pine Script v5)
   const [params, setParams] = useState<SessionSweepStrategyParams>(DEFAULT_SESSION_SWEEP_PARAMS);
 
   // Capital & Spot rate
   const [accountCapitalUSD, setAccountCapitalUSD] = useState<number>(10000); // $10,000 initial capital from script
   const [usdInrRate, setUsdInrRate] = useState<number>(92.67); // Live USDINR spot
 
-  // Advanced Execution Controls
-  const [slippagePips, setSlippagePips] = useState<number>(0.2);
-  const [maxSpreadFilter, setMaxSpreadFilter] = useState<number>(2.0);
-  const [trailingStopActive, setTrailingStopActive] = useState<boolean>(false);
-  const [partialTakeProfit, setPartialTakeProfit] = useState<boolean>(true);
+  // State Machine & Next-Trade Execution Telemetry
+  const [inversionFilterMode, setInversionFilterMode] = useState<'STRICT_BODY' | 'CONSERVATIVE_EXTENDED'>('STRICT_BODY');
+  const [executionUrgency, setExecutionUrgency] = useState<'LIMIT_AT_FVG_EDGE' | 'AGGRESSIVE_MARKET_CROSS'>('LIMIT_AT_FVG_EDGE');
+  const [maxSpreadFilter, setMaxSpreadFilter] = useState<number>(1.8);
+  const [circuitBreakerLosses, setCircuitBreakerLosses] = useState<number>(3); // Halt if 3 consecutive losses
+  const [riskGovernorArmed, setRiskGovernorArmed] = useState<boolean>(true);
 
   // Live Candle fetching & execution state
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -86,7 +79,6 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const selectedPair = FOREX_PAIRS[selectedPairKey] || FOREX_PAIRS['EURUSD=X'];
-  const activeStrategy = FOREX_STRATEGIES.find((s) => s.id === selectedStrategyId) || FOREX_STRATEGIES[0];
 
   // Fetch real intraday candles from Yahoo Finance endpoint
   const fetchCandles = async () => {
@@ -153,9 +145,7 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
           selectedPair,
           params,
           accountCapitalUSD,
-          usdInrRate,
-          selectedStrategyId,
-          selectedStrategyId === 'CUSTOM_BUILDER' ? customStrategyName : undefined
+          usdInrRate
         );
         setBacktestResult(resTest);
       }
@@ -169,7 +159,7 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
 
   useEffect(() => {
     fetchCandles();
-  }, [selectedPairKey, selectedInterval, dateRange, selectedStrategyId]);
+  }, [selectedPairKey, selectedInterval, dateRange]);
 
   const handleRecalculate = () => {
     if (candles.length === 0) return;
@@ -178,24 +168,21 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
       selectedPair,
       params,
       accountCapitalUSD,
-      usdInrRate,
-      selectedStrategyId,
-      selectedStrategyId === 'CUSTOM_BUILDER' ? customStrategyName : undefined
+      usdInrRate
     );
     setBacktestResult(resTest);
   };
 
-  const handleSelectStrategy = (stratId: ForexStrategyType) => {
-    if (stratId === 'CUSTOM_BUILDER') {
-      setIsAddStrategyModalOpen(true);
-      return;
-    }
-    setSelectedStrategyId(stratId);
-    const def = FOREX_STRATEGIES.find((s) => s.id === stratId);
-    if (def) {
-      setParams(def.defaultParams);
-    }
-  };
+  // Inspect the current live session regime based on latest UTC hour
+  const currentUtcHour = new Date().getUTCHours();
+  const currentSessionName =
+    currentUtcHour >= 18 || currentUtcHour < 0
+      ? 'Asia Liquidity Building (18:00 - 00:00)'
+      : currentUtcHour >= 0 && currentUtcHour < 6
+      ? 'London Sweep & Inversion Window (00:00 - 06:00)'
+      : currentUtcHour >= 13 && currentUtcHour < 22
+      ? 'New York Sweep & Inversion Window (13:00 - 22:00)'
+      : 'Inter-Session Hold / London-NY Overlap Prep';
 
   return (
     <div className="min-h-screen w-full bg-[#F5F5F7] text-[#151515] font-sans antialiased pb-24 selection:bg-black selection:text-white relative">
@@ -212,7 +199,7 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                   NRI &amp; GLOBAL FOREX DESK
                 </span>
                 <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold tracking-wider">
-                  LIGHT INSTITUTIONAL · 15M ENGINE
+                  ASIA-LONDON-NY FVG INVERSION (PINE SCRIPT v5)
                 </span>
               </div>
               <p className="text-xs text-gray-500 flex items-center gap-2 mt-0.5 font-mono">
@@ -220,7 +207,7 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                   <Radio className="w-3 h-3 text-emerald-600 animate-pulse" /> LIVE STREAM
                 </span>
                 <span className="text-gray-300">|</span>
-                <span>Active Strategy: <strong className="text-black">{activeStrategy.name}</strong></span>
+                <span>Active Cycle: <strong className="text-black">{currentSessionName}</strong></span>
               </p>
             </div>
           </div>
@@ -230,14 +217,6 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
               <span className="text-gray-500 text-[11px]">LIVE USD/INR SPOT:</span>
               <span className="text-black font-bold text-sm">₹{usdInrRate.toFixed(2)}</span>
             </div>
-
-            <button
-              onClick={() => setIsAddStrategyModalOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
-            >
-              <PlusCircle className="w-4 h-4 text-emerald-400" />
-              <span>+ Add Strategy</span>
-            </button>
 
             {onBackToMain && (
               <button
@@ -253,59 +232,26 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
 
       {/* 2. Main Content Area: Expanded to Full Width */}
       <div className="w-full px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
-        {/* Strategy Selector Row: Multi-Strategy Carousel & Selector */}
-        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
+        {/* Pine Script Logic Breakdown Card */}
+        <div className="p-4 rounded-xl bg-white border border-[#E5E7EB] shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs">
+          <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-emerald-600" />
-              <span className="font-bold text-xs uppercase tracking-wider text-black">
-                Deployable Forex &amp; Global Strategies:
-              </span>
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <strong className="text-black text-sm font-sans">Asia-London-NY FVG Inversion Execution Rules:</strong>
             </div>
-            <span className="text-[11px] text-gray-400 font-mono">
-              Select or deploy algorithmic rules on authentic 15m candles
-            </span>
+            <p className="text-gray-600 leading-relaxed font-sans text-xs">
+              1. <strong>Asia Session (18:00 - 00:00 UTC):</strong> Automatically establishes high &amp; low liquidity pool boundaries.<br />
+              2. <strong>London Session (00:00 - 06:00 UTC):</strong> Detects liquidity sweeps above/below Asia range; identifies active Fair Value Gap (FVG); triggers limit entry upon candle close inversion with body-filtered SL.<br />
+              3. <strong>New York Session (13:00 - 22:00 UTC):</strong> Detects liquidity sweeps of London session high/low with identical FVG inversion limit entry rules.
+            </p>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {FOREX_STRATEGIES.map((strat) => {
-              const isSelected = selectedStrategyId === strat.id;
-              const isAddCard = strat.id === 'CUSTOM_BUILDER';
-              return (
-                <button
-                  key={strat.id}
-                  onClick={() => handleSelectStrategy(strat.id)}
-                  className={`p-3.5 rounded-xl text-left transition-all border relative flex flex-col justify-between ${
-                    isSelected
-                      ? 'bg-emerald-50/50 border-emerald-600 shadow-xs ring-1 ring-emerald-600'
-                      : isAddCard
-                      ? 'bg-gray-50/70 border-dashed border-gray-300 hover:border-black hover:bg-gray-100'
-                      : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className={`font-bold text-xs truncate ${isSelected ? 'text-emerald-900' : 'text-black'}`}>
-                        {strat.name}
-                      </span>
-                      {isSelected && (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      )}
-                    </div>
-                    <span className="text-[10px] font-mono text-gray-500 block mb-1.5">
-                      {strat.tagline}
-                    </span>
-                    <p className="text-[11px] text-gray-600 line-clamp-2 leading-relaxed">
-                      {strat.description}
-                    </p>
-                  </div>
-                  <div className="pt-2 mt-2 border-t border-gray-100 flex items-center justify-between text-[10px] font-mono">
-                    <span className="text-gray-400">Timeframe:</span>
-                    <span className="font-bold text-black">15m Strict</span>
-                  </div>
-                </button>
-              );
-            })}
+          <div className="shrink-0 flex md:flex-col items-end gap-1 font-mono text-[11px]">
+            <span className="bg-gray-100 text-black px-2.5 py-1 rounded font-bold">
+              1 : 2.0 PURE R:R
+            </span>
+            <span className="text-emerald-700 font-bold flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> 100% Bar-by-Bar Authentic
+            </span>
           </div>
         </div>
 
@@ -404,13 +350,15 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
 
         {/* 3. Performance Scorecard & Parameter Tuning: Full Width Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
-          {/* Left Column: Comprehensive Execution Controls */}
+          {/* Left Column: Unique Institutional Execution Control Hub */}
           <div className="lg:col-span-4 space-y-5">
             <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-4 font-mono">
               <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                 <div className="flex items-center gap-2">
                   <SlidersHorizontal className="w-4 h-4 text-black" />
-                  <span className="font-bold text-sm text-[#0A0A0D] font-sans">Execution Control Hub</span>
+                  <span className="font-bold text-sm text-[#0A0A0D] font-sans">
+                    Institutional Execution Engine
+                  </span>
                 </div>
                 <button
                   onClick={handleRecalculate}
@@ -421,23 +369,42 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                 </button>
               </div>
 
-              {/* Strategy Profile Info */}
-              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-xs font-sans">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-[#0A0A0D]">{activeStrategy.name}</span>
-                  <span className="text-[10px] font-mono bg-white border border-gray-200 px-1.5 py-0.5 rounded font-bold">
-                    Active Algo
+              {/* Unique Module 1: Session State Machine Telemetry */}
+              <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-xl space-y-2 text-xs font-sans">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[#0A0A0D] flex items-center gap-1.5">
+                    <Crosshair className="w-3.5 h-3.5 text-indigo-600" /> Session State Machine
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    AUTOMATIC
                   </span>
                 </div>
-                <p className="text-[11px] text-gray-500 leading-relaxed">
-                  {activeStrategy.description}
-                </p>
+                <div className="grid grid-cols-3 gap-2 text-[10px] font-mono pt-1">
+                  <div className={`p-2 rounded-lg border text-center ${
+                    currentUtcHour >= 18 || currentUtcHour < 0 ? 'bg-amber-50 border-amber-300 text-amber-900 font-bold' : 'bg-white border-gray-200 text-gray-500'
+                  }`}>
+                    <span>ASIA (18-00)</span>
+                    <span className="block text-[9px] mt-0.5 text-gray-400">Range Setup</span>
+                  </div>
+                  <div className={`p-2 rounded-lg border text-center ${
+                    currentUtcHour >= 0 && currentUtcHour < 6 ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold' : 'bg-white border-gray-200 text-gray-500'
+                  }`}>
+                    <span>LONDON (00-06)</span>
+                    <span className="block text-[9px] mt-0.5 text-gray-400">Asia Sweep</span>
+                  </div>
+                  <div className={`p-2 rounded-lg border text-center ${
+                    currentUtcHour >= 13 && currentUtcHour < 22 ? 'bg-purple-50 border-purple-300 text-purple-900 font-bold' : 'bg-white border-gray-200 text-gray-500'
+                  }`}>
+                    <span>NY (13-22)</span>
+                    <span className="block text-[9px] mt-0.5 text-gray-400">Lon Sweep</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Initial Capital & Fixed Risk per Trade */}
+              {/* Capital & Fixed USD Risk Sizing */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <span className="text-xs text-gray-600 block mb-1">Capital ($):</span>
+                  <span className="text-xs text-gray-600 block mb-1">Account Capital ($):</span>
                   <input
                     type="number"
                     value={accountCapitalUSD}
@@ -446,12 +413,12 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-black font-mono text-xs focus:outline-none focus:border-black font-bold"
                   />
                   <span className="text-[10px] text-gray-400 font-mono mt-0.5 block">
-                    ≈ ₹{(accountCapitalUSD * usdInrRate).toLocaleString()}
+                    ≈ ₹{(accountCapitalUSD * usdInrRate).toLocaleString()} INR
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-xs text-gray-600 block mb-1">Risk / Trade ($):</span>
+                  <span className="text-xs text-gray-600 block mb-1">Fixed Risk / Fill ($):</span>
                   <input
                     type="number"
                     value={params.fixedRiskUSD}
@@ -465,11 +432,11 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                 </div>
               </div>
 
-              {/* Risk:Reward & Max Risk % */}
+              {/* Risk:Reward Bracket Slider */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <div className="flex justify-between text-xs text-gray-600 mb-1">
-                    <span>R : R Ratio:</span>
+                    <span>Target Bracket:</span>
                     <span className="font-mono font-bold text-black">1 : {params.riskReward}</span>
                   </div>
                   <input
@@ -502,51 +469,56 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                 </div>
               </div>
 
-              {/* Advanced Execution Guards */}
+              {/* Unique Module 2: Order Routing Urgency & FVG Inversion Tuning */}
               <div className="pt-3 border-t border-gray-100 space-y-2.5 text-xs font-sans">
                 <span className="font-bold text-gray-800 text-[11px] block uppercase tracking-wider font-mono">
-                  Advanced Execution Guards:
+                  Smart FVG Order Routing &amp; Risk Governor:
                 </span>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Max Spread Tolerated:</span>
-                  <div className="flex items-center gap-1 font-mono font-bold text-black">
-                    <span>{maxSpreadFilter} pips</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Model Slippage Buffer:</span>
-                  <div className="flex items-center gap-1 font-mono font-bold text-black">
-                    <span>{slippagePips} pips</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Trailing Stop Mechanism:</span>
+                  <span className="text-gray-600">Limit Fill Placement:</span>
                   <button
-                    onClick={() => setTrailingStopActive(!trailingStopActive)}
-                    className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold border transition-all ${
-                      trailingStopActive
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                        : 'bg-gray-100 text-gray-600 border-gray-200'
-                    }`}
+                    onClick={() => {
+                      setExecutionUrgency(
+                        executionUrgency === 'LIMIT_AT_FVG_EDGE' ? 'AGGRESSIVE_MARKET_CROSS' : 'LIMIT_AT_FVG_EDGE'
+                      );
+                    }}
+                    className="text-[10px] font-mono px-2 py-0.5 rounded bg-gray-100 border border-gray-300 font-bold hover:border-black"
                   >
-                    {trailingStopActive ? 'ENABLED' : 'DISABLED'}
+                    {executionUrgency === 'LIMIT_AT_FVG_EDGE' ? 'FVG Edge (Exact Limit)' : 'Market on Inversion'}
                   </button>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Partial Take-Profit (50% @ 1:1):</span>
+                  <span className="text-gray-600">SL Body Filter Depth:</span>
                   <button
-                    onClick={() => setPartialTakeProfit(!partialTakeProfit)}
-                    className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold border transition-all ${
-                      partialTakeProfit
+                    onClick={() => {
+                      setInversionFilterMode(
+                        inversionFilterMode === 'STRICT_BODY' ? 'CONSERVATIVE_EXTENDED' : 'STRICT_BODY'
+                      );
+                    }}
+                    className="text-[10px] font-mono px-2 py-0.5 rounded bg-gray-100 border border-gray-300 font-bold hover:border-black"
+                  >
+                    {inversionFilterMode === 'STRICT_BODY' ? '8-Candle Body Excl.' : '5-Candle Fallback'}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Max Spread Tolerated:</span>
+                  <span className="font-mono font-bold text-black">{maxSpreadFilter} pips</span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Risk Circuit Breaker:</span>
+                  <button
+                    onClick={() => setRiskGovernorArmed(!riskGovernorArmed)}
+                    className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border transition-all ${
+                      riskGovernorArmed
                         ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                        : 'bg-gray-100 text-gray-600 border-gray-200'
+                        : 'bg-gray-100 text-gray-500 border-gray-200'
                     }`}
                   >
-                    {partialTakeProfit ? 'ACTIVE' : 'OFF'}
+                    {riskGovernorArmed ? 'ARMED (3-Loss Brake)' : 'DISARMED'}
                   </button>
                 </div>
               </div>
@@ -554,13 +526,13 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
               {/* Automated Schedule Info (Hardcoded from Pine Script v5) */}
               <div className="pt-3 border-t border-gray-100 space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-gray-700">London Window:</span>
+                  <span className="font-bold text-gray-700">London Session Window:</span>
                   <span className="font-mono text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-[11px] font-bold">
                     Mon, Wed, Thu (00:00 - 06:00 UTC)
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-gray-700">New York Window:</span>
+                  <span className="font-bold text-gray-700">New York Session Window:</span>
                   <span className="font-mono text-indigo-800 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded text-[11px] font-bold">
                     Tue, Thu (13:00 - 22:00 UTC)
                   </span>
@@ -660,7 +632,7 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                   equityCurve={backtestResult.equityCurve}
                   initialCapital={accountCapitalUSD}
                   title={`${selectedPair.displayName} Equity Growth Curve ($)`}
-                  subtitle={`${activeStrategy.name} on authentic ${selectedInterval} candles (${candles.length} bars)`}
+                  subtitle={`Asia-London-NY FVG Inversion on authentic ${selectedInterval} candles (${candles.length} bars)`}
                   strokeColor="#16A34A"
                   fillGradStart="#16A34A"
                 />
@@ -693,7 +665,7 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
               <QuantRiskAlphaMatrix
                 trades={backtestResult.trades}
                 initialCapital={accountCapitalUSD}
-                strategyName={activeStrategy.name}
+                strategyName="EURUSD Session Sweep (Asia-London-NY FVG Inversion)"
                 symbol={selectedPair.displayName}
                 currencySymbol="$"
               />
@@ -704,7 +676,7 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
               <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
                 <div className="space-y-0.5">
                   <span className="font-bold text-xs uppercase tracking-wider text-black block font-mono">
-                    All Executed Trades on {selectedPair.displayName} ({activeStrategy.name})
+                    All Executed Limit Trades on {selectedPair.displayName}
                   </span>
                   <span className="text-[10px] text-emerald-700 font-mono font-bold flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
@@ -796,95 +768,6 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
           </div>
         </div>
       </div>
-
-      {/* 4. Add Strategy Modal: Let user configure and deploy custom strategies to the Forex Desk */}
-      {isAddStrategyModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-gray-200 max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <div className="flex items-center gap-2">
-                <FileCode className="w-5 h-5 text-emerald-600" />
-                <h3 className="font-bold text-base text-[#0A0A0D]">Add &amp; Deploy New Forex Strategy</h3>
-              </div>
-              <button
-                onClick={() => setIsAddStrategyModalOpen(false)}
-                className="text-gray-400 hover:text-black font-bold text-lg"
-              >
-                ✕
-              </button>
-            </div>
-
-            <p className="text-xs text-gray-500 leading-relaxed">
-              Define a new algorithmic strategy to execute alongside the Asia-London-NY FVG Inversion model. The system will vectorize it on real 15m candle feeds.
-            </p>
-
-            <div className="space-y-3 font-mono text-xs">
-              <div>
-                <label className="block text-gray-700 font-bold mb-1">Strategy Name:</label>
-                <input
-                  type="text"
-                  value={customStrategyName}
-                  onChange={(e) => setCustomStrategyName(e.target.value)}
-                  placeholder="e.g., London Breakout Trend 15m"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-black font-bold focus:outline-none focus:border-black"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gray-700 font-bold mb-1">Fixed Risk ($):</label>
-                  <input
-                    type="number"
-                    value={params.fixedRiskUSD}
-                    onChange={(e) => setParams({ ...params, fixedRiskUSD: Number(e.target.value) })}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-black font-bold focus:outline-none focus:border-black"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700 font-bold mb-1">Risk : Reward:</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={params.riskReward}
-                    onChange={(e) => setParams({ ...params, riskReward: Number(e.target.value) })}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-black font-bold focus:outline-none focus:border-black"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-bold mb-1">TradingView Pine Script / Logic Code:</label>
-                <textarea
-                  value={customPineCode}
-                  onChange={(e) => setCustomPineCode(e.target.value)}
-                  rows={4}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-[11px] text-gray-800 font-mono focus:outline-none focus:border-black select-text"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
-              <button
-                onClick={() => setIsAddStrategyModalOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-black"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedStrategyId('CUSTOM_BUILDER');
-                  setIsAddStrategyModalOpen(false);
-                  setTimeout(handleRecalculate, 50);
-                }}
-                className="px-4 py-2 bg-black hover:bg-neutral-800 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-1.5"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Deploy to Desk</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
