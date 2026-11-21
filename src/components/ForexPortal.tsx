@@ -36,6 +36,7 @@ import { Candle } from '../types/backtest';
 import { EquityLineChart } from './EquityLineChart';
 import { QuantUnderwaterChart } from './QuantUnderwaterChart';
 import { QuantRiskAlphaMatrix } from './QuantRiskAlphaMatrix';
+import { LiveSessionChart } from './LiveSessionChart';
 
 interface ForexPortalProps {
   onBackToMain?: () => void;
@@ -551,6 +552,17 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                   </span>
                 </div>
               </div>
+            )}
+
+            {/* Live Session Sweep Candlestick Visualizer with Strategy Explainer Button */}
+            {candles.length > 0 && (
+              <LiveSessionChart
+                candles={candles}
+                trades={backtestResult?.trades || []}
+                pairName={selectedPair.displayName}
+                symbol={selectedPair.symbol}
+                interval={selectedInterval}
+              />
             )}
 
             {/* 1. Full Portfolio Equity Curve Line Chart (Same as Indian Market Studio) */}
