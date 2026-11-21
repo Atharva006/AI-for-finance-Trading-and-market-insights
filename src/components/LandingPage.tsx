@@ -3,7 +3,7 @@ import { ALL_CANONICAL_STRATEGIES } from '../services/canonicalStrategies';
 import { AlgoStrategy } from '../types/algoMarketplace';
 
 interface LandingPageProps {
-  onNavigateToView: (view: 'landing' | 'papertrading' | 'marketplace' | 'backtest' | 'flow' | 'detail' | 'admin' | 'insights' | 'auth' | 'forex') => void;
+  onNavigateToView: (view: 'landing' | 'papertrading' | 'heatmap' | 'marketplace' | 'backtest' | 'flow' | 'detail' | 'admin' | 'insights' | 'auth' | 'forex') => void;
   onSelectStrategy?: (strategyId: string) => void;
   customStrategies?: AlgoStrategy[];
 }
@@ -50,6 +50,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 >
                   <span className="material-symbols-outlined text-[18px]">candlestick_chart</span>
                   <span>Launch Virtual Paper Trading Desk (₹10L)</span>
+                </button>
+
+                <button
+                  onClick={() => onNavigateToView('heatmap')}
+                  className="inline-flex items-center gap-space-sm px-space-lg py-3 rounded-lg bg-surface-card text-primary font-label-md text-label-md hover:bg-surface-container transition-all shadow-sm border border-border-subtle cursor-pointer active:scale-95"
+                >
+                  <span className="material-symbols-outlined text-[18px]">grid_view</span>
+                  <span>Market Heatmaps (IN · US)</span>
                 </button>
 
                 <button
@@ -290,6 +298,55 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </button>
               <span className="text-[11px] font-mono text-text-muted text-center">
                 Preloaded with ₹10,00,000 virtual margin
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* 2.6 SECTION: Market Heatmaps Showcase (India & US TradingView) */}
+        <section className="w-full py-space-sm">
+          <div className="w-full bg-white rounded-2xl p-6 sm:p-8 border border-border-subtle shadow-card flex flex-col lg:flex-row items-center justify-between gap-6 relative overflow-hidden">
+            <div className="flex flex-col gap-3 max-w-2xl relative z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container border border-border-subtle self-start text-xs font-mono font-semibold text-primary">
+                <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
+                <span>TRADINGVIEW EMBED · REAL-TIME MARKET CAPITALIZATION &amp; SECTOR FLOW</span>
+              </div>
+              <h2 className="font-headline text-2xl sm:text-3xl font-bold text-primary tracking-tight">
+                Live Market Heatmaps for Indian &amp; US Equities
+              </h2>
+              <p className="text-sm text-text-secondary leading-relaxed">
+                Analyze relative sector performance and visual market breadth across Indian (NIFTY 50, BSE SENSEX, All-India) and US (S&amp;P 500, NASDAQ 100, DOW 30) markets. High-definition tree maps weighted by market capitalization and 1-day percentage dispersion.
+              </p>
+              <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-text-muted pt-1">
+                <span className="inline-flex items-center gap-1.5 text-primary font-semibold">
+                  <span className="material-symbols-outlined text-[16px] text-bullish">check_circle</span>
+                  🇮🇳 NIFTY 50 &amp; BSE SENSEX
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-primary font-semibold">
+                  <span className="material-symbols-outlined text-[16px] text-bullish">check_circle</span>
+                  🇺🇸 S&amp;P 500 &amp; NASDAQ 100
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-primary font-semibold">
+                  <span className="material-symbols-outlined text-[16px] text-bullish">check_circle</span>
+                  GICS Sector Clustering
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-primary font-semibold">
+                  <span className="material-symbols-outlined text-[16px] text-bullish">check_circle</span>
+                  Interactive Drill-Down Zoom
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row lg:flex-col items-center gap-3 shrink-0 relative z-10 w-full sm:w-auto">
+              <button
+                onClick={() => onNavigateToView('heatmap')}
+                className="w-full sm:w-auto px-6 py-3.5 bg-primary hover:bg-primary-container text-white font-semibold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">grid_view</span>
+                <span>Open Market Heatmaps</span>
+              </button>
+              <span className="text-[11px] font-mono text-text-muted text-center">
+                Powered by TradingView Engine
               </span>
             </div>
           </div>

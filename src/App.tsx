@@ -13,6 +13,7 @@ import { MarketPulseInsights } from './components/MarketPulseInsights';
 import { AuthPage } from './components/AuthPage';
 import { ForexPortal } from './components/ForexPortal';
 import { PaperTradingSection } from './components/PaperTradingSection';
+import { TradingViewHeatmapSection } from './components/TradingViewHeatmapSection';
 import { AlgoStrategy } from './types/algoMarketplace';
 import {
   getStoredStrategies,
@@ -30,6 +31,9 @@ function getViewFromPath(pathname: string, strategies: AlgoStrategy[]): { view: 
   }
   if (cleanPath.startsWith('/dashboard') || cleanPath === '/paper-trading' || cleanPath === '/papertrading') {
     return { view: 'papertrading', strategy: null };
+  }
+  if (cleanPath === '/market-heatmaps' || cleanPath === '/heatmap' || cleanPath === '/heatmaps' || cleanPath === '/market-heatmap') {
+    return { view: 'heatmap', strategy: null };
   }
   if (cleanPath === '/trading-algorithms') {
     return { view: 'marketplace', strategy: null };
@@ -67,6 +71,8 @@ function getPathForView(view: AppView, strategy?: AlgoStrategy | null): string {
       return '/';
     case 'papertrading':
       return '/dashboard';
+    case 'heatmap':
+      return '/market-heatmaps';
     case 'marketplace':
       return '/trading-algorithms';
     case 'backtest':
@@ -207,6 +213,19 @@ export function App() {
         {/* First-Class Live Paper Trading Desk (Direct simulation - zero landing page) */}
         {activeView === 'papertrading' && (
           <PaperTradingSection />
+        )}
+
+        {/* Live Market Heatmaps Section (India & US TradingView Engine) */}
+        {activeView === 'heatmap' && (
+          <TradingViewHeatmapSection
+            onNavigateToBacktest={(symbol) => {
+              setSelectedInstrument(symbol);
+              navigateTo('backtest');
+            }}
+            onNavigateToPaperTrading={() => {
+              navigateTo('papertrading');
+            }}
+          />
         )}
 
         {activeView === 'auth' && (

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getStoredLocalUser, signOutUser, AuthUserProfile } from '../services/supabaseAuth';
 
-export type AppView = 'landing' | 'papertrading' | 'marketplace' | 'backtest' | 'flow' | 'detail' | 'admin' | 'insights' | 'auth' | 'forex';
+export type AppView = 'landing' | 'papertrading' | 'heatmap' | 'marketplace' | 'backtest' | 'flow' | 'detail' | 'admin' | 'insights' | 'auth' | 'forex';
 
 interface DhanNavbarProps {
   activeView: AppView;
@@ -79,6 +79,20 @@ export const DhanNavbar: React.FC<DhanNavbarProps> = ({
             <span>Paper Trading</span>
             <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-secondary/15 text-secondary border border-secondary/25">
               ₹10L
+            </span>
+          </span>
+        </button>
+
+        {/* Market Heatmaps (India & US TradingView) */}
+        <button
+          onClick={() => setActiveView('heatmap')}
+          className={navItemClass('heatmap')}
+        >
+          <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+            <span className="material-symbols-outlined text-[15px]">grid_view</span>
+            <span>Heatmaps</span>
+            <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-border-subtle">
+              IN · US
             </span>
           </span>
         </button>
