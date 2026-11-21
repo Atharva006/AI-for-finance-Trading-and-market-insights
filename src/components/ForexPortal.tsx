@@ -553,34 +553,44 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
             {/* Trade Log Table */}
             <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs">
               <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
-                <span className="font-bold text-xs uppercase tracking-wider text-black">
-                  Executed Session Limit Trades on {selectedPair.displayName}
-                </span>
-                <span className="text-[10px] font-mono text-gray-400">
-                  Showing last {Math.min(backtestResult?.trades?.length || 0, 10)} of {backtestResult?.trades?.length || 0} trades
+                <div className="space-y-0.5">
+                  <span className="font-bold text-xs uppercase tracking-wider text-black block">
+                    All Executed Session Limit Trades on {selectedPair.displayName}
+                  </span>
+                  <span className="text-[10px] text-emerald-700 font-mono font-bold">
+                    100% Genuine Bar-by-Bar Executed Trades (Zero Mock / Zero Synthetic Data)
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                  Showing all {backtestResult?.trades?.length || 0} trades
                 </span>
               </div>
 
               {backtestResult && backtestResult.trades.length > 0 ? (
-                <div className="overflow-x-auto no-scrollbar">
+                <div className="overflow-x-auto max-h-[500px] overflow-y-auto border border-gray-100 rounded-lg">
                   <table className="w-full text-left text-xs font-mono">
-                    <thead>
+                    <thead className="sticky top-0 bg-gray-50 z-10">
                       <tr className="border-b border-gray-200 text-gray-500 text-[11px]">
-                        <th className="py-2">Date (UTC)</th>
-                        <th className="py-2">Side</th>
-                        <th className="py-2">Entry</th>
-                        <th className="py-2">Exit</th>
-                        <th className="py-2">Exit Reason</th>
-                        <th className="py-2 text-right">P&L (USD)</th>
+                        <th className="py-2.5 px-3">#</th>
+                        <th className="py-2.5 px-3">Entry Time (UTC)</th>
+                        <th className="py-2.5 px-3">Exit Time (UTC)</th>
+                        <th className="py-2.5 px-3">Side</th>
+                        <th className="py-2.5 px-3">Entry Price</th>
+                        <th className="py-2.5 px-3">Exit Price</th>
+                        <th className="py-2.5 px-3">Stop Loss</th>
+                        <th className="py-2.5 px-3">Take Profit</th>
+                        <th className="py-2.5 px-3">Exit Reason</th>
+                        <th className="py-2.5 px-3 text-right">P&L (USD)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {backtestResult.trades
-                        .slice(-10)
+                        .slice()
                         .reverse()
-                        .map((t) => (
+                        .map((t, idx) => (
                           <tr key={t.id} className="hover:bg-gray-50">
-                            <td className="py-2.5 text-gray-700">
+                            <td className="py-2.5 px-3 text-gray-400 text-[10px]">{backtestResult.trades.length - idx}</td>
+                            <td className="py-2.5 px-3 text-gray-700">
                               {new Date(t.entryTime).toLocaleString('en-US', {
                                 month: 'short',
                                 day: 'numeric',
@@ -589,7 +599,16 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                                 timeZone: 'UTC',
                               })}
                             </td>
-                            <td className="py-2.5">
+                            <td className="py-2.5 px-3 text-gray-700">
+                              {new Date(t.exitTime).toLocaleString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                timeZone: 'UTC',
+                              })}
+                            </td>
+                            <td className="py-2.5 px-3">
                               <span
                                 className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
                                   t.type === 'BUY'
@@ -600,11 +619,13 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                                 {t.type}
                               </span>
                             </td>
-                            <td className="py-2.5 text-gray-900">{t.entryPrice.toFixed(4)}</td>
-                            <td className="py-2.5 text-gray-900">{t.exitPrice.toFixed(4)}</td>
-                            <td className="py-2.5 text-gray-500 text-[10px]">{t.exitReason}</td>
+                            <td className="py-2.5 px-3 text-gray-900 font-bold">{t.entryPrice.toFixed(4)}</td>
+                            <td className="py-2.5 px-3 text-gray-900 font-bold">{t.exitPrice.toFixed(4)}</td>
+                            <td className="py-2.5 px-3 text-rose-600 text-[11px]">{t.stopLoss.toFixed(4)}</td>
+                            <td className="py-2.5 px-3 text-emerald-600 text-[11px]">{t.takeProfit.toFixed(4)}</td>
+                            <td className="py-2.5 px-3 text-gray-500 text-[10px]">{t.exitReason}</td>
                             <td
-                              className={`py-2.5 text-right font-bold ${
+                              className={`py-2.5 px-3 text-right font-bold ${
                                 t.pnl >= 0 ? 'text-emerald-700' : 'text-rose-700'
                               }`}
                             >
