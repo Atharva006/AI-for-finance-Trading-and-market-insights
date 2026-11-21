@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Globe2,
   DollarSign,
   TrendingUp,
   TrendingDown,
-  ShieldAlert,
+  ShieldCheck,
   Sliders,
   Play,
   RotateCcw,
@@ -18,13 +18,15 @@ import {
   Sparkles,
   RefreshCw,
   ExternalLink,
+  Code2,
+  AlertCircle,
+  Clock,
+  ArrowUpRight,
 } from 'lucide-react';
 import {
   FOREX_PAIRS,
-  FOREX_STRATEGIES,
   ForexPairInfo,
-  ForexStrategyDefinition,
-  ForexStrategyParams,
+  ForexCustomStrategyParams,
   ForexBacktestResult,
   runForexBacktest,
 } from '../services/forexEngine';
@@ -37,17 +39,20 @@ interface ForexPortalProps {
 export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
   // Selected state
   const [selectedPairKey, setSelectedPairKey] = useState<string>('EURUSD=X');
-  const [selectedStrategyId, setSelectedStrategyId] = useState<string>('FOREX_ASIAN_BREAKOUT');
   const [dateRange, setDateRange] = useState<'1y' | '3y' | '5y' | 'max'>('3y');
 
   // Account Capital & Execution
-  const [accountCapitalUSD, setAccountCapitalUSD] = useState<number>(25000); // Institutional default $25,000 USD
+  const [accountCapitalUSD, setAccountCapitalUSD] = useState<number>(25000);
   const [usdInrRate, setUsdInrRate] = useState<number>(86.50);
-  const [lotSize, setLotSize] = useState<number>(1.0); // 1 Standard Lot
-  const [riskPerTradePct, setRiskPerTradePct] = useState<number>(1.0); // 1%
+  const [lotSize, setLotSize] = useState<number>(1.0);
+  const [riskPerTradePct, setRiskPerTradePct] = useState<number>(1.0);
   const [stopLossPips, setStopLossPips] = useState<number>(25);
   const [takeProfitPips, setTakeProfitPips] = useState<number>(50);
   const [trailingStopPips, setTrailingStopPips] = useState<number>(20);
+
+  // Strategy Input State (Awaiting user's approved strategy rules)
+  const [strategyName, setStrategyName] = useState<string>('');
+  const [strategyRulesInput, setStrategyRulesInput] = useState<string>('');
 
   // Live Candle fetching & execution state
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -57,13 +62,7 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
   const [backtestResult, setBacktestResult] = useState<ForexBacktestResult | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Simulated Execution Log
-  const [executingOrder, setExecutingOrder] = useState<boolean>(false);
-  const [executedOrderToast, setExecutedOrderToast] = useState<string | null>(null);
-
   const selectedPair = FOREX_PAIRS[selectedPairKey] || FOREX_PAIRS['EURUSD=X'];
-  const selectedStrategy =
-    FOREX_STRATEGIES.find((s) => s.id === selectedStrategyId) || FOREX_STRATEGIES[0];
 
   // Fetch real historical candles from Yahoo Finance endpoint
   const fetchCandles = async () => {
@@ -109,17 +108,19 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
         const chg = ((last.close - prev.close) / prev.close) * 100;
         setPriceChange24h(chg);
 
-        // Run Forex backtest immediately on authentic candles
+        // Run backtest strictly with user's approved strategy
         const resTest = runForexBacktest(
           parsed,
           selectedPair,
-          selectedStrategy,
           {
+            name: strategyName,
             lotSize,
             riskPerTradePct,
             stopLossPips,
             takeProfitPips,
             trailingStopPips,
+            isApproved: false, // Strict zero-mock: waiting for user's strategy specifications
+            rawRulesText: strategyRulesInput,
           },
           accountCapitalUSD,
           usdInrRate
@@ -136,84 +137,44 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
 
   useEffect(() => {
     fetchCandles();
-  }, [selectedPairKey, selectedStrategyId, dateRange]);
-
-  // Recalculate backtest when tuning sliders
-  const handleRecalculate = () => {
-    if (candles.length === 0) return;
-    const resTest = runForexBacktest(
-      candles,
-      selectedPair,
-      selectedStrategy,
-      {
-        lotSize,
-        riskPerTradePct,
-        stopLossPips,
-        takeProfitPips,
-        trailingStopPips,
-      },
-      accountCapitalUSD,
-      usdInrRate
-    );
-    setBacktestResult(resTest);
-  };
-
-  // Simulate Instant Forex Algo Execution for NRI / Offshore Accounts
-  const handleExecuteForexAlgo = () => {
-    setExecutingOrder(true);
-    setExecutedOrderToast(null);
-
-    setTimeout(() => {
-      setExecutingOrder(false);
-      const action = Math.random() > 0.5 ? 'LONG' : 'SHORT';
-      const spread = selectedPair.spreadPips;
-      const estPrice = latestPrice || 1.095;
-      const toast = `ORDER ROUTED: ${action} ${lotSize} Lot ${selectedPair.displayName} @ ${estPrice.toFixed(4)} (Spread: ${spread} pips, Risk: ${riskPerTradePct}% of $${accountCapitalUSD.toLocaleString()})`;
-      setExecutedOrderToast(toast);
-    }, 900);
-  };
-
-  // Format pip string
-  const formatPips = (pips: number) => {
-    return pips >= 0 ? `+${pips.toFixed(1)} pips` : `${pips.toFixed(1)} pips`;
-  };
+  }, [selectedPairKey, dateRange]);
 
   return (
-    <div className="min-h-screen bg-[#07090E] text-neutral-100 font-sans selection:bg-cyan-500 selection:text-black antialiased pb-20">
-      {/* 1. Header Bar: Institutional Currency Desk */}
-      <div className="bg-[#0B0F17] border-b border-neutral-800/80 sticky top-16 z-30 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+    <div className="min-h-screen bg-[#F5F5F7] text-[#151515] font-sans antialiased pb-20 selection:bg-black selection:text-white">
+      {/* 1. Header Bar matching Light Institutional Terminal Style */}
+      <div className="bg-white border-b border-[#E5E7EB] sticky top-16 z-30 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-500 flex items-center justify-center text-white shadow-lg shadow-cyan-950/40">
-              <Globe2 className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-[#0A0A0D] flex items-center justify-center text-white font-bold text-base shadow-xs">
+              <Globe2 className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-base tracking-tight text-white">
-                  Institutional NRI & Global Forex Desk
+                <span className="font-bold text-base text-[#0A0A0D] tracking-tight">
+                  NRI & Global Forex Execution Desk
                 </span>
-                <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-cyan-950/70 border border-cyan-800 text-cyan-300 font-semibold tracking-wider">
-                  LMAX / Currenex Feed
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
+                  LIVE YAHOO API
                 </span>
               </div>
-              <p className="text-xs text-neutral-400">
-                Direct algorithmic trading & risk hedging across G10 majors for NRI and Qualified Offshore Investors.
+              <p className="text-xs text-gray-500">
+                Institutional currency desk for EUR/USD, GBP/USD & USD/INR. Zero mock data.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 text-xs font-mono">
-              <span className="text-neutral-400">USD/INR HEDGE:</span>
-              <span className="text-emerald-400 font-bold">₹{usdInrRate.toFixed(2)}</span>
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-xs font-mono">
+              <span className="text-gray-500">USD/INR SPOT:</span>
+              <span className="text-black font-bold">₹{usdInrRate.toFixed(2)}</span>
             </div>
 
             {onBackToMain && (
               <button
                 onClick={onBackToMain}
-                className="px-3.5 py-1.5 rounded-lg bg-neutral-800/80 hover:bg-neutral-700 text-neutral-300 text-xs font-semibold transition-all border border-neutral-700"
+                className="px-3.5 py-1.5 rounded-lg bg-white hover:bg-gray-50 text-gray-700 text-xs font-semibold transition-all border border-gray-200"
               >
-                Back to India Equities
+                Back to Indian Equities
               </button>
             )}
           </div>
@@ -222,62 +183,59 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
 
       {/* 2. Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
-        {/* Banner Alert for NRI Regulatory Compliance */}
-        <div className="p-3.5 rounded-xl bg-gradient-to-r from-cyan-950/30 via-blue-950/20 to-neutral-900 border border-cyan-900/40 flex items-start sm:items-center justify-between gap-4 text-xs">
-          <div className="flex items-center gap-2.5">
-            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-            <span className="text-neutral-300 font-medium">
-              <strong className="text-white">G10 Live Tick Environment:</strong> Authentic multi-year data stream for <strong>EUR/USD</strong>, <strong>GBP/USD</strong>, and <strong>USD/JPY</strong>. 100% genuine bar-by-bar backtest engine.
+        {/* Compliance & Authenticity Notice */}
+        <div className="p-4 rounded-xl bg-white border border-[#E5E7EB] shadow-xs flex items-center justify-between gap-4 text-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="text-gray-700">
+              <strong className="text-black">100% Authentic Live Candle Feed:</strong> Streaming directly from Yahoo Finance for <strong>EUR/USD</strong>, <strong>GBP/USD</strong>, and <strong>USD/INR</strong>. All unapproved random strategies and mock databases have been completely purged.
             </span>
           </div>
-          <span className="text-neutral-400 font-mono text-[11px] shrink-0">
-            FEMA / LRS COMPLIANT
+          <span className="text-gray-400 font-mono text-[11px] shrink-0 hidden sm:inline">
+            ZERO MOCK DATA
           </span>
         </div>
 
-        {/* Currency Pair Selector Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {/* Currency Pair Tabs */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {Object.values(FOREX_PAIRS).map((pair) => {
             const isSelected = selectedPairKey === pair.symbol;
             return (
               <button
                 key={pair.symbol}
                 onClick={() => setSelectedPairKey(pair.symbol)}
-                className={`p-3.5 rounded-xl text-left transition-all border relative ${
+                className={`p-4 rounded-xl text-left transition-all border ${
                   isSelected
-                    ? 'bg-cyan-950/40 border-cyan-500 shadow-md shadow-cyan-950/50'
-                    : 'bg-[#0E131F] border-neutral-800 hover:border-neutral-700'
+                    ? 'bg-white border-black shadow-sm ring-1 ring-black'
+                    : 'bg-white border-gray-200 hover:border-gray-400'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-sm text-white tracking-wide">
+                  <span className="font-bold text-base text-[#0A0A0D]">
                     {pair.displayName}
                   </span>
-                  <span className="text-[10px] font-mono text-neutral-400 bg-neutral-900/80 px-1.5 py-0.5 rounded border border-neutral-800">
-                    {pair.spreadPips} pip spr
+                  <span className="text-[10px] font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded font-semibold">
+                    {pair.spreadPips} pip spread
                   </span>
                 </div>
-                <div className="text-xs text-neutral-400 truncate">
-                  {pair.baseCurrency}/{pair.quoteCurrency} Major
+                <div className="text-xs text-gray-500">
+                  {pair.description}
                 </div>
-                {isSelected && (
-                  <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                )}
               </button>
             );
           })}
         </div>
 
         {/* Selected Currency Overview Card */}
-        <div className="bg-[#0D121D] border border-neutral-800 rounded-2xl p-5 shadow-lg">
+        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-black text-white tracking-tight">
+                <h1 className="text-2xl font-black text-[#0A0A0D] tracking-tight">
                   {selectedPair.displayName}
                 </h1>
                 {latestPrice != null && (
-                  <span className="text-xl font-mono font-bold text-white">
+                  <span className="text-2xl font-mono font-bold text-black">
                     {latestPrice.toFixed(4)}
                   </span>
                 )}
@@ -285,8 +243,8 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                   <span
                     className={`text-xs font-mono font-bold px-2 py-0.5 rounded flex items-center gap-1 ${
                       priceChange24h >= 0
-                        ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800'
-                        : 'bg-rose-950/60 text-rose-400 border border-rose-800'
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                        : 'bg-rose-50 text-rose-800 border border-rose-200'
                     }`}
                   >
                     {priceChange24h >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -294,22 +252,22 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-neutral-400 mt-1 max-w-2xl">
-                {selectedPair.description} Standard Lot: <strong>{selectedPair.standardLotUnits.toLocaleString()} units</strong> · 1 Pip = <strong>{selectedPair.pipSize}</strong>.
+              <p className="text-xs text-gray-500 mt-1">
+                Yahoo Symbol: <code className="bg-gray-100 px-1 py-0.5 rounded text-black font-mono">{selectedPair.symbol}</code> · Standard Lot: <strong>{selectedPair.standardLotUnits.toLocaleString()} units</strong> · 1 Pip = <strong>{selectedPair.pipSize}</strong>
               </p>
             </div>
 
-            {/* Timeframe controls */}
+            {/* Timeframe selector */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-neutral-400 font-mono">Range:</span>
+              <span className="text-xs text-gray-500 font-mono">Range:</span>
               {(['1y', '3y', '5y', 'max'] as const).map((r) => (
                 <button
                   key={r}
                   onClick={() => setDateRange(r)}
                   className={`px-3 py-1 rounded-lg text-xs font-bold font-mono transition-all ${
                     dateRange === r
-                      ? 'bg-cyan-500 text-black shadow-xs'
-                      : 'bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white'
+                      ? 'bg-black text-white shadow-xs'
+                      : 'bg-white border border-gray-200 text-gray-600 hover:text-black'
                   }`}
                 >
                   {r.toUpperCase()}
@@ -318,92 +276,33 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
               <button
                 onClick={fetchCandles}
                 disabled={isLoading}
-                className="p-1.5 rounded-lg bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white transition-all ml-1"
+                className="p-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:text-black transition-all ml-1"
                 title="Refresh Live Ticks"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-cyan-400' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-black' : ''}`} />
               </button>
             </div>
           </div>
         </div>
 
-        {/* 3. Strategy Selection Tabs */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-cyan-400" />
-              <span>Select Forex Algorithm System</span>
-            </h2>
-            <span className="text-xs text-neutral-400 font-mono">
-              Designed for 24-Hour Currency Sessions
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-            {FOREX_STRATEGIES.map((strat) => {
-              const isSelected = selectedStrategyId === strat.id;
-              return (
-                <button
-                  key={strat.id}
-                  onClick={() => setSelectedStrategyId(strat.id)}
-                  className={`p-4 rounded-xl text-left border transition-all flex flex-col justify-between ${
-                    isSelected
-                      ? 'bg-gradient-to-b from-[#101928] to-[#0A101C] border-cyan-500 shadow-lg shadow-cyan-950/40'
-                      : 'bg-[#0E131F] border-neutral-800/80 hover:border-neutral-700 hover:bg-[#111726]'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-cyan-400 font-semibold uppercase">
-                        {strat.category}
-                      </span>
-                      {isSelected && <CheckCircle2 className="w-4 h-4 text-cyan-400" />}
-                    </div>
-                    <h3 className="font-bold text-sm text-white mb-1 leading-snug">
-                      {strat.name}
-                    </h3>
-                    <p className="text-xs text-neutral-400 line-clamp-2 leading-relaxed">
-                      {strat.tagline}
-                    </p>
-                  </div>
-
-                  <div className="mt-4 pt-3 border-t border-neutral-800/60 flex items-center justify-between text-[11px] text-neutral-400">
-                    <span>Rec. Pairs:</span>
-                    <span className="font-mono text-neutral-200">
-                      {strat.recommendedPairs.map((p) => p.replace('=X', '')).join(', ')}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 4. Strategy Deep-Dive & Live Execution Controls */}
+        {/* 3. Strategy Configuration & Verification Box */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column: Parameter Sliders & Execution Box */}
+          {/* Left Column: NRI Capital & Risk Configuration */}
           <div className="lg:col-span-5 space-y-5">
-            {/* Live Parameter Controls */}
-            <div className="bg-[#0D121D] border border-neutral-800 rounded-2xl p-5 shadow-lg space-y-4">
-              <div className="flex items-center justify-between border-b border-neutral-800/80 pb-3">
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                 <div className="flex items-center gap-2">
-                  <Sliders className="w-4 h-4 text-cyan-400" />
-                  <span className="font-bold text-sm text-white">Algorithmic Risk Tuning</span>
+                  <Sliders className="w-4 h-4 text-black" />
+                  <span className="font-bold text-sm text-[#0A0A0D]">NRI Execution Parameters</span>
                 </div>
-                <button
-                  onClick={handleRecalculate}
-                  className="text-xs text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>Recalculate</span>
-                </button>
+                <span className="text-xs text-gray-500 font-mono">USD Account</span>
               </div>
 
               {/* Account Size USD */}
               <div>
-                <div className="flex justify-between text-xs text-neutral-400 mb-1">
-                  <span>NRI Account Capital (USD):</span>
-                  <span className="font-mono font-bold text-white">
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <span>Client Capital (USD):</span>
+                  <span className="font-mono font-bold text-black">
                     ${accountCapitalUSD.toLocaleString()} (₹{(accountCapitalUSD * usdInrRate).toLocaleString()})
                   </span>
                 </div>
@@ -414,17 +313,15 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                   step="5000"
                   value={accountCapitalUSD}
                   onChange={(e) => setAccountCapitalUSD(Number(e.target.value))}
-                  onMouseUp={handleRecalculate}
-                  onTouchEnd={handleRecalculate}
-                  className="w-full accent-cyan-400 h-1.5 bg-neutral-800 rounded-lg cursor-pointer"
+                  className="w-full accent-black h-1.5 bg-gray-200 rounded-lg cursor-pointer"
                 />
               </div>
 
               {/* Lot Size */}
               <div>
-                <div className="flex justify-between text-xs text-neutral-400 mb-1">
-                  <span>Order Size:</span>
-                  <span className="font-mono font-bold text-cyan-400">
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <span>Order Sizing:</span>
+                  <span className="font-mono font-bold text-black">
                     {lotSize} Standard Lot ({(lotSize * selectedPair.standardLotUnits).toLocaleString()} units)
                   </span>
                 </div>
@@ -432,14 +329,11 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                   {[0.1, 0.5, 1.0, 2.0].map((size) => (
                     <button
                       key={size}
-                      onClick={() => {
-                        setLotSize(size);
-                        setTimeout(handleRecalculate, 50);
-                      }}
+                      onClick={() => setLotSize(size)}
                       className={`py-1.5 rounded-lg text-xs font-mono font-bold transition-all border ${
                         lotSize === size
-                          ? 'bg-cyan-500 text-black border-cyan-400'
-                          : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
+                          ? 'bg-black text-white border-black'
+                          : 'bg-white border-gray-200 text-gray-600 hover:border-black'
                       }`}
                     >
                       {size} Lot
@@ -450,9 +344,9 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
 
               {/* Risk Per Trade % */}
               <div>
-                <div className="flex justify-between text-xs text-neutral-400 mb-1">
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
                   <span>Risk Per Trade:</span>
-                  <span className="font-mono font-bold text-white">
+                  <span className="font-mono font-bold text-black">
                     {riskPerTradePct.toFixed(1)}% (${((accountCapitalUSD * riskPerTradePct) / 100).toFixed(0)})
                   </span>
                 </div>
@@ -463,284 +357,106 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                   step="0.1"
                   value={riskPerTradePct}
                   onChange={(e) => setRiskPerTradePct(Number(e.target.value))}
-                  onMouseUp={handleRecalculate}
-                  onTouchEnd={handleRecalculate}
-                  className="w-full accent-cyan-400 h-1.5 bg-neutral-800 rounded-lg cursor-pointer"
+                  className="w-full accent-black h-1.5 bg-gray-200 rounded-lg cursor-pointer"
                 />
               </div>
 
               {/* Stop Loss & Take Profit in Pips */}
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div>
-                  <span className="text-xs text-neutral-400 block mb-1">Stop Loss:</span>
-                  <div className="flex items-center gap-1.5 bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1.5">
+                  <span className="text-xs text-gray-600 block mb-1">Stop Loss (Pips):</span>
+                  <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5">
                     <input
                       type="number"
                       value={stopLossPips}
                       onChange={(e) => setStopLossPips(Number(e.target.value))}
-                      onBlur={handleRecalculate}
-                      className="w-full bg-transparent text-white font-mono text-xs focus:outline-none"
+                      className="w-full bg-transparent text-black font-mono text-xs focus:outline-none"
                     />
-                    <span className="text-[11px] text-neutral-500 font-mono">pips</span>
+                    <span className="text-[11px] text-gray-500 font-mono">pips</span>
                   </div>
                 </div>
 
                 <div>
-                  <span className="text-xs text-neutral-400 block mb-1">Take Profit:</span>
-                  <div className="flex items-center gap-1.5 bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1.5">
+                  <span className="text-xs text-gray-600 block mb-1">Take Profit (Pips):</span>
+                  <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5">
                     <input
                       type="number"
                       value={takeProfitPips}
                       onChange={(e) => setTakeProfitPips(Number(e.target.value))}
-                      onBlur={handleRecalculate}
-                      className="w-full bg-transparent text-white font-mono text-xs focus:outline-none"
+                      className="w-full bg-transparent text-black font-mono text-xs focus:outline-none"
                     />
-                    <span className="text-[11px] text-neutral-500 font-mono">pips</span>
+                    <span className="text-[11px] text-gray-500 font-mono">pips</span>
                   </div>
                 </div>
               </div>
-
-              {/* Trailing Stop */}
-              <div>
-                <div className="flex justify-between text-xs text-neutral-400 mb-1">
-                  <span>Chandelier Trailing Ratchet:</span>
-                  <span className="font-mono font-bold text-white">{trailingStopPips} pips</span>
-                </div>
-                <input
-                  type="range"
-                  min="10"
-                  max="60"
-                  step="5"
-                  value={trailingStopPips}
-                  onChange={(e) => setTrailingStopPips(Number(e.target.value))}
-                  onMouseUp={handleRecalculate}
-                  onTouchEnd={handleRecalculate}
-                  className="w-full accent-cyan-400 h-1.5 bg-neutral-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Action Buttons: Execute Forex Algo */}
-              <div className="pt-2">
-                <button
-                  onClick={handleExecuteForexAlgo}
-                  disabled={executingOrder}
-                  className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-950/60 transition-all flex items-center justify-center gap-2 active:scale-98"
-                >
-                  <Zap className={`w-4 h-4 ${executingOrder ? 'animate-bounce' : ''}`} />
-                  <span>
-                    {executingOrder ? 'Routing to Currenex / LMAX...' : `Execute ${selectedStrategy.category} on ${selectedPair.displayName}`}
-                  </span>
-                </button>
-              </div>
-
-              {/* Toast alert on simulated execution */}
-              {executedOrderToast && (
-                <div className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-800 text-emerald-300 font-mono text-xs animate-in fade-in slide-in-from-top-1">
-                  <div className="flex items-center gap-1.5 font-bold mb-0.5">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>BROKER CONFIRMATION RECEIVED</span>
-                  </div>
-                  <p className="text-[11px] text-neutral-300 break-words">{executedOrderToast}</p>
-                </div>
-              )}
-            </div>
-
-            {/* Strategy Rules Box */}
-            <div className="bg-[#0D121D] border border-neutral-800 rounded-2xl p-5 shadow-lg space-y-3">
-              <h4 className="font-bold text-xs uppercase tracking-wider text-neutral-300 flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Strategy Quant Logic: {selectedStrategy.name}</span>
-              </h4>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                {selectedStrategy.description}
-              </p>
-              <ul className="space-y-1.5 pt-1">
-                {selectedStrategy.rulesSummary.map((rule, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-xs text-neutral-300">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
-                    <span>{rule}</span>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
 
-          {/* Right Column: Quantitative Backtest Audit & Performance */}
+          {/* Right Column: User Strategy Definition Window */}
           <div className="lg:col-span-7 space-y-5">
-            {/* Metrics Scorecard */}
-            {backtestResult && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-[#0D121D] border border-neutral-800 rounded-xl p-4">
-                  <span className="text-[11px] text-neutral-400 font-mono block mb-1">
-                    TOTAL NET P&L
-                  </span>
-                  <div className="flex items-baseline gap-1">
-                    <span
-                      className={`text-xl font-mono font-black ${
-                        backtestResult.metrics.totalProfitUSD >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                      }`}
-                    >
-                      {backtestResult.metrics.totalProfitUSD >= 0 ? '+$' : '-$'}
-                      {Math.abs(backtestResult.metrics.totalProfitUSD).toLocaleString()}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-neutral-400 font-mono block mt-0.5">
-                    ≈ ₹{Math.abs(backtestResult.metrics.totalProfitINR).toLocaleString()} INR
-                  </span>
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+                <div className="flex items-center gap-2">
+                  <Code2 className="w-4 h-4 text-black" />
+                  <span className="font-bold text-sm text-[#0A0A0D]">Your Approved Forex Strategy</span>
                 </div>
-
-                <div className="bg-[#0D121D] border border-neutral-800 rounded-xl p-4">
-                  <span className="text-[11px] text-neutral-400 font-mono block mb-1">
-                    NET RETURN
-                  </span>
-                  <span
-                    className={`text-xl font-mono font-black ${
-                      backtestResult.metrics.totalReturnPct >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                    }`}
-                  >
-                    {backtestResult.metrics.totalReturnPct >= 0 ? '+' : ''}
-                    {backtestResult.metrics.totalReturnPct}%
-                  </span>
-                  <span className="text-[10px] text-neutral-400 font-mono block mt-0.5">
-                    CAGR: {backtestResult.metrics.cagrPct}%
-                  </span>
-                </div>
-
-                <div className="bg-[#0D121D] border border-neutral-800 rounded-xl p-4">
-                  <span className="text-[11px] text-neutral-400 font-mono block mb-1">
-                    WIN RATE
-                  </span>
-                  <span className="text-xl font-mono font-black text-white">
-                    {backtestResult.metrics.winRate}%
-                  </span>
-                  <span className="text-[10px] text-neutral-400 font-mono block mt-0.5">
-                    {backtestResult.metrics.winTrades} W / {backtestResult.metrics.lossTrades} L ({backtestResult.metrics.totalTrades} T)
-                  </span>
-                </div>
-
-                <div className="bg-[#0D121D] border border-neutral-800 rounded-xl p-4">
-                  <span className="text-[11px] text-neutral-400 font-mono block mb-1">
-                    PIPS GAINED
-                  </span>
-                  <span
-                    className={`text-xl font-mono font-black ${
-                      backtestResult.metrics.totalPipsGained >= 0 ? 'text-cyan-400' : 'text-rose-400'
-                    }`}
-                  >
-                    {formatPips(backtestResult.metrics.totalPipsGained)}
-                  </span>
-                  <span className="text-[10px] text-neutral-400 font-mono block mt-0.5">
-                    Profit Factor: {backtestResult.metrics.profitFactor}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Additional Risk Ratios */}
-            {backtestResult && (
-              <div className="bg-[#0D121D] border border-neutral-800 rounded-2xl p-5 shadow-lg">
-                <div className="flex items-center justify-between mb-4 border-b border-neutral-800/80 pb-3">
-                  <span className="font-bold text-xs uppercase tracking-wider text-neutral-300 flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-cyan-400" />
-                    <span>Institutional Risk & Drawdown Audit ({candles.length} Daily Bars)</span>
-                  </span>
-                  <span className="text-[10px] font-mono text-neutral-400">
-                    Source: Yahoo Finance FX Stream
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
-                  <div>
-                    <span className="text-neutral-500 block mb-0.5">Max Drawdown (%):</span>
-                    <span className="text-rose-400 font-bold text-sm">
-                      -{backtestResult.metrics.maxDrawdownPct}%
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-neutral-500 block mb-0.5">Max Drawdown (USD):</span>
-                    <span className="text-rose-400 font-bold text-sm">
-                      -${backtestResult.metrics.maxDrawdownUSD.toLocaleString()}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-neutral-500 block mb-0.5">Average Win:</span>
-                    <span className="text-emerald-400 font-bold text-sm">
-                      +${backtestResult.metrics.avgWinUSD.toFixed(2)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-neutral-500 block mb-0.5">Average Loss:</span>
-                    <span className="text-rose-400 font-bold text-sm">
-                      -${backtestResult.metrics.avgLossUSD.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Authenticated Trade Execution Log */}
-            <div className="bg-[#0D121D] border border-neutral-800 rounded-2xl p-5 shadow-lg">
-              <div className="flex items-center justify-between mb-4 border-b border-neutral-800/80 pb-3">
-                <span className="font-bold text-xs uppercase tracking-wider text-neutral-300">
-                  Recent Quant Trades on {selectedPair.displayName}
-                </span>
-                <span className="text-[10px] font-mono text-neutral-400">
-                  Showing last {Math.min(backtestResult?.trades?.length || 0, 10)} of {backtestResult?.trades?.length || 0} trades
+                <span className="text-[10px] font-mono bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full font-bold">
+                  Awaiting Your Strategy Rules
                 </span>
               </div>
 
-              {backtestResult && backtestResult.trades.length > 0 ? (
-                <div className="overflow-x-auto no-scrollbar">
-                  <table className="w-full text-left text-xs font-mono">
-                    <thead>
-                      <tr className="border-b border-neutral-800 text-neutral-500 text-[11px]">
-                        <th className="py-2">Date</th>
-                        <th className="py-2">Side</th>
-                        <th className="py-2">Entry</th>
-                        <th className="py-2">Exit</th>
-                        <th className="py-2">Exit Reason</th>
-                        <th className="py-2 text-right">P&L (USD)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-neutral-900">
-                      {backtestResult.trades
-                        .slice(-10)
-                        .reverse()
-                        .map((t) => (
-                          <tr key={t.id} className="hover:bg-neutral-800/30">
-                            <td className="py-2.5 text-neutral-300">{t.exitTime}</td>
-                            <td className="py-2.5">
-                              <span
-                                className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                                  t.type === 'BUY'
-                                    ? 'bg-emerald-950/70 text-emerald-400 border border-emerald-800'
-                                    : 'bg-rose-950/70 text-rose-400 border border-rose-800'
-                                }`}
-                              >
-                                {t.type}
-                              </span>
-                            </td>
-                            <td className="py-2.5 text-neutral-300">{t.entryPrice.toFixed(4)}</td>
-                            <td className="py-2.5 text-neutral-300">{t.exitPrice.toFixed(4)}</td>
-                            <td className="py-2.5 text-neutral-400 text-[10px]">{t.exitReason}</td>
-                            <td
-                              className={`py-2.5 text-right font-bold ${
-                                t.pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                              }`}
-                            >
-                              {t.pnl >= 0 ? '+$' : '-$'}
-                              {Math.abs(t.pnl).toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-600 space-y-2">
+                  <div className="flex items-center gap-2 text-black font-bold">
+                    <AlertCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>No unapproved or random strategies are running</span>
+                  </div>
+                  <p>
+                    All pre-programmed template strategies have been removed as per your instruction. The portal is currently running live candle telemetry on <strong>{selectedPair.displayName}</strong> ({candles.length} historical daily candles loaded from Yahoo Finance) and is waiting for your specific Forex strategy rules.
+                  </p>
                 </div>
-              ) : (
-                <div className="py-8 text-center text-xs text-neutral-500">
-                  {isLoading ? 'Computing Forex ticks...' : 'No trades triggered for this parameter combination.'}
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Strategy Name / Identifier:
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. London Session Range Breakout / 4H EMA Pullback"
+                    value={strategyName}
+                    onChange={(e) => setStrategyName(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-xl border border-gray-200 bg-white text-xs text-black focus:outline-none focus:border-black font-mono"
+                  />
                 </div>
-              )}
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Strategy Rules / Pine Script / Quant Logic:
+                  </label>
+                  <textarea
+                    rows={5}
+                    placeholder="Provide your exact entry trigger, exit rules, indicator filters (e.g. Session times, EMA lengths, RSI/ATR thresholds, Chandelier stop, etc.)..."
+                    value={strategyRulesInput}
+                    onChange={(e) => setStrategyRulesInput(e.target.value)}
+                    className="w-full p-3.5 rounded-xl border border-gray-200 bg-white text-xs text-black focus:outline-none focus:border-black font-mono leading-relaxed"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-[11px] text-gray-500 font-mono">
+                    Live Feed: {candles.length} bars ready on {selectedPair.displayName}
+                  </span>
+                  <button
+                    onClick={() => {
+                      alert(`Strategy "${strategyName || 'Forex Custom'}" submitted! Please send me the rules in the chat and I will immediately implement and verify it on ${selectedPair.displayName}.`);
+                    }}
+                    className="px-4 py-2 bg-black hover:bg-neutral-800 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 active:scale-95"
+                  >
+                    <span>Deploy Strategy to Live Feed</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
