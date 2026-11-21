@@ -1,13 +1,14 @@
 import { Candle, Trade, ExitReason } from '../types/backtest';
 
 export interface ForexPairInfo {
-  symbol: string;         // e.g. 'EURUSD=X'
-  displayName: string;    // e.g. 'EUR/USD'
-  baseCurrency: string;   // 'EUR'
+  symbol: string;         // e.g. 'EURUSD=X', 'GC=F'
+  displayName: string;    // e.g. 'EUR/USD', 'GOLD (XAU/USD)'
+  baseCurrency: string;   // 'EUR', 'XAU'
   quoteCurrency: string;  // 'USD'
-  pipSize: number;        // 0.0001 (or 0.01 for JPY)
-  standardLotUnits: number; // 100,000 units
-  spreadPips: number;     // typical spread 0.8 pips
+  category: 'Forex Major' | 'Precious Metal' | 'Currency Hedge';
+  pipSize: number;        // 0.0001, 0.10 for Gold, 0.01 for Silver
+  standardLotUnits: number; // 100,000 units (or 100 oz for Gold, 5,000 oz for Silver)
+  spreadPips: number;     // typical spread in pips/points
   description: string;
 }
 
@@ -17,6 +18,7 @@ export const FOREX_PAIRS: Record<string, ForexPairInfo> = {
     displayName: 'EUR/USD',
     baseCurrency: 'EUR',
     quoteCurrency: 'USD',
+    category: 'Forex Major',
     pipSize: 0.0001,
     standardLotUnits: 100000,
     spreadPips: 0.8,
@@ -27,16 +29,40 @@ export const FOREX_PAIRS: Record<string, ForexPairInfo> = {
     displayName: 'GBP/USD',
     baseCurrency: 'GBP',
     quoteCurrency: 'USD',
+    category: 'Forex Major',
     pipSize: 0.0001,
     standardLotUnits: 100000,
     spreadPips: 1.2,
     description: 'British Pound vs US Dollar (Cable) - High volatility macro trends.',
+  },
+  'GC=F': {
+    symbol: 'GC=F',
+    displayName: 'GOLD (XAU/USD)',
+    baseCurrency: 'XAU',
+    quoteCurrency: 'USD',
+    category: 'Precious Metal',
+    pipSize: 0.10,
+    standardLotUnits: 100,
+    spreadPips: 0.35,
+    description: 'Gold COMEX / Spot Benchmark - Global sovereign safe-haven & inflation hedge.',
+  },
+  'SI=F': {
+    symbol: 'SI=F',
+    displayName: 'SILVER (XAG/USD)',
+    baseCurrency: 'XAG',
+    quoteCurrency: 'USD',
+    category: 'Precious Metal',
+    pipSize: 0.01,
+    standardLotUnits: 5000,
+    spreadPips: 0.02,
+    description: 'Silver COMEX / Spot Benchmark - High-beta monetary metal & industrial precious commodity.',
   },
   'USDINR=X': {
     symbol: 'USDINR=X',
     displayName: 'USD/INR',
     baseCurrency: 'USD',
     quoteCurrency: 'INR',
+    category: 'Currency Hedge',
     pipSize: 0.0025,
     standardLotUnits: 1000,
     spreadPips: 0.5,

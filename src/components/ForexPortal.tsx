@@ -151,14 +151,14 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-base text-[#0A0A0D] tracking-tight">
-                  NRI & Global Forex Execution Desk
+                  NRI & Global Forex & Precious Metals Desk
                 </span>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
                   LIVE YAHOO API
                 </span>
               </div>
               <p className="text-xs text-gray-500">
-                Institutional currency desk for EUR/USD, GBP/USD & USD/INR. Zero mock data.
+                Institutional market data for EUR/USD, GBP/USD, Gold (XAU), Silver (XAG) & USD/INR. Zero mock data.
               </p>
             </div>
           </div>
@@ -188,7 +188,7 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
           <div className="flex items-center gap-3">
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             <span className="text-gray-700">
-              <strong className="text-black">100% Authentic Live Candle Feed:</strong> Streaming directly from Yahoo Finance for <strong>EUR/USD</strong>, <strong>GBP/USD</strong>, and <strong>USD/INR</strong>. All unapproved random strategies and mock databases have been completely purged.
+              <strong className="text-black">100% Authentic Live Feed:</strong> Streaming directly from Yahoo Finance for <strong>EUR/USD</strong>, <strong>GBP/USD</strong>, <strong>Gold (GC=F)</strong>, <strong>Silver (SI=F)</strong>, and <strong>USD/INR</strong>. All unapproved random strategies and mock databases have been completely purged.
             </span>
           </div>
           <span className="text-gray-400 font-mono text-[11px] shrink-0 hidden sm:inline">
@@ -196,29 +196,34 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
           </span>
         </div>
 
-        {/* Currency Pair Tabs */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Currency & Commodities Instrument Tabs */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {Object.values(FOREX_PAIRS).map((pair) => {
             const isSelected = selectedPairKey === pair.symbol;
             return (
               <button
                 key={pair.symbol}
                 onClick={() => setSelectedPairKey(pair.symbol)}
-                className={`p-4 rounded-xl text-left transition-all border ${
+                className={`p-3.5 rounded-xl text-left transition-all border ${
                   isSelected
                     ? 'bg-white border-black shadow-sm ring-1 ring-black'
                     : 'bg-white border-gray-200 hover:border-gray-400'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-base text-[#0A0A0D]">
+                  <span className="font-bold text-sm text-[#0A0A0D] truncate">
                     {pair.displayName}
                   </span>
-                  <span className="text-[10px] font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded font-semibold">
-                    {pair.spreadPips} pip spread
+                </div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-mono text-gray-400 uppercase">
+                    {pair.category}
+                  </span>
+                  <span className="text-[10px] font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded font-semibold">
+                    {pair.spreadPips} spr
                   </span>
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-[11px] text-gray-500 line-clamp-1">
                   {pair.description}
                 </div>
               </button>
