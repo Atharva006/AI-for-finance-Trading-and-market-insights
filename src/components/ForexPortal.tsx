@@ -279,7 +279,7 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                 )}
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Yahoo Symbol: <code className="bg-gray-100 px-1 py-0.5 rounded text-black font-mono">{selectedPair.symbol}</code> · Standard Lot: <strong>{selectedPair.standardLotUnits.toLocaleString()} units</strong> · 1 Pip = <strong>{selectedPair.pipSize}</strong>
+                Yahoo Symbol: <code className="bg-gray-100 px-1 py-0.5 rounded text-black font-mono">{selectedPair.symbol}</code> · Standard Lot: <strong>{selectedPair.standardLotUnits.toLocaleString()} units</strong> · 1 Pip = <strong>{selectedPair.pipSize}</strong> · Feed: <span className="text-emerald-700 font-bold font-mono">Live Institutional Stream ({candles.length} real bars loaded)</span>
               </p>
             </div>
 
