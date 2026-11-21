@@ -34,6 +34,7 @@ export const LiveSessionChart: React.FC<LiveSessionChartProps> = ({
   symbol,
   interval,
 }) => {
+  const [chartMode, setChartMode] = useState<'line' | 'candles'>('line');
   const [showExplanation, setShowExplanation] = useState<boolean>(true);
   const [showAnnotations, setShowAnnotations] = useState<boolean>(true);
   const [showScriptModal, setShowScriptModal] = useState<boolean>(false);
@@ -405,6 +406,13 @@ if not inNy and inNy[1]
       if (visibleCandles[idx].low < lonLow) lonLow = visibleCandles[idx].low;
     });
 
+    let nyHigh = -Infinity,
+      nyLow = Infinity;
+    nyBars.forEach((idx) => {
+      if (visibleCandles[idx].high > nyHigh) nyHigh = visibleCandles[idx].high;
+      if (visibleCandles[idx].low < nyLow) nyLow = visibleCandles[idx].low;
+    });
+
     return {
       asiaBars,
       londonBars,
@@ -413,8 +421,30 @@ if not inNy and inNy[1]
       asiaLow: asiaLow < Infinity ? asiaLow : null,
       lonHigh: lonHigh > -Infinity ? lonHigh : null,
       lonLow: lonLow < Infinity ? lonLow : null,
+      nyHigh: nyHigh > -Infinity ? nyHigh : null,
+      nyLow: nyLow < Infinity ? nyLow : null,
     };
   }, [visibleCandles]);
+
+  // Compute smooth line path for line chart mode
+  const linePath = useMemo(() => {
+    if (visibleCandles.length < 2) return '';
+    return visibleCandles
+      .map((c, idx) => {
+        const x = getX(idx);
+        const y = getY(c.close);
+        return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`;
+      })
+      .join(' ');
+  }, [visibleCandles, minPrice, priceRange]);
+
+  const lineAreaPath = useMemo(() => {
+    if (visibleCandles.length < 2) return '';
+    const firstX = getX(0);
+    const lastX = getX(visibleCandles.length - 1);
+    const bottomY = padding.top + chartH;
+    return `${linePath} L ${lastX} ${bottomY} L ${firstX} ${bottomY} Z`;
+  }, [linePath, visibleCandles]);
 
   // Find trades that occurred within this visible bar window
   const visibleTrades = useMemo(() => {
@@ -452,6 +482,30 @@ if not inNy and inNy[1]
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Chart View Toggle: Line vs Candlestick */}
+          <div className="flex items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200 text-xs">
+            <button
+              onClick={() => setChartMode('line')}
+              className={`px-2.5 py-1 rounded-md font-bold transition-all ${
+                chartMode === 'line'
+                  ? 'bg-black text-white shadow-xs'
+                  : 'text-gray-600 hover:text-black'
+              }`}
+            >
+              Line Chart
+            </button>
+            <button
+              onClick={() => setChartMode('candles')}
+              className={`px-2.5 py-1 rounded-md font-bold transition-all ${
+                chartMode === 'candles'
+                  ? 'bg-black text-white shadow-xs'
+                  : 'text-gray-600 hover:text-black'
+              }`}
+            >
+              Candles
+            </button>
+          </div>
+
           {/* View Pine Script v5 Code & Copy Button */}
           <button
             onClick={() => setShowScriptModal(!showScriptModal)}
@@ -581,6 +635,95 @@ if not inNy and inNy[1]
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-auto block select-none"
         >
+          <defs>
+            <linearGradient id="forexPriceGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#2563EB" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#2563EB" stopOpacity="0.0" />
+            </linearGradient>
+          </defs>
+
+          {/* 1. SESSION BACKGROUND BOXES (One Frame Context) */}
+          {/* Asia Session Background Zone (18:00 - 00:00 UTC) */}
+          {sessionRanges.asiaBars.length > 0 && (
+            <g>
+              <rect
+                x={getX(sessionRanges.asiaBars[0]) - candleW}
+                y={padding.top}
+                width={Math.max(20, getX(sessionRanges.asiaBars[sessionRanges.asiaBars.length - 1]) - getX(sessionRanges.asiaBars[0]) + candleW * 2)}
+                height={chartH}
+                fill="#FEF3C7"
+                fillOpacity="0.45"
+                stroke="#FDE68A"
+                strokeWidth="1"
+                rx="4"
+              />
+              <text
+                x={getX(sessionRanges.asiaBars[0]) + 4}
+                y={padding.top + 14}
+                fontSize="9"
+                fontWeight="bold"
+                fill="#B45309"
+                fontFamily="monospace"
+              >
+                ASIA RANGE BOX (18:00 - 00:00)
+              </text>
+            </g>
+          )}
+
+          {/* London Session Background Zone (00:00 - 06:00 UTC) */}
+          {sessionRanges.londonBars.length > 0 && (
+            <g>
+              <rect
+                x={getX(sessionRanges.londonBars[0]) - candleW}
+                y={padding.top}
+                width={Math.max(20, getX(sessionRanges.londonBars[sessionRanges.londonBars.length - 1]) - getX(sessionRanges.londonBars[0]) + candleW * 2)}
+                height={chartH}
+                fill="#DBEAFE"
+                fillOpacity="0.45"
+                stroke="#BFDBFE"
+                strokeWidth="1"
+                rx="4"
+              />
+              <text
+                x={getX(sessionRanges.londonBars[0]) + 4}
+                y={padding.top + 14}
+                fontSize="9"
+                fontWeight="bold"
+                fill="#1D4ED8"
+                fontFamily="monospace"
+              >
+                LONDON SESSION BOX (00:00 - 06:00)
+              </text>
+            </g>
+          )}
+
+          {/* New York Session Background Zone (13:00 - 22:00 UTC) */}
+          {sessionRanges.nyBars.length > 0 && (
+            <g>
+              <rect
+                x={getX(sessionRanges.nyBars[0]) - candleW}
+                y={padding.top}
+                width={Math.max(20, getX(sessionRanges.nyBars[sessionRanges.nyBars.length - 1]) - getX(sessionRanges.nyBars[0]) + candleW * 2)}
+                height={chartH}
+                fill="#EDE9FE"
+                fillOpacity="0.45"
+                stroke="#DDD6FE"
+                strokeWidth="1"
+                rx="4"
+              />
+              <text
+                x={getX(sessionRanges.nyBars[0]) + 4}
+                y={padding.top + 14}
+                fontSize="9"
+                fontWeight="bold"
+                fill="#6D28D9"
+                fontFamily="monospace"
+              >
+                NEW YORK SESSION BOX (13:00 - 22:00)
+              </text>
+            </g>
+          )}
+
           {/* Horizontal Price Grid Lines */}
           {[0, 0.25, 0.5, 0.75, 1.0].map((ratio) => {
             const price = minPrice + (1 - ratio) * priceRange;
@@ -747,46 +890,86 @@ if not inNy and inNy[1]
             </g>
           )}
 
-          {/* Candlestick Rendering */}
-          {visibleCandles.map((c, idx) => {
-            const x = getX(idx);
-            const isBull = c.close >= c.open;
-            const openY = getY(c.open);
-            const closeY = getY(c.close);
-            const highY = getY(c.high);
-            const lowY = getY(c.low);
-            const bodyTop = Math.min(openY, closeY);
-            const bodyHeight = Math.max(1.5, Math.abs(closeY - openY));
-            const color = isBull ? '#16A34A' : '#DC2626';
+          {/* 3. PRICE RENDERING: LINE CHART MODE VS CANDLESTICK MODE */}
+          {chartMode === 'line' ? (
+            <g>
+              {/* Gradient Area Fill under Line */}
+              <path
+                d={lineAreaPath}
+                fill="url(#forexPriceGrad)"
+              />
+              {/* Primary Price Trend Line */}
+              <path
+                d={linePath}
+                fill="none"
+                stroke="#2563EB"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              {/* Interactive Hover Nodes */}
+              {visibleCandles.map((c, idx) => {
+                const x = getX(idx);
+                const y = getY(c.close);
+                const isHovered = hoverBarIndex === idx;
+                return (
+                  <circle
+                    key={c.time}
+                    cx={x}
+                    cy={y}
+                    r={isHovered ? 5 : 2}
+                    fill={isHovered ? '#2563EB' : '#FFFFFF'}
+                    stroke="#2563EB"
+                    strokeWidth={isHovered ? 2.5 : 1.2}
+                    onMouseEnter={() => setHoverBarIndex(idx)}
+                    onMouseLeave={() => setHoverBarIndex(null)}
+                    className="cursor-crosshair"
+                  />
+                );
+              })}
+            </g>
+          ) : (
+            /* Candlestick Rendering */
+            visibleCandles.map((c, idx) => {
+              const x = getX(idx);
+              const isBull = c.close >= c.open;
+              const openY = getY(c.open);
+              const closeY = getY(c.close);
+              const highY = getY(c.high);
+              const lowY = getY(c.low);
+              const bodyTop = Math.min(openY, closeY);
+              const bodyHeight = Math.max(1.5, Math.abs(closeY - openY));
+              const color = isBull ? '#16A34A' : '#DC2626';
 
-            return (
-              <g
-                key={c.time}
-                onMouseEnter={() => setHoverBarIndex(idx)}
-                onMouseLeave={() => setHoverBarIndex(null)}
-                className="cursor-crosshair"
-              >
-                {/* Wick */}
-                <line
-                  x1={x}
-                  y1={highY}
-                  x2={x}
-                  y2={lowY}
-                  stroke={color}
-                  strokeWidth="1.2"
-                />
-                {/* Body */}
-                <rect
-                  x={x - candleW / 2}
-                  y={bodyTop}
-                  width={candleW}
-                  height={bodyHeight}
-                  fill={isBull ? '#16A34A' : '#DC2626'}
-                  rx="1"
-                />
-              </g>
-            );
-          })}
+              return (
+                <g
+                  key={c.time}
+                  onMouseEnter={() => setHoverBarIndex(idx)}
+                  onMouseLeave={() => setHoverBarIndex(null)}
+                  className="cursor-crosshair"
+                >
+                  {/* Wick */}
+                  <line
+                    x1={x}
+                    y1={highY}
+                    x2={x}
+                    y2={lowY}
+                    stroke={color}
+                    strokeWidth="1.2"
+                  />
+                  {/* Body */}
+                  <rect
+                    x={x - candleW / 2}
+                    y={bodyTop}
+                    width={candleW}
+                    height={bodyHeight}
+                    fill={isBull ? '#16A34A' : '#DC2626'}
+                    rx="1"
+                  />
+                </g>
+              );
+            })
+          )}
 
           {/* Trade Execution Markers & Annotation Callouts */}
           {visibleTrades.map((t) => {
