@@ -38,6 +38,7 @@ import { StrategyDoctorModal } from './StrategyDoctorModal';
 import { CompanyFilingAnalyzerModal } from './CompanyFilingAnalyzerModal';
 import { NSE_FUNDAMENTAL_STOCKS } from '../services/marketPulseData';
 import { ParsedStrategyPrompt } from '../services/aiPromptParser';
+import { groqGenerateStrategy } from '../services/groqApi';
 import { StockLogo } from './StockLogo';
 import { Sparkles } from 'lucide-react';
 
@@ -239,6 +240,8 @@ const DEFAULT_STUDIO_STRATEGIES: StudioStrategyOption[] = [
 export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdated, initialSymbol }) => {
   const [studioTab, setStudioTab] = useState<'SINGLE' | 'BASKET'>('SINGLE');
   const [saveToast, setSaveToast] = useState<string | null>(null);
+  const [promptText, setPromptText] = useState('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
   const [strategyOptions, setStrategyOptions] = useState<StudioStrategyOption[]>(DEFAULT_STUDIO_STRATEGIES);
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>('algo-nifty-trend-pullback-chandelier');
   const [selectedStock, setSelectedStock] = useState<NseStock>(() => {
@@ -401,6 +404,19 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
     onStrategyUpdated?.(newAlgoStrategy);
 
     setSaveToast(`✓ Added to Strategy Engine dropdown: "${newName}"`);
+  };
+
+  const handleExecutePrompt = async (textToParse: string) => {
+    if (!textToParse.trim()) return;
+    setIsAiLoading(true);
+    try {
+      const parsed = await groqGenerateStrategy(textToParse);
+      handleApplyParsedPrompt(parsed);
+    } catch (err) {
+      console.error('AI strategy synthesis error:', err);
+    } finally {
+      setIsAiLoading(false);
+    }
   };
 
   const handleSelectStrategyOption = (optId: string) => {
@@ -719,69 +735,37 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
   };
 
   return (
-    <div className="w-full px-2 sm:px-4 lg:px-6 py-6 space-y-6">
-      {/* Studio Header (Swiss-grid institutional style matching Landing Page) */}
-      <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
-              Vectorized Live Execution
-            </span>
-            <span className="text-xs text-gray-400 font-mono">·</span>
-            <span className="text-xs text-emerald-700 font-mono font-bold">Zero Mock Data · 100% Real Bar-by-Bar</span>
+    <div className="flex flex-col w-full gap-space-lg pb-space-xl">
+      {/* Top Section: Single Asset vs Basket Mode + Natural Language Copilot (Stitch Screen 4) */}
+      <section className="w-full bg-surface-card border border-border-subtle rounded-xl p-space-md shadow-sm flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-space-md">
+        <div className="flex items-center gap-space-sm shrink-0">
+          <div aria-label="Backtest Mode" className="inline-flex p-1 rounded-lg bg-surface-container-low border border-border-subtle" role="group">
+            <button
+              onClick={() => setStudioTab('SINGLE')}
+              className={`mode-btn px-space-md py-1.5 rounded-md font-label-md text-label-md transition-all cursor-pointer ${
+                studioTab === 'SINGLE'
+                  ? 'bg-primary text-on-primary font-semibold shadow-xs'
+                  : 'text-on-surface-variant hover:text-on-surface'
+              }`}
+              type="button"
+            >
+              Single Asset
+            </button>
+            <button
+              onClick={() => setStudioTab('BASKET')}
+              className={`mode-btn px-space-md py-1.5 rounded-md font-label-md text-label-md transition-all cursor-pointer ${
+                studioTab === 'BASKET'
+                  ? 'bg-primary text-on-primary font-semibold shadow-xs'
+                  : 'text-on-surface-variant hover:text-on-surface'
+              }`}
+              type="button"
+            >
+              Basket Portfolio
+            </button>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A0A0D] tracking-tight">
-            Backtest Studio &amp; Real Quantitative Engine
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-600 mt-1 max-w-2xl leading-relaxed">
-            Execute quantitative algorithmic strategies on authentic Yahoo Finance daily historical candles across all 3,797 NSE equities &amp; indices.
-            All trade entries, stops, profit factors, drawdowns, and Sharpe ratios compute dynamically bar-by-bar.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl text-right font-mono">
-            <div className="text-[10px] text-gray-400 uppercase font-bold">Execution Engine</div>
-            <div className="text-xs font-bold text-emerald-700 flex items-center justify-end gap-1.5 mt-0.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Yahoo Finance ({candles.length} Daily Bars)</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Studio Mode Switcher: Single Asset vs Multi-Asset Basket (Stitch Screen 4 & 5) */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md pt-space-xs">
-        <div className="inline-flex items-center p-1 rounded-xl bg-surface-container w-fit shadow-xs">
-          <button
-            onClick={() => setStudioTab('SINGLE')}
-            className={`px-space-md py-space-sm rounded-lg font-label-md text-label-md transition-all cursor-pointer ${
-              studioTab === 'SINGLE'
-                ? 'bg-surface-card text-on-surface shadow-xs font-semibold'
-                : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            Single Asset
-          </button>
-          <button
-            onClick={() => setStudioTab('BASKET')}
-            className={`px-space-md py-space-sm rounded-lg font-label-md text-label-md transition-all cursor-pointer ${
-              studioTab === 'BASKET'
-                ? 'bg-surface-card text-on-surface shadow-xs font-semibold'
-                : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            Basket Portfolio
-          </button>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-space-sm">
-          <span className="inline-flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-bullish-tint text-bullish font-mono-sm text-mono-sm font-semibold">
+          <span className="hidden sm:inline-flex items-center gap-1 px-space-sm py-1 rounded-full bg-bullish-tint text-bullish font-mono-sm text-mono-sm font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-bullish"></span>
-            VECTORIZED {studioTab === 'BASKET' ? 'MULTI-ASSET' : 'BACKTEST'} ENGINE
-          </span>
-          <span className="inline-flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-surface-container text-on-surface-variant font-mono-sm text-mono-sm">
-            {studioTab === 'BASKET' ? 'ALLOCATION: 100.0%' : 'YAHOO DAILY & 15M NSE CACHE'}
+            VECTORIZED {studioTab === 'BASKET' ? 'MULTI-ASSET' : 'ENGINE READY'}
           </span>
           {studioTab === 'SINGLE' && (
             <button
@@ -790,19 +774,51 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
               title="Save calibrated settings to Main System"
             >
               <Save className="w-3.5 h-3.5" />
-              <span>Save Settings</span>
+              <span>Save</span>
             </button>
           )}
         </div>
-      </div>
+
+        {/* Natural Language Prompt Input Bar directly embedded */}
+        <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-space-sm min-w-0">
+          <div className="relative flex-1 min-w-0">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]">
+              auto_awesome
+            </span>
+            <input
+              type="text"
+              value={promptText}
+              onChange={(e) => setPromptText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleExecutePrompt(promptText);
+                }
+              }}
+              placeholder="Test an ORB strategy on RELIANCE 5M with 70% candle body SL and 1:2 RR"
+              className="w-full pl-9 pr-3 py-2 rounded-lg bg-surface-card border border-border-subtle text-on-surface placeholder:text-text-muted font-body-sm text-body-sm focus:outline-none focus:border-primary transition-colors"
+            />
+          </div>
+          <button
+            onClick={() => handleExecutePrompt(promptText)}
+            disabled={isAiLoading}
+            className="inline-flex items-center justify-center gap-space-xs px-space-md py-2 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors shrink-0 cursor-pointer disabled:opacity-60"
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[16px]">
+              {isAiLoading ? 'refresh' : 'bolt'}
+            </span>
+            <span>{isAiLoading ? 'Synthesizing...' : 'Synthesize'}</span>
+          </button>
+        </div>
+      </section>
 
       {saveToast && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-2xl text-xs font-mono font-bold flex items-center justify-between animate-in fade-in">
+        <div className="bg-bullish-tint border border-bullish/20 text-bullish px-4 py-3 rounded-xl text-xs font-mono font-bold flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-600" />
+            <Check className="w-4 h-4 text-bullish" />
             <span>{saveToast}</span>
           </div>
-          <button onClick={() => setSaveToast(null)} className="text-emerald-600 hover:text-black font-bold">✕</button>
+          <button onClick={() => setSaveToast(null)} className="text-bullish hover:text-on-surface font-bold">✕</button>
         </div>
       )}
 
@@ -810,11 +826,8 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
         <BasketPortfolioStudio />
       ) : (
         <>
-          {/* Natural Language Prompt-to-Strategy Copilot */}
-          <NaturalLanguagePromptBar onApplyParsedStrategy={handleApplyParsedPrompt} />
-
           {/* Top Controls Bar (NSE Asset Search, Quick Chips, Timeframe, Upstox API Status) */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+          <div className="bg-surface-card p-space-lg rounded-xl border border-border-subtle shadow-sm space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           {/* Left: NSE Stock Search Dropdown */}
           <div className="relative flex-1 min-w-[280px]">

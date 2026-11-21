@@ -25,10 +25,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-background text-on-surface font-sans selection:bg-primary selection:text-on-primary">
-      {/* Main Container */}
-      <div className="max-w-7xl mx-auto px-margin flex flex-col gap-space-xl">
-        {/* 1. HERO SECTION (12-Column Grid) */}
+    <div className="w-full flex flex-col gap-space-xl pb-space-xl">
+      {/* 1. HERO SECTION (12-Column Grid) */}
         <section className="w-full py-space-xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
             {/* Left (7 cols) */}
@@ -632,6 +630,5 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </section>
       </div>
-    </div>
   );
 };

@@ -37,21 +37,22 @@ export const DhanNavbar: React.FC<DhanNavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 w-full z-40 bg-surface-card/95 backdrop-blur-md border-b border-border-subtle select-none">
-      <div className="h-16 w-full px-margin flex items-center justify-between gap-gutter">
-        {/* Left: Brand Monogram & Name */}
-        <div
-          onClick={() => setActiveView('landing')}
-          className="flex items-center gap-space-sm shrink-0 cursor-pointer group"
-          title="Apex Quant Trading Workstation"
-        >
-          <div className="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center font-bold text-sm tracking-tighter shadow-xs transition-transform group-hover:scale-105">
-            AQ
-          </div>
-          <span className="font-title-md text-title-md text-on-surface tracking-tight font-bold lowercase">
-            apex quant
-          </span>
-        </div>
+    <div className="h-16 w-full bg-surface-card/90 backdrop-blur-md border-b border-border-subtle px-margin flex items-center justify-between gap-gutter select-none">
+      {/* Left: Brand Monogram & Name */}
+      <div
+        onClick={() => setActiveView('landing')}
+        className="flex items-center gap-space-sm shrink-0 cursor-pointer group"
+        title="Apex Quant Trading Workstation"
+      >
+        <img
+          alt="Apex Quant AQ Monogram"
+          className="h-8 w-auto object-contain transition-transform group-hover:scale-105"
+          src="https://lh3.googleusercontent.com/aida/ALJJyrDoYL4wVpXsoYtqmZkmWKJAcBOZgjR6a2u3D7pji-QCA1FXxyW_9ixEsJ_EqdIuHO3VuBvesBLo7yGqHV2rnx4bDVRyJydMU4uix9FmelUPL0wHTmmxuvG0o93CFcfmflbMIqzzl2nTZ59kuk6TnQQHRfFZxYglS5bz_oO3eHrmyLyPCEoju6CiVfP_EVZiFTGDu3oWTnesXXfL-Oyy6PZwXKIks9-rsoY_dLVzalD-vA"
+        />
+        <span className="font-title-md text-title-md text-on-surface tracking-tight font-bold lowercase">
+          apex quant
+        </span>
+      </div>
 
         {/* Center: Primary Navigation Tabs (Matching Stitch Exactly) */}
         <nav className="hidden xl:flex items-center gap-space-xs">
@@ -181,6 +182,5 @@ export const DhanNavbar: React.FC<DhanNavbarProps> = ({
           </div>
         </div>
       </div>
-    </header>
   );
 };

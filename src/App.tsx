@@ -166,14 +166,12 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-background text-on-surface flex flex-col font-sans selection:bg-primary selection:text-on-primary antialiased">
-      {/* High-frequency Quants Live Ticker Header */}
-      <QuantTerminalHeader
-        onOpenForex={() => navigateTo('forex')}
-        activeView={activeView}
-      />
-
-      {/* Main Navigation Bar (Clean Institutional UI matching Stitch) */}
-      {activeView !== 'auth' && (
+      {/* High-frequency Quants Live Ticker Header & Nav unified in fixed header */}
+      <header className="fixed top-0 w-full z-50">
+        <QuantTerminalHeader
+          onOpenForex={() => navigateTo('forex')}
+          activeView={activeView}
+        />
         <DhanNavbar
           activeView={activeView}
           setActiveView={(view) => navigateTo(view)}
@@ -181,10 +179,10 @@ export function App() {
           selectedInstrument={selectedInstrument}
           setSelectedInstrument={setSelectedInstrument}
         />
-      )}
+      </header>
 
-      {/* Main View Router */}
-      <main className="flex-1">
+      {/* Main View Router (pt-24 accounts for the 96px fixed header) */}
+      <main className="w-full pt-24 px-margin bg-background flex-1 flex flex-col">
         {activeView === 'landing' && (
           <LandingPage
             onNavigateToView={(view) => navigateTo(view)}
@@ -239,12 +237,12 @@ export function App() {
         )}
 
         {activeView === 'detail' && !selectedStrategy && (
-          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-16 text-center space-y-4">
-            <h2 className="text-xl font-bold text-[#0A0A0D]">No Strategy Selected</h2>
-            <p className="text-sm text-gray-500">All mock strategies have been removed. Build or calibrate a strategy in Backtest Studio.</p>
+          <div className="w-full py-16 text-center space-y-4">
+            <h2 className="text-xl font-bold text-on-surface">No Strategy Selected</h2>
+            <p className="text-sm text-text-muted">Select an audited quantitative strategy from the algorithm marketplace.</p>
             <button
               onClick={() => navigateTo('marketplace')}
-              className="px-4 py-2 bg-black text-white rounded-xl text-xs font-bold shadow-xs hover:bg-neutral-800 transition-all"
+              className="px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md shadow-xs hover:bg-primary-container transition-all"
             >
               Browse Marketplace
             </button>
@@ -252,33 +250,27 @@ export function App() {
         )}
 
         {activeView === 'backtest' && (
-          <div className="w-full px-3 sm:px-6 lg:px-8 py-6">
-            <BacktestStudio
-              onStrategyUpdated={handleUpdateStrategy}
-              initialSymbol={selectedInstrument}
-            />
-          </div>
+          <BacktestStudio
+            onStrategyUpdated={handleUpdateStrategy}
+            initialSymbol={selectedInstrument}
+          />
         )}
 
         {activeView === 'flow' && (
-          <div className="w-full px-3 sm:px-6 lg:px-8 py-6">
-            <VisualFlowStudio initialStockSymbol={selectedInstrument} />
-          </div>
+          <VisualFlowStudio initialStockSymbol={selectedInstrument} />
         )}
 
         {activeView === 'insights' && (
-          <div className="w-full px-3 sm:px-6 lg:px-8 py-6">
-            <MarketPulseInsights
-              onSelectStockForBacktest={(symbol) => {
-                setSelectedInstrument(symbol);
-                navigateTo('backtest');
-              }}
-              onOpenFlowWithStock={(symbol) => {
-                setSelectedInstrument(symbol);
-                navigateTo('flow');
-              }}
-            />
-          </div>
+          <MarketPulseInsights
+            onSelectStockForBacktest={(symbol) => {
+              setSelectedInstrument(symbol);
+              navigateTo('backtest');
+            }}
+            onOpenFlowWithStock={(symbol) => {
+              setSelectedInstrument(symbol);
+              navigateTo('flow');
+            }}
+          />
         )}
 
         {activeView === 'forex' && (
@@ -295,22 +287,20 @@ export function App() {
       />
 
       {/* Footer Minimal Notice (Matching Stitch Exactly) */}
-      {activeView !== 'auth' && (
-        <footer className="w-full bg-surface-card border-t border-border-subtle px-margin py-space-sm select-none">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-space-sm font-mono-sm text-mono-sm text-text-muted">
-            <div className="flex items-center gap-space-sm">
-              <span className="w-2 h-2 rounded-full bg-bullish" />
-              <span>Real Bar-by-Bar Vectorized Quantitative Backtesting</span>
-            </div>
-            <div>
-              Institutional Systematic Strategy Engineering · Multi-Asset Portfolio Allocation
-            </div>
-            <div>
-              Apex Quant Research Workstation
-            </div>
+      <footer className="w-full bg-surface-card border-t border-border-subtle px-margin py-space-sm select-none">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-space-sm font-mono-sm text-mono-sm text-text-muted">
+          <div className="flex items-center gap-space-sm">
+            <span className="w-2 h-2 rounded-full bg-bullish" />
+            <span>Real Bar-by-Bar Vectorized Quantitative Backtesting</span>
           </div>
-        </footer>
-      )}
+          <div>
+            Institutional Systematic Strategy Engineering · Multi-Asset Portfolio Allocation
+          </div>
+          <div>
+            Apex Quant Research Workstation
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
