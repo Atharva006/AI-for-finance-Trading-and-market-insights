@@ -617,7 +617,7 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
   };
 
   return (
-    <div className="flex flex-col w-full gap-space-lg pb-space-xl">
+    <div className="flex flex-col w-full gap-space-lg pb-2">
       {/* Top Section: Single Asset vs Basket Mode + Natural Language Copilot (Stitch Screen 4) */}
       <section className="w-full bg-surface-card border border-border-subtle rounded-xl p-space-md shadow-sm flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-space-md">
         <div className="flex items-center gap-space-sm shrink-0">

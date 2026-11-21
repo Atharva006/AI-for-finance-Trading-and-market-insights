@@ -81,7 +81,7 @@ export const MarketPulseInsights: React.FC<MarketPulseInsightsProps> = ({
   }, [searchTerm, selectedSector, shieldOnly]);
 
   return (
-    <div className="flex flex-col w-full gap-space-lg pb-space-xl">
+    <div className="flex flex-col w-full gap-space-lg pb-2">
       {/* Top Header (Stitch Screen 7) */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md pt-space-xs">
         <div className="flex flex-col gap-space-xs">

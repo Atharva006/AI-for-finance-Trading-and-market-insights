@@ -204,7 +204,7 @@ export const AdminStrategyPortal: React.FC<AdminStrategyPortalProps> = ({
   };
 
   return (
-    <div className="flex flex-col w-full gap-space-lg pb-space-xl px-margin py-space-md select-none bg-background">
+    <div className="flex flex-col w-full gap-space-lg pb-2 px-margin py-space-md select-none bg-background">
       {/* Top Banner (Stitch Screen 9) */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-stretch">
         <div className="lg:col-span-5 bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-sm flex flex-col justify-between">

@@ -203,7 +203,7 @@ export function App() {
         />
 
         {/* Main View Router */}
-        <main className={`flex-1 flex flex-col w-full ${activeView === 'papertrading' ? 'p-0' : 'p-4 sm:p-6'}`}>
+        <main className={`flex-1 flex flex-col w-full ${activeView === 'papertrading' ? 'p-0' : 'px-4 pt-4 pb-2 sm:px-6 sm:pt-6 sm:pb-3'}`}>
           <div key={activeView} className="animate-view flex-1 flex flex-col w-full">
             {activeView === 'landing' && (
               <ArthatixOverviewDashboard
@@ -323,18 +323,16 @@ export function App() {
         </main>
 
         {/* Footer Minimal Notice */}
-        <footer className="w-full bg-white border-t border-[#E2E8F0] px-6 py-3 select-none">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-2 font-mono text-[11px] text-[#64748B]">
+        <footer className="w-full bg-white border-t border-[#E2E8F0] px-4 sm:px-6 py-2.5 select-none mt-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 font-mono text-[11px] text-[#64748B]">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
               <span className="text-[#0F172A] font-semibold">Arthatix Quant Workstation</span>
-              <span>· Live Virtual &amp; Algorithmic Desks</span>
+              <span className="text-[#CBD5E1]">·</span>
+              <span>Live Virtual &amp; Algorithmic Desks</span>
             </div>
-            <div>
-              Institutional Systematic Strategy Engineering · Multi-Asset Portfolio Allocation
-            </div>
-            <div className="text-[#2563EB] font-medium">
-              Minimalist Clean Institutional Slate
+            <div className="text-center sm:text-right text-[#94A3B8]">
+              Institutional Quantitative Engine · Real-time Exchange Feeds
             </div>
           </div>
         </footer>

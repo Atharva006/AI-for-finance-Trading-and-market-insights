@@ -267,7 +267,7 @@ export const ArthatixOverviewDashboard: React.FC<ArthatixOverviewDashboardProps>
   ].slice(0, 9);
 
   return (
-    <div className="space-y-5 pb-16 select-none font-sans text-xs text-[#0F172A] w-full max-w-7xl mx-auto">
+    <div className="space-y-5 pb-3 select-none font-sans text-xs text-[#0F172A] w-full max-w-7xl mx-auto">
       {/* ── Greeting Header Banner ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#E2E8F0]">
         <div>

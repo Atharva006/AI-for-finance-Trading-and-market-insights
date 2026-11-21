@@ -253,7 +253,7 @@ fixedRiskUSD   = input.float(100.0, "Fixed Risk per Trade ($)", step=10.0)
   };
 
   return (
-    <div className="min-h-screen w-full bg-background text-on-surface font-sans selection:bg-primary selection:text-on-primary pb-24">
+    <div className="w-full bg-background text-on-surface font-sans selection:bg-primary selection:text-on-primary pb-3">
       <div className="w-full px-margin py-space-md flex flex-col gap-space-lg">
         {/* 1. DESK HEADER BAR (Matching Stitch Screen 8 Exactly) */}
         <section className="w-full bg-surface-card border border-border-subtle rounded-xl p-space-lg shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-space-md">

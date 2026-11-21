@@ -1,4 +1,5 @@
 import { ParsedStrategyPrompt, parseNaturalLanguageStrategy } from './aiPromptParser';
+import { generateAIDiagnostics } from './strategyDoctor';
 import {
   InstitutionalRiskMetrics,
   MonteCarloResult,
@@ -262,8 +263,6 @@ Provide 3-4 specific, actionable prescriptions in strict JSON format:
     throw new Error('Invalid prescriptions format');
   } catch (err) {
     console.warn('Groq Strategy Doctor fallback to rule-based diagnostics:', err);
-    // Import and return deterministic diagnostics fallback
-    const { generateAIDiagnostics } = await import('./strategyDoctor');
     return generateAIDiagnostics(trades, metrics, monteCarlo);
   }
 }
