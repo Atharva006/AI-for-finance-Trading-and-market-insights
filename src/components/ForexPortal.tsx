@@ -295,20 +295,12 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                 <span>15m Strict Live Engine</span>
               </div>
 
-              <span className="text-xs text-gray-500 font-mono ml-2">Lookback:</span>
-              {(['30d', '60d'] as const).map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setDateRange(r)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold font-mono transition-all ${
-                    dateRange === r
-                      ? 'bg-gray-800 text-white'
-                      : 'bg-white border border-gray-200 text-gray-600 hover:text-black'
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
+              {/* Lookback Stream Feed Status */}
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="text-gray-500">Feed:</span>
+                <span className="text-black font-bold">Continuous Rolling Market Data</span>
+              </div>
 
               <button
                 onClick={fetchCandles}
@@ -409,68 +401,23 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                 </div>
               </div>
 
-              {/* London Trading Days Toggle */}
-              <div className="pt-2 border-t border-gray-100">
-                <span className="text-xs font-bold text-gray-700 block mb-2">
-                  London Trading Days (00:00 - 06:00 UTC):
-                </span>
-                <div className="grid grid-cols-5 gap-1.5">
-                  {[
-                    { label: 'Mon', key: 'lonMon' },
-                    { label: 'Tue', key: 'lonTue' },
-                    { label: 'Wed', key: 'lonWed' },
-                    { label: 'Thu', key: 'lonThu' },
-                    { label: 'Fri', key: 'lonFri' },
-                  ].map((d) => (
-                    <button
-                      key={d.key}
-                      onClick={() => {
-                        const updated = { ...params, [d.key]: !params[d.key as keyof SessionSweepStrategyParams] };
-                        setParams(updated as SessionSweepStrategyParams);
-                        setTimeout(handleRecalculate, 50);
-                      }}
-                      className={`py-1 rounded text-xs font-mono font-bold transition-all border ${
-                        params[d.key as keyof SessionSweepStrategyParams]
-                          ? 'bg-black text-white border-black'
-                          : 'bg-white border-gray-200 text-gray-400 hover:text-black'
-                      }`}
-                    >
-                      {d.label}
-                    </button>
-                  ))}
+              {/* Automated Schedule Info (Hardcoded from Pine Script v5) */}
+              <div className="pt-2 border-t border-gray-100 space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-gray-700">London Execution Window:</span>
+                  <span className="font-mono text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-[11px] font-bold">
+                    Mon, Wed, Thu (00:00 - 06:00 UTC)
+                  </span>
                 </div>
-              </div>
-
-              {/* New York Trading Days Toggle */}
-              <div className="pt-2 border-t border-gray-100">
-                <span className="text-xs font-bold text-gray-700 block mb-2">
-                  New York Trading Days (13:00 - 22:00 UTC):
-                </span>
-                <div className="grid grid-cols-5 gap-1.5">
-                  {[
-                    { label: 'Mon', key: 'nyMon' },
-                    { label: 'Tue', key: 'nyTue' },
-                    { label: 'Wed', key: 'nyWed' },
-                    { label: 'Thu', key: 'nyThu' },
-                    { label: 'Fri', key: 'nyFri' },
-                  ].map((d) => (
-                    <button
-                      key={d.key}
-                      onClick={() => {
-                        const updated = { ...params, [d.key]: !params[d.key as keyof SessionSweepStrategyParams] };
-                        setParams(updated as SessionSweepStrategyParams);
-                        setTimeout(handleRecalculate, 50);
-                      }}
-                      className={`py-1 rounded text-xs font-mono font-bold transition-all border ${
-                        params[d.key as keyof SessionSweepStrategyParams]
-                          ? 'bg-black text-white border-black'
-                          : 'bg-white border-gray-200 text-gray-400 hover:text-black'
-                      }`}
-                    >
-                      {d.label}
-                    </button>
-                  ))}
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-gray-700">New York Execution Window:</span>
+                  <span className="font-mono text-indigo-800 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded text-[11px] font-bold">
+                    Tue, Thu (13:00 - 22:00 UTC)
+                  </span>
                 </div>
+                <p className="text-[11px] text-gray-400 font-sans pt-1">
+                  * Execution days are automatically scheduled according to the Pine Script v5 logic to exploit optimal session liquidity sweeps and avoid low-volume whipsaws.
+                </p>
               </div>
             </div>
           </div>
