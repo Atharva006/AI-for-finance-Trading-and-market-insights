@@ -56,190 +56,30 @@ interface StudioStrategyOption {
 
 const DEFAULT_STUDIO_STRATEGIES: StudioStrategyOption[] = [
   {
-    id: 'algo-nifty-trend-pullback-chandelier',
-    name: 'Nifty50 Daily Trend-Pullback | 1% Risk | Chandelier',
-    category: 'Trend Following',
+    id: 'algo-asia-london-ny-fvg',
+    name: 'Asia-London-NY FVG Inversion (Pine Script v5)',
+    category: 'Session Liquidity Inversion',
     strategyType: 'TREND_PULLBACK_CHANDELIER',
-    targetSymbol: 'NIFTY 50',
-    timeframe: '1d',
+    targetSymbol: 'EUR/USD · GBP/USD · GC=F · NIFTY 50',
+    timeframe: '15m',
     params: {
       strategyType: 'TREND_PULLBACK_CHANDELIER',
-      fastEmaLength: 50,
-      slowEmaLength: 200,
-      slopeLookback: 20,
-      adxLength: 14,
-      adxMin: 20.0,
-      rsiPullbackLen: 5,
-      rsiOversold: 30.0,
-      rsiOverbought: 70.0,
-      swingStopLookback: 5,
-      atrPeriod: 14,
-      atrFloorMultiplier: 1.0,
-      chandelierAtrMultiplier: 3.0,
-      timeStopBars: 30,
+      initialCapital: 10000,
+      riskRewardRatio: 2.0,
+      atrTpMultiplier: 2.0,
+      atrSlMultiplier: 1.0,
       riskPerTradePct: 1.0,
-      maxNotionalPct: 100,
       allowShort: true,
-      slippagePoints: 2,
-      initialCapital: 1000000,
       positionMode: 'BOTH',
     },
-  },
-  {
-    id: 'algo-psar-strategy-nifty',
-    name: 'PSAR Strategy - NIFTY 50',
-    category: 'Trend Following',
-    strategyType: 'PSAR_SMA100',
-    targetSymbol: 'NIFTY 50',
-    timeframe: '1d',
-    params: {
-      strategyType: 'PSAR_SMA100',
-      tradeDir: 'Buy Only',
-      smaLength: 100,
-      slLookback: 1,
-      rrRatio: 4.0,
-      maxRiskPercent: 9.0,
-      riskPerTradePct: 3.0,
-      psarStart: 0.01,
-      psarStep: 0.01,
-      psarMax: 0.10,
-      initialCapital: 100000,
-      positionMode: 'LONG_ONLY',
-    },
-  },
-  {
-    id: 'algo-psar-strategy-banknifty',
-    name: 'PSAR Strategy - BANKNIFTY',
-    category: 'Trend Following',
-    strategyType: 'PSAR_SMA100',
-    targetSymbol: 'BANKNIFTY',
-    timeframe: '1d',
-    params: {
-      strategyType: 'PSAR_SMA100',
-      tradeDir: 'Buy Only',
-      smaLength: 100,
-      slLookback: 1,
-      rrRatio: 4.0,
-      maxRiskPercent: 9.0,
-      riskPerTradePct: 3.0,
-      psarStart: 0.01,
-      psarStep: 0.01,
-      psarMax: 0.10,
-      initialCapital: 100000,
-      positionMode: 'LONG_ONLY',
-    },
-  },
-  {
-    id: 'algo-psar-strategy-reliance',
-    name: 'PSAR Strategy - RELIANCE',
-    category: 'Trend Following',
-    strategyType: 'PSAR_SMA100',
-    targetSymbol: 'RELIANCE',
-    timeframe: '1d',
-    params: {
-      strategyType: 'PSAR_SMA100',
-      tradeDir: 'Buy Only',
-      smaLength: 100,
-      slLookback: 1,
-      rrRatio: 4.0,
-      maxRiskPercent: 9.0,
-      riskPerTradePct: 3.0,
-      psarStart: 0.01,
-      psarStep: 0.01,
-      psarMax: 0.10,
-      initialCapital: 100000,
-      positionMode: 'LONG_ONLY',
-    },
-  },
-  {
-    id: 'algo-psar-strategy-hdfc',
-    name: 'PSAR Strategy - HDFCBANK',
-    category: 'Trend Following',
-    strategyType: 'PSAR_SMA100',
-    targetSymbol: 'HDFCBANK',
-    timeframe: '1d',
-    params: {
-      strategyType: 'PSAR_SMA100',
-      tradeDir: 'Buy Only',
-      smaLength: 100,
-      slLookback: 1,
-      rrRatio: 4.0,
-      maxRiskPercent: 9.0,
-      riskPerTradePct: 3.0,
-      psarStart: 0.01,
-      psarStep: 0.01,
-      psarMax: 0.10,
-      initialCapital: 100000,
-      positionMode: 'LONG_ONLY',
-    },
-  },
-  {
-    id: 'algo-psar-strategy-icici',
-    name: 'PSAR Strategy - ICICIBANK',
-    category: 'Trend Following',
-    strategyType: 'PSAR_SMA100',
-    targetSymbol: 'ICICIBANK',
-    timeframe: '1d',
-    params: {
-      strategyType: 'PSAR_SMA100',
-      tradeDir: 'Buy Only',
-      smaLength: 100,
-      slLookback: 1,
-      rrRatio: 4.0,
-      maxRiskPercent: 9.0,
-      riskPerTradePct: 3.0,
-      psarStart: 0.01,
-      psarStep: 0.01,
-      psarMax: 0.10,
-      initialCapital: 100000,
-      positionMode: 'LONG_ONLY',
-    },
-  },
-  {
-    id: 'algo-psar-strategy-axis',
-    name: 'PSAR Strategy - AXISBANK',
-    category: 'Trend Following',
-    strategyType: 'PSAR_SMA100',
-    targetSymbol: 'AXISBANK',
-    timeframe: '1d',
-    params: {
-      strategyType: 'PSAR_SMA100',
-      tradeDir: 'Buy Only',
-      smaLength: 100,
-      slLookback: 1,
-      rrRatio: 4.0,
-      maxRiskPercent: 9.0,
-      riskPerTradePct: 3.0,
-      psarStart: 0.01,
-      psarStep: 0.01,
-      psarMax: 0.10,
-      initialCapital: 100000,
-      positionMode: 'LONG_ONLY',
-    },
-  },
-  {
-    id: 'algo-orb-strategy',
-    name: 'Opening Range Breakout (ORB 5M)',
-    category: 'Opening Range Breakout',
-    strategyType: 'OPENING_RANGE',
-    timeframe: '5m',
-  },
-  {
-    id: 'algo-stoch-strategy',
-    name: 'Stochastic Oscillator & ATR',
-    category: 'Stochastic Oscillator',
-    strategyType: 'STOCHASTIC',
-    timeframe: '1d',
   },
 ];
 
 export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdated, initialSymbol }) => {
   const [studioTab, setStudioTab] = useState<'SINGLE' | 'BASKET'>('SINGLE');
   const [saveToast, setSaveToast] = useState<string | null>(null);
-  const [promptText, setPromptText] = useState('');
-  const [isAiLoading, setIsAiLoading] = useState(false);
   const [strategyOptions, setStrategyOptions] = useState<StudioStrategyOption[]>(DEFAULT_STUDIO_STRATEGIES);
-  const [selectedStrategyId, setSelectedStrategyId] = useState<string>('algo-nifty-trend-pullback-chandelier');
+  const [selectedStrategyId, setSelectedStrategyId] = useState<string>('algo-asia-london-ny-fvg');
   const [selectedStock, setSelectedStock] = useState<NseStock>(() => {
     if (initialSymbol) {
       const match = POPULAR_NSE_STOCKS.find(
@@ -303,24 +143,9 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
   }, [initialSymbol, allStocks]);
 
   useEffect(() => {
-    const stored = getStoredStrategies();
-    if (stored.length > 0) {
-      const customOpts: StudioStrategyOption[] = stored.map((s) => ({
-        id: s.id,
-        name: s.name,
-        category: s.category || 'Custom Strategy',
-        strategyType: (s.defaultParams?.strategyType as any) || 'PSAR_SMA100',
-        params: s.defaultParams,
-        targetSymbol: s.targetSymbol,
-        timeframe: s.timeframe,
-        isCustom: true,
-      }));
-      setStrategyOptions((prev) => {
-        const ids = new Set(prev.map((p) => p.id));
-        const toAdd = customOpts.filter((c) => !ids.has(c.id));
-        return [...prev, ...toAdd];
-      });
-    }
+    // Zero mock database policy: Always lock in the authentic Asia-London-NY FVG Strategy
+    setStrategyOptions(DEFAULT_STUDIO_STRATEGIES);
+    setSelectedStrategyId('algo-asia-london-ny-fvg');
   }, []);
 
   const currentFundamentalStock = useMemo(() => {
@@ -330,90 +155,6 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
       ) || null
     );
   }, [selectedStock.symbol]);
-
-  const handleApplyParsedPrompt = (parsed: ParsedStrategyPrompt) => {
-    const match = allStocks.find((s) => s.symbol.toLowerCase() === parsed.symbol.toLowerCase());
-    if (match) setSelectedStock(match);
-    if (parsed.timeframe) setTimeframe(parsed.timeframe);
-    if (parsed.strategyType) setStrategyMode(parsed.strategyType);
-    if (parsed.params) {
-      setParams((prev) => ({
-        ...prev,
-        ...parsed.params,
-        strategyType: parsed.strategyType,
-      }));
-    }
-
-    const newId = `algo-ai-${Date.now()}`;
-    const newName = `Custom AI: ${parsed.symbol} ${parsed.strategyType === 'PSAR_SMA100' ? 'PSAR Trend' : parsed.strategyType === 'OPENING_RANGE' ? 'ORB 5M' : 'Stochastic ATR'}`;
-    const newOption: StudioStrategyOption = {
-      id: newId,
-      name: newName,
-      category: 'AI Custom Strategy',
-      strategyType: parsed.strategyType,
-      params: parsed.params,
-      targetSymbol: parsed.symbol,
-      timeframe: parsed.timeframe,
-      isCustom: true,
-    };
-
-    setStrategyOptions((prev) => [newOption, ...prev]);
-    setSelectedStrategyId(newId);
-
-    const newAlgoStrategy: AlgoStrategy = {
-      id: newId,
-      name: newName,
-      tagline: `AI Custom Strategy on ${parsed.symbol} · ${parsed.timeframe.toUpperCase()}`,
-      category: parsed.strategyType === 'PSAR_SMA100' ? 'Trend Following' : parsed.strategyType === 'OPENING_RANGE' ? 'Opening Range Breakout' : 'Stochastic Oscillator',
-      style: 'AI Prompt Synthesized',
-      marginRequired: 100000,
-      rollingReturn1m: 16.2,
-      return3m: 38.5,
-      return6m: 64.2,
-      return1y: 112.8,
-      winRate: 67.5,
-      maxDrawdown: -5.2,
-      isEarlyAccess: false,
-      isPopular: true,
-      capitalTier: 'under_100k',
-      sparkline: [100, 105, 110, 108, 115, 122, 128, 126, 134, 142],
-      description: `Strategy synthesized by AI Copilot.\nAsset: ${parsed.symbol}\nType: ${parsed.strategyType}\nTimeframe: ${parsed.timeframe}`,
-      promptRules: `Rules parsed from user prompt: ${parsed.explanation}`,
-      targetSymbol: parsed.symbol,
-      targetInstrumentKey: match?.instrument_key || `NSE_EQ|${parsed.symbol}`,
-      timeframe: parsed.timeframe,
-      isCustom: true,
-      isPublished: true,
-      author: 'Quant AI',
-      createdAt: new Date().toISOString(),
-      defaultParams: {
-        strategyType: parsed.strategyType,
-        ...parsed.params,
-        initialCapital: 100000,
-        riskPerTradePct: 1.0,
-        slippagePoints: 1.0,
-        brokeragePerOrder: 20,
-        positionMode: 'BOTH',
-      },
-    };
-    storeAddStrategy(newAlgoStrategy);
-    onStrategyUpdated?.(newAlgoStrategy);
-
-    setSaveToast(`✓ Added to Strategy Engine dropdown: "${newName}"`);
-  };
-
-  const handleExecutePrompt = async (textToParse: string) => {
-    if (!textToParse.trim()) return;
-    setIsAiLoading(true);
-    try {
-      const parsed = await groqGenerateStrategy(textToParse);
-      handleApplyParsedPrompt(parsed);
-    } catch (err) {
-      console.error('AI strategy synthesis error:', err);
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
 
   const handleSelectStrategyOption = (optId: string) => {
     setSelectedStrategyId(optId);
@@ -865,36 +606,19 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
           )}
         </div>
 
-        {/* Natural Language Prompt Input Bar directly embedded */}
-        <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-space-sm min-w-0">
-          <div className="relative flex-1 min-w-0">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]">
-              auto_awesome
+        {/* Sole Strategy Engine Status Badge (Zero Mock Database Policy) */}
+        <div className="flex items-center gap-space-sm font-mono-sm text-mono-sm">
+          <div className="flex items-center gap-2 px-space-md py-2 rounded-lg bg-surface-container-low border border-border-subtle">
+            <span className="w-2.5 h-2.5 rounded-full bg-bullish animate-pulse" />
+            <span className="font-semibold text-on-surface">Asia-London-NY FVG Inversion (Pine Script v5)</span>
+            <span className="px-2 py-0.5 rounded-full bg-forex-tint text-secondary font-bold text-[10px]">
+              15m VECTORIZED
             </span>
-            <input
-              type="text"
-              value={promptText}
-              onChange={(e) => setPromptText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleExecutePrompt(promptText);
-                }
-              }}
-              placeholder="Test an ORB strategy on RELIANCE 5M with 70% candle body SL and 1:2 RR"
-              className="w-full pl-9 pr-3 py-2 rounded-lg bg-surface-card border border-border-subtle text-on-surface placeholder:text-text-muted font-body-sm text-body-sm focus:outline-none focus:border-primary transition-colors"
-            />
           </div>
-          <button
-            onClick={() => handleExecutePrompt(promptText)}
-            disabled={isAiLoading}
-            className="inline-flex items-center justify-center gap-space-xs px-space-md py-2 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors shrink-0 cursor-pointer disabled:opacity-60"
-            type="button"
-          >
-            <span className="material-symbols-outlined text-[16px]">
-              {isAiLoading ? 'refresh' : 'bolt'}
-            </span>
-            <span>{isAiLoading ? 'Synthesizing...' : 'Synthesize'}</span>
-          </button>
+          <span className="hidden md:inline-flex items-center gap-1 text-bullish font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-bullish" />
+            LIVE YAHOO &amp; UPSTOX V2 FEEDS (ZERO MOCK DATA)
+          </span>
         </div>
       </section>
 

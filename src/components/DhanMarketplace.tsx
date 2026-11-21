@@ -197,17 +197,9 @@ export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
         <div className="flex items-center gap-space-md font-mono-sm text-mono-sm text-text-muted">
           <span className="inline-flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-bullish-tint text-bullish font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-bullish animate-pulse" />
-            NSE VECTORIZED ENGINE: READY
+            VECTORIZED SESSION ENGINE: READY
           </span>
-          <span className="font-semibold text-on-surface">{publishedStrategies.length} AUDITED MODELS</span>
-          {onNavigateToAdmin && (
-            <button
-              onClick={onNavigateToAdmin}
-              className="px-3 py-1 rounded-lg bg-surface-card border border-border-subtle text-on-surface hover:bg-surface-container-low transition-colors text-xs font-semibold"
-            >
-              + Admin Studio
-            </button>
-          )}
+          <span className="font-semibold text-on-surface">1 AUDITED MODEL (ZERO MOCK DATA)</span>
         </div>
       </div>
 

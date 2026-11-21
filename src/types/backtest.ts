@@ -73,6 +73,7 @@ export interface StrategyParams {
   smaLength?: number;       // default 100 (SMA 100)
   slLookback?: number;      // default 2 (N candles back for SL)
   rrRatio?: number;         // default 2.0 (Risk : Reward ratio)
+  riskRewardRatio?: number; // default 2.0 (Risk : Reward ratio alias)
   maxRiskPercent?: number;  // default 9.0 (Max risk % per trade)
 
   // Stochastic parameters

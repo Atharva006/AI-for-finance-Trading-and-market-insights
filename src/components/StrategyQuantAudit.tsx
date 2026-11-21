@@ -66,9 +66,9 @@ export const StrategyQuantAudit: React.FC<StrategyQuantAuditProps> = ({
   // Combo Strategy Selector
   const otherStrategies = allStrategies.filter((s) => s.id !== strategy.id);
   const [comboStrategyId, setComboStrategyId] = useState<string>(
-    otherStrategies[0]?.id || 'algo-kuber-compounder'
+    otherStrategies[0]?.id || strategy.id
   );
-  const comboStrategy = allStrategies.find((s) => s.id === comboStrategyId) || otherStrategies[0];
+  const comboStrategy = allStrategies.find((s) => s.id === comboStrategyId) || strategy;
 
   // Quantitative fields with dynamic backtest resolution
   const worst5: WorstDrawdownRecord[] = strategy.worst5Drawdowns?.length

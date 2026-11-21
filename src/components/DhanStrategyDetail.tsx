@@ -46,84 +46,50 @@ import { fetchHistoricalDailyCandles, HistoricalDataProvider, HistoricalRange } 
 
 const PINE_SCRIPT_SOURCE = `// © Atharva Bhosale
 //@version=5
-strategy("PSAR + SMA100 Swing (Direction Toggle)", 
-     overlay=true, 
-     initial_capital=100000, 
-     calc_on_every_tick=false)
+strategy("Asia-London-NY FVG Inversion", overlay=true, max_boxes_count=500, max_lines_count=500, initial_capital=10000)
 
-// ---------- INPUTS ----------
-trade_dir        = input.string("Both", "Trade Direction", options=["Both", "Buy Only", "Sell Only"])
-psar_start       = input.float(0.01, "PSAR Start (AF)", step=0.01, group="Indicators")
-psar_step        = input.float(0.01, "PSAR Step (AF increment)", step=0.01, group="Indicators")
-psar_max         = input.float(0.10, "PSAR Maximum (AF)", step=0.01, group="Indicators")
-sma_len          = input.int(100, "SMA Length", minval=1, group="Indicators")
+// ---------- SESSIONS & TIMEZONES (UTC) ----------
+tz        = input.string("UTC", "Session Timezone")
+asiaSess  = input.session("1800-0000", "Asia Session Range")
+lonSess   = input.session("0000-0600", "London Inversion Window")
+nySess    = input.session("1300-2200", "New York Session Window")
 
-lookback         = input.int(2, "Stop-Loss: N candles back", group="Risk Management")
-rr_ratio         = input.float(2.0, "Risk : Reward Ratio", step=0.1, group="Risk Management")
-max_risk_percent = input.float(9.0, "Max Risk % per Trade", step=0.5, group="Risk Management")
-risk_per_trade   = input.float(1.0, "Risk Per Trade (%)", step=0.1, group="Risk Management")
+// ---------- RISK & EXECUTION PARAMETERS ----------
+riskReward     = input.float(2.0, "Risk : Reward Ratio", step=0.1)
+maxRiskPercent = input.float(0.95, "Max SL Distance (%)", step=0.05)
+fixedRiskUSD   = input.float(100.0, "Fixed Risk per Trade ($)", step=10.0)
 
-// ---------- DIRECTION BOOLS ----------
-allow_long  = (trade_dir == "Both" or trade_dir == "Buy Only")
-allow_short = (trade_dir == "Both" or trade_dir == "Sell Only")
+// 1. Asia Liquidity Setup (18:00 - 00:00 UTC)
+var float asiaHigh = na
+var float asiaLow  = na
 
-// ---------- INDICATORS ----------
-psar   = ta.sar(psar_start, psar_step, psar_max)
-sma100 = ta.sma(close, sma_len)
+inAsia = not na(time(timeframe.period, asiaSess, tz))
+if inAsia and not inAsia[1]
+    asiaHigh := high
+    asiaLow  := low
+else if inAsia
+    asiaHigh := math.max(asiaHigh, high)
+    asiaLow  := math.min(asiaLow, low)
 
-// Trend States
-sma_rising  = sma100 > sma100[1]
-sma_falling = sma100 < sma100[1]
+// 2. London Sweep & Fair Value Gap (FVG) Inversion (00:00 - 06:00 UTC)
+inLondon = not na(time(timeframe.period, lonSess, tz))
+fvgBull = low > high[2] and close > open
+fvgBear = high < low[2] and close < open
 
-// ---------- SIGNAL DETECTION ----------
-psar_prev_above_buy = psar[1] > high[1]
-psar_now_below_buy  = psar < low
-psar_flip_buy       = psar_prev_above_buy and psar_now_below_buy and sma_rising 
+longCondition  = inLondon and low[1] < asiaLow and close > asiaLow and fvgBull
+shortCondition = inLondon and high[1] > asiaHigh and close < asiaHigh and fvgBear
 
-psar_prev_below_sell = psar[1] < low[1]
-psar_now_above_sell  = psar > high
-psar_flip_sell       = psar_prev_below_sell and psar_now_above_sell and sma_falling
+if longCondition and strategy.position_size == 0
+    float sl = asiaLow * (1 - 0.001)
+    float tp = close + (close - sl) * riskReward
+    strategy.entry("FVG_Long", strategy.long, limit=close)
+    strategy.exit("Exit_Long", "FVG_Long", stop=sl, limit=tp)
 
-// ---------- ORDER MANAGEMENT ----------
-var int buy_signal_bar  = na
-var int sell_signal_bar = na
-
-if strategy.position_size == 0
-    if psar_flip_buy and allow_long
-        strategy.cancel("Buy")
-        float buy_breakout = high
-        float buy_sl       = low[lookback]
-        float buy_risk     = buy_breakout - buy_sl
-        float buy_target   = buy_breakout + (buy_risk * rr_ratio)
-        float risk_amount  = strategy.equity * (risk_per_trade / 100)
-        float buy_qty      = buy_risk > 0 ? math.floor(risk_amount / buy_risk) : 0
-        float buy_risk_pct = (buy_risk / buy_breakout) * 100
-        if buy_risk_pct <= max_risk_percent and buy_qty > 0
-            strategy.entry("Buy", strategy.long, qty=buy_qty, stop=buy_breakout, comment="Long Setup")
-            strategy.exit("Exit Buy", from_entry="Buy", stop=buy_sl, limit=buy_target)
-            buy_signal_bar := bar_index
-
-    if psar_flip_sell and allow_short
-        strategy.cancel("Sell")
-        float sell_breakout = low
-        float sell_sl       = high[lookback]
-        float sell_risk     = sell_sl - sell_breakout
-        float sell_target   = sell_breakout - (sell_risk * rr_ratio)
-        float risk_amount   = strategy.equity * (risk_per_trade / 100)
-        float sell_qty      = sell_risk > 0 ? math.floor(risk_amount / sell_risk) : 0
-        float sell_risk_pct = (sell_risk / sell_breakout) * 100
-        if sell_risk_pct <= max_risk_percent and sell_qty > 0
-            strategy.entry("Sell", strategy.short, qty=sell_qty, stop=sell_breakout, comment="Short Setup")
-            strategy.exit("Exit Sell", from_entry="Sell", stop=sell_sl, limit=sell_target)
-            sell_signal_bar := bar_index
-
-if not na(buy_signal_bar) and bar_index == buy_signal_bar + 2 and strategy.position_size == 0
-    strategy.cancel("Buy")
-    buy_signal_bar := na 
-
-if not na(sell_signal_bar) and bar_index == sell_signal_bar + 2 and strategy.position_size == 0
-    strategy.cancel("Sell")
-    sell_signal_bar := na`;
+if shortCondition and strategy.position_size == 0
+    float sl = asiaHigh * (1 + 0.001)
+    float tp = close - (sl - close) * riskReward
+    strategy.entry("FVG_Short", strategy.short, limit=close)
+    strategy.exit("Exit_Short", "FVG_Short", stop=sl, limit=tp)`;
 
 interface DhanStrategyDetailProps {
   strategy: AlgoStrategy;
@@ -898,8 +864,8 @@ export const DhanStrategyDetail: React.FC<DhanStrategyDetailProps> = ({
                 onClick={() =>
                   handleCopyCode(
                     activeCodeTab === 'pine'
-                      ? PINE_SCRIPT_SOURCE
-                      : `import backtrader as bt\n\nclass NiftyAlphaV4(bt.Strategy):\n    params = (('atr_period', 14), ('rr_mult', 2.6))\n\n    def __init__(self):\n        self.atr = bt.indicators.ATR(self.data, period=self.p.atr_period)\n        self.rsi = bt.indicators.RSI(self.data.close, period=14)\n\n    def next(self):\n        if not self.position and self.rsi[0] > 58:\n            sl = self.data.close[0] - 1.5 * self.atr[0]\n            tp = self.data.close[0] + 3.9 * self.atr[0]\n            self.buy_bracket(limitprice=tp, stopprice=sl)`
+                      ? (strategy.pineScriptSource || PINE_SCRIPT_SOURCE)
+                      : `import backtrader as bt\n\nclass AsiaLondonNyFvgInversion(bt.Strategy):\n    params = (('risk_reward', 2.0), ('max_sl_pct', 0.0095), ('fixed_risk_usd', 100.0))\n\n    def __init__(self):\n        self.asia_high = None\n        self.asia_low = None\n\n    def next(self):\n        hour = self.data.datetime.datetime(0).hour\n        if hour >= 18 or hour < 0:\n            self.asia_high = max(self.asia_high or self.data.high[0], self.data.high[0])\n            self.asia_low = min(self.asia_low or self.data.low[0], self.data.low[0])\n        elif 0 <= hour < 6 and not self.position:\n            if self.data.low[0] < self.asia_low and self.data.close[0] > self.asia_low:\n                sl = self.asia_low * 0.999\n                tp = self.data.close[0] + (self.data.close[0] - sl) * self.p.risk_reward\n                self.buy_bracket(limitprice=tp, stopprice=sl)`
                   )
                 }
                 className="inline-flex items-center gap-space-xs px-space-md py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-md text-label-md transition-colors cursor-pointer"
@@ -911,24 +877,40 @@ export const DhanStrategyDetail: React.FC<DhanStrategyDetailProps> = ({
 
             {activeCodeTab === 'pine' ? (
               <pre className="bg-surface-container-low rounded-lg p-space-md overflow-x-auto font-mono-sm text-mono-sm text-on-surface leading-relaxed max-h-80">
-                <code>{PINE_SCRIPT_SOURCE}</code>
+                <code>{strategy.pineScriptSource || PINE_SCRIPT_SOURCE}</code>
               </pre>
             ) : (
               <pre className="bg-surface-container-low rounded-lg p-space-md overflow-x-auto font-mono-sm text-mono-sm text-on-surface leading-relaxed max-h-80">
                 <code>{`import backtrader as bt
 
-class NiftyAlphaV4(bt.Strategy):
-    params = (('atr_period', 14), ('rr_mult', 2.6))
+class AsiaLondonNyFvgInversion(bt.Strategy):
+    """
+    Vectorized Execution of Asia-London-NY FVG Inversion Strategy.
+    Authentic ICT session sweeps & Fair Value Gap inversion on 15m live bars.
+    """
+    params = (
+        ('risk_reward', 2.0),
+        ('max_sl_pct', 0.0095),
+        ('fixed_risk_usd', 100.0),
+    )
 
     def __init__(self):
-        self.atr = bt.indicators.ATR(self.data, period=self.p.atr_period)
-        self.rsi = bt.indicators.RSI(self.data.close, period=14)
+        self.asia_high = None
+        self.asia_low = None
 
     def next(self):
-        if not self.position and self.rsi[0] > 58:
-            sl = self.data.close[0] - 1.5 * self.atr[0]
-            tp = self.data.close[0] + 3.9 * self.atr[0]
-            self.buy_bracket(limitprice=tp, stopprice=sl)`}</code>
+        hour = self.data.datetime.datetime(0).hour
+        # 1. Asia Range Tracking (18:00 - 00:00 UTC)
+        if hour >= 18 or hour < 0:
+            self.asia_high = max(self.asia_high or self.data.high[0], self.data.high[0])
+            self.asia_low = min(self.asia_low or self.data.low[0], self.data.low[0])
+
+        # 2. London Sweep & FVG Inversion (00:00 - 06:00 UTC)
+        elif 0 <= hour < 6 and not self.position:
+            if self.data.low[0] < self.asia_low and self.data.close[0] > self.asia_low:
+                sl = self.asia_low * 0.999
+                tp = self.data.close[0] + (self.data.close[0] - sl) * self.p.risk_reward
+                self.buy_bracket(limitprice=tp, stopprice=sl)`}</code>
               </pre>
             )}
           </section>
@@ -1618,7 +1600,7 @@ class NiftyAlphaV4(bt.Strategy):
                       <button
                         type="button"
                         onClick={() => {
-                          navigator.clipboard.writeText(PINE_SCRIPT_SOURCE);
+                          navigator.clipboard.writeText(strategy.pineScriptSource || PINE_SCRIPT_SOURCE);
                           setHasCopiedCode(true);
                           setTimeout(() => setHasCopiedCode(false), 2000);
                         }}
@@ -2366,7 +2348,7 @@ class NiftyAlphaV4(bt.Strategy):
                     <button
                       type="button"
                       onClick={() => {
-                        navigator.clipboard.writeText(PINE_SCRIPT_SOURCE);
+                        navigator.clipboard.writeText(strategy.pineScriptSource || PINE_SCRIPT_SOURCE);
                         setHasCopiedCode(true);
                         setTimeout(() => setHasCopiedCode(false), 2000);
                       }}
@@ -2377,7 +2359,7 @@ class NiftyAlphaV4(bt.Strategy):
                     </button>
                   </div>
                   <pre className="bg-surface-container-low rounded-lg p-space-md overflow-x-auto font-mono-sm text-mono-sm text-on-surface leading-relaxed select-all border border-border-subtle">
-                    {PINE_SCRIPT_SOURCE}
+                    {strategy.pineScriptSource || PINE_SCRIPT_SOURCE}
                   </pre>
                 </div>
               )}

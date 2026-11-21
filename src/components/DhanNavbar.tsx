@@ -64,17 +64,17 @@ export const DhanNavbar: React.FC<DhanNavbarProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveView('marketplace')}
-            className={navItemClass('marketplace', true)}
+            onClick={() => setActiveView('forex')}
+            className={navItemClass('forex', true)}
           >
-            Trading Algos [9 Active]
+            Asia-London-NY FVG [Pine Script v5]
           </button>
 
           <button
             onClick={() => setActiveView('backtest')}
             className={navItemClass('backtest')}
           >
-            Backtest Studio [Yahoo Daily]
+            Backtest Studio [Live Feeds]
           </button>
 
           <button
@@ -90,44 +90,19 @@ export const DhanNavbar: React.FC<DhanNavbarProps> = ({
           >
             Market Insights
           </button>
-
-          <button
-            onClick={() => setActiveView('forex')}
-            className={navItemClass('forex')}
-          >
-            NRI Forex Desk [EUR/GBP]
-          </button>
-
-          <button
-            onClick={() => setActiveView('admin')}
-            className={navItemClass('admin')}
-          >
-            Admin Portal
-          </button>
         </nav>
 
         {/* Right: Action Buttons & User Profile */}
         <div className="flex items-center gap-space-sm shrink-0">
           <button
             onClick={() => setActiveView('forex')}
-            className={`hidden sm:inline-flex items-center px-space-sm py-1.5 rounded-lg font-label-md text-label-md transition-colors ${
+            className={`hidden sm:inline-flex items-center px-space-md py-1.5 rounded-lg font-label-md text-label-md transition-colors ${
               activeView === 'forex'
                 ? 'bg-secondary text-on-secondary border border-secondary shadow-xs'
                 : 'bg-forex-tint border border-secondary text-secondary hover:bg-secondary hover:text-on-secondary'
             }`}
           >
-            NRI / Forex Portal
-          </button>
-
-          <button
-            onClick={() => setActiveView('marketplace')}
-            className={`hidden md:inline-flex items-center px-space-sm py-1.5 rounded-lg border border-border-subtle font-label-md text-label-md transition-colors ${
-              activeView === 'marketplace'
-                ? 'bg-surface-container text-on-surface'
-                : 'bg-surface-card text-on-surface hover:bg-surface-container-low'
-            }`}
-          >
-            Algorithms
+            Execution Desk
           </button>
 
           <button

@@ -48,6 +48,7 @@ export interface AlgoStrategy {
   sparkline: number[];
   defaultParams?: Partial<StrategyParams>;
   description: string;
+  pineScriptSource?: string;
 
   // Investment vs Trading Classification
   isInvestmentAlgo?: boolean; // Investment algos start below ₹10k - ₹1L with longer horizons

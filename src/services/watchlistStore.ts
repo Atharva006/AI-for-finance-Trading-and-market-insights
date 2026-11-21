@@ -40,10 +40,10 @@ const DEFAULT_ORDERS: UserOrder[] = [];
 export function getWatchlist(): string[] {
   try {
     const raw = localStorage.getItem(WATCHLIST_STORAGE_KEY);
-    if (!raw) return ['algo-gandiva-orb', 'algo-kuber-compounder'];
+    if (!raw) return ['algo-asia-london-ny-fvg'];
     return JSON.parse(raw);
   } catch {
-    return ['algo-gandiva-orb', 'algo-kuber-compounder'];
+    return ['algo-asia-london-ny-fvg'];
   }
 }
 
