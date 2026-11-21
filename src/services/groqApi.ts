@@ -12,7 +12,7 @@ import { Trade } from '../types/backtest';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 export const PROMPT_GUARD_MODEL = 'meta-llama/llama-prompt-guard-2-86m';
-const DEFAULT_GENERATION_MODEL = 'openai/gpt-oss-120b';
+export const DEFAULT_GENERATION_MODEL = 'openai/gpt-oss-120b';
 
 export function getGroqApiKey(): string {
   const envKey = import.meta.env.VITE_GROQ_API_KEY;
@@ -27,7 +27,9 @@ export function setGroqApiKey(key: string): void {
 export function getGroqModel(): string {
   const envModel = import.meta.env.VITE_GROQ_MODEL;
   const localModel = localStorage.getItem('arjuna_groq_model');
-  return (localModel || envModel || PROMPT_GUARD_MODEL).trim();
+  const chosen = (localModel || envModel || DEFAULT_GENERATION_MODEL).trim();
+  // Ensure prompt guard is never used as a generative text model
+  return chosen === PROMPT_GUARD_MODEL ? DEFAULT_GENERATION_MODEL : chosen;
 }
 
 export function setGroqModel(model: string): void {
@@ -77,7 +79,7 @@ export async function groqCheckPromptGuard(
 }
 
 /**
- * Low-level chat completion wrapper calling Groq with multi-model fallback
+ * Low-level chat completion wrapper calling Groq with high-speed LPU reasoning models
  */
 async function callGroqChat(
   messages: { role: 'system' | 'user' | 'assistant'; content: string }[],
@@ -91,11 +93,14 @@ async function callGroqChat(
 
   const configuredModel = getGroqModel();
   
-  // If the configured model is Prompt Guard, use it directly for scoring requests,
-  // or fall through to high-speed LPU reasoning models for rich analytical completions
-  const candidateModels = configuredModel === PROMPT_GUARD_MODEL
-    ? [PROMPT_GUARD_MODEL, DEFAULT_GENERATION_MODEL, 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b']
-    : [configuredModel, DEFAULT_GENERATION_MODEL, 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
+  // High-performance Groq LPU models (openai/gpt-oss-120b is the primary 120B reasoning powerhouse)
+  const candidateModels = [
+    configuredModel,
+    DEFAULT_GENERATION_MODEL,
+    'qwen/qwen3.8-27b',
+    'openai/gpt-oss-20b',
+    'allam-2-7b',
+  ].filter((m, i, arr) => m && m !== PROMPT_GUARD_MODEL && arr.indexOf(m) === i);
     
   let lastError: any = null;
 
@@ -112,7 +117,7 @@ async function callGroqChat(
           messages,
           max_tokens: maxTokens,
           temperature: 0.2,
-          ...(jsonMode && model !== PROMPT_GUARD_MODEL ? { response_format: { type: 'json_object' } } : {}),
+          ...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
         }),
       });
 

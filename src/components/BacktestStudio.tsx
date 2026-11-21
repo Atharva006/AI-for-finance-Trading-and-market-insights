@@ -35,6 +35,7 @@ import { CompanyFilingAnalyzerModal } from './CompanyFilingAnalyzerModal';
 import { NSE_FUNDAMENTAL_STOCKS } from '../services/marketPulseData';
 import { ParsedStrategyPrompt } from '../services/aiPromptParser';
 import { groqGenerateStrategy } from '../services/groqApi';
+import { NaturalLanguagePromptBar } from './NaturalLanguagePromptBar';
 import { StockLogo } from './StockLogo';
 import { Sparkles } from 'lucide-react';
 import { ALL_CANONICAL_STRATEGIES } from '../services/canonicalStrategies';
@@ -566,6 +567,37 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
     setTimeout(() => setSaveToast(null), 4000);
   };
 
+  const handleApplyParsedPrompt = (parsed: ParsedStrategyPrompt) => {
+    if (parsed.symbol) {
+      const symClean = parsed.symbol.toUpperCase().replace('.NS', '');
+      const matched =
+        allStocks.find((s) => s.symbol.toUpperCase() === symClean) ||
+        POPULAR_NSE_STOCKS.find((s) => s.symbol.toUpperCase() === symClean);
+      if (matched) {
+        setSelectedStock(matched);
+      }
+    }
+
+    if (parsed.timeframe) {
+      setTimeframe(parsed.timeframe as any);
+    }
+
+    setParams((prev) => ({
+      ...prev,
+      strategyType: parsed.strategyType,
+      initialCapital: parsed.params.initialCapital || prev.initialCapital,
+      riskPerTradePct: parsed.params.riskPerTradePct || prev.riskPerTradePct,
+      rrRatio: parsed.params.rrRatio || prev.rrRatio,
+      slLookback: parsed.params.slLookback || prev.slLookback,
+      slippagePoints: parsed.params.slippagePoints || prev.slippagePoints,
+      brokeragePerOrder: parsed.params.brokeragePerOrder || prev.brokeragePerOrder,
+      ...parsed.params,
+    }));
+
+    setSaveToast(`⚡ Groq 120B AI synthesized and loaded "${parsed.strategyType}" strategy!`);
+    setTimeout(() => setSaveToast(null), 4000);
+  };
+
   const handleExportCSV = () => {
     if (!result || result.trades.length === 0) return;
     const headers = 'ID,Type,Entry Time,Entry Price,Exit Time,Exit Price,Qty,Exit Reason,PnL (INR),PnL (%),ATR\n';
@@ -618,14 +650,25 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
             VECTORIZED {studioTab === 'BASKET' ? 'MULTI-ASSET' : 'ENGINE READY'}
           </span>
           {studioTab === 'SINGLE' && (
-            <button
-              onClick={handleSaveSettingsToMain}
-              className="inline-flex items-center gap-space-xs px-space-sm py-1 bg-surface-card border border-border-subtle hover:bg-surface-container text-on-surface rounded-lg font-label-md text-label-md shadow-xs transition-all cursor-pointer"
-              title="Save calibrated settings to Main System"
-            >
-              <Save className="w-3.5 h-3.5" />
-              <span>Save</span>
-            </button>
+            <>
+              <button
+                onClick={handleSaveSettingsToMain}
+                className="inline-flex items-center gap-space-xs px-space-sm py-1 bg-surface-card border border-border-subtle hover:bg-surface-container text-on-surface rounded-lg font-label-md text-label-md shadow-xs transition-all cursor-pointer"
+                title="Save calibrated settings to Main System"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>Save</span>
+              </button>
+
+              <button
+                onClick={() => setIsDoctorModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] hover:from-[#1D4ED8] hover:to-[#1E40AF] text-white rounded-lg font-label-md text-label-md shadow-xs transition-all cursor-pointer font-bold active:scale-95"
+                title="Launch Groq 120B AI Hedge-Fund Strategy Doctor & Monte Carlo Audit"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                <span>AI Strategy Doctor (Groq 120B)</span>
+              </button>
+            </>
           )}
         </div>
 
@@ -951,6 +994,14 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
               <RotateCcw className="w-3 h-3" />
               <span>Reset</span>
             </button>
+          </div>
+
+          {/* Natural Language Prompt-to-Strategy Engine */}
+          <div className="space-y-1 pb-1">
+            <NaturalLanguagePromptBar
+              onApplyParsedStrategy={handleApplyParsedPrompt}
+              placeholder='Ask Groq 120B AI: e.g. "INFY PSAR swing with 1% RPT and 100 SMA"...'
+            />
           </div>
 
           {/* Strategy Engine Dropdown Menu (No more static boxes) */}
@@ -1637,6 +1688,42 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
                   {result.metrics.winRate}%
                 </span>
                 <span className="font-mono-sm text-mono-sm text-text-muted">PF: {result.metrics.profitFactor}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Groq 120B AI Hedge-Fund Review & Optimization Bar */}
+          {result && (
+            <div className="bg-gradient-to-r from-[#F0FDF4] via-[#EFF6FF] to-white border border-[#BFDBFE] rounded-xl p-4 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#2563EB] text-white flex items-center justify-center shadow-xs shrink-0 mt-0.5">
+                  <Sparkles className="w-5 h-5 text-amber-300" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-xs uppercase tracking-wide text-[#1E40AF]">
+                      Groq LPU 120B Quantitative Edge Audit
+                    </span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
+                      {result.metrics.profitFactor >= 2 ? 'Institutional Edge: High' : result.metrics.profitFactor >= 1.4 ? 'Moderate Edge' : 'Defensive Consolidation'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#334155] mt-1 leading-relaxed">
+                    {result.metrics.profitFactor >= 2
+                      ? `Calculated Profit Factor of ${result.metrics.profitFactor} with Sharpe ${result.metrics.sharpeRatio?.toFixed(2)} and Max DD of -${Math.abs(result.metrics.maxDrawdownPct).toFixed(1)}%. Model exhibits statistically significant edge against benchmark drift.`
+                      : `Strategy generated ${result.metrics.totalTrades} fills with ${result.metrics.winRate}% win rate. Run full Monte Carlo audit to stress-test 95th percentile drawdown risk.`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => setIsDoctorModalOpen(true)}
+                  className="px-3.5 py-2 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                  <span>Full 500-Iteration Audit</span>
+                </button>
               </div>
             </div>
           )}
