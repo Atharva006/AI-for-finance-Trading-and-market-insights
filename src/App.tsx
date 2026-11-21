@@ -204,119 +204,121 @@ export function App() {
 
         {/* Main View Router */}
         <main className={`flex-1 flex flex-col w-full ${activeView === 'papertrading' ? 'p-0' : 'p-4 sm:p-6'}`}>
-          {activeView === 'landing' && (
-            <ArthatixOverviewDashboard
-              onNavigate={(view) => navigateTo(view)}
-              onSelectInstrument={(symbol) => {
-                setSelectedInstrument(symbol);
-                navigateTo('backtest');
-              }}
-            />
-          )}
+          <div key={activeView} className="animate-view flex-1 flex flex-col w-full">
+            {activeView === 'landing' && (
+              <ArthatixOverviewDashboard
+                onNavigate={(view) => navigateTo(view)}
+                onSelectInstrument={(symbol) => {
+                  setSelectedInstrument(symbol);
+                  navigateTo('backtest');
+                }}
+              />
+            )}
 
-          {/* First-Class Live Paper Trading Desk (Direct simulation - zero landing page) */}
-          {activeView === 'papertrading' && (
-            <PaperTradingSection />
-          )}
+            {/* First-Class Live Paper Trading Desk (Direct simulation - zero landing page) */}
+            {activeView === 'papertrading' && (
+              <PaperTradingSection />
+            )}
 
-          {/* Live TradingView <tv-heatmap> Web Component Section */}
-          {activeView === 'heatmap' && (
-            <TradingViewHeatmapSection
-              onNavigateToBacktest={(symbol) => {
-                if (symbol) setSelectedInstrument(symbol);
-                navigateTo('backtest');
-              }}
-              onNavigateToFVGAlgo={() => {
-                navigateTo('forex');
-              }}
-            />
-          )}
+            {/* Live TradingView <tv-heatmap> Web Component Section */}
+            {activeView === 'heatmap' && (
+              <TradingViewHeatmapSection
+                onNavigateToBacktest={(symbol) => {
+                  if (symbol) setSelectedInstrument(symbol);
+                  navigateTo('backtest');
+                }}
+                onNavigateToFVGAlgo={() => {
+                  navigateTo('forex');
+                }}
+              />
+            )}
 
-          {activeView === 'auth' && (
-            <AuthPage
-              onNavigateHome={() => navigateTo('marketplace')}
-              onAuthSuccess={() => navigateTo('marketplace')}
-            />
-          )}
+            {activeView === 'auth' && (
+              <AuthPage
+                onNavigateHome={() => navigateTo('marketplace')}
+                onAuthSuccess={() => navigateTo('marketplace')}
+              />
+            )}
 
-          {activeView === 'marketplace' && (
-            <DhanMarketplace
-              strategies={strategies}
-              onSelectStrategy={handleSelectStrategy}
-              onOpenBacktest={handleOpenBacktest}
-              onNavigateToAdmin={() => navigateTo('admin')}
-              onNavigateToBacktestWithSymbol={(symbol) => {
-                if (symbol) setSelectedInstrument(symbol);
-                navigateTo('backtest');
-              }}
-              onNavigateToFVG={() => navigateTo('forex')}
-            />
-          )}
+            {activeView === 'marketplace' && (
+              <DhanMarketplace
+                strategies={strategies}
+                onSelectStrategy={handleSelectStrategy}
+                onOpenBacktest={handleOpenBacktest}
+                onNavigateToAdmin={() => navigateTo('admin')}
+                onNavigateToBacktestWithSymbol={(symbol) => {
+                  if (symbol) setSelectedInstrument(symbol);
+                  navigateTo('backtest');
+                }}
+                onNavigateToFVG={() => navigateTo('forex')}
+              />
+            )}
 
-          {activeView === 'admin' && (
-            <AdminStrategyPortal
-              strategies={strategies}
-              onAddStrategy={handleAddStrategy}
-              onUpdateStrategy={handleUpdateStrategy}
-              onDeleteStrategy={handleDeleteStrategy}
-              onTestBacktest={(strat) => {
-                navigateTo('backtest', strat);
-              }}
-            />
-          )}
+            {activeView === 'admin' && (
+              <AdminStrategyPortal
+                strategies={strategies}
+                onAddStrategy={handleAddStrategy}
+                onUpdateStrategy={handleUpdateStrategy}
+                onDeleteStrategy={handleDeleteStrategy}
+                onTestBacktest={(strat) => {
+                  navigateTo('backtest', strat);
+                }}
+              />
+            )}
 
-          {activeView === 'detail' && selectedStrategy && (
-            <DhanStrategyDetail
-              strategy={selectedStrategy}
-              allStrategies={strategies}
-              onSelectStrategy={handleSelectStrategy}
-              onOpenSettings={() => setIsSettingsOpen(true)}
-              onBack={() => navigateTo('marketplace')}
-            />
-          )}
+            {activeView === 'detail' && selectedStrategy && (
+              <DhanStrategyDetail
+                strategy={selectedStrategy}
+                allStrategies={strategies}
+                onSelectStrategy={handleSelectStrategy}
+                onOpenSettings={() => setIsSettingsOpen(true)}
+                onBack={() => navigateTo('marketplace')}
+              />
+            )}
 
-          {activeView === 'detail' && !selectedStrategy && (
-            <div className="w-full py-16 text-center space-y-4">
-              <h2 className="text-xl font-bold text-primary font-headline">No Strategy Selected</h2>
-              <p className="text-sm text-text-muted">Select an audited quantitative strategy from the algorithm marketplace.</p>
-              <button
-                onClick={() => navigateTo('marketplace')}
-                className="px-4 py-2 bg-primary text-white rounded-lg font-label-md text-label-md shadow-xs hover:bg-secondary transition-all"
-              >
-                Browse Marketplace
-              </button>
-            </div>
-          )}
+            {activeView === 'detail' && !selectedStrategy && (
+              <div className="w-full py-16 text-center space-y-4">
+                <h2 className="text-xl font-bold text-primary font-headline">No Strategy Selected</h2>
+                <p className="text-sm text-text-muted">Select an audited quantitative strategy from the algorithm marketplace.</p>
+                <button
+                  onClick={() => navigateTo('marketplace')}
+                  className="px-4 py-2 bg-primary text-white rounded-lg font-label-md text-label-md shadow-xs hover:bg-secondary transition-all active:scale-95"
+                >
+                  Browse Marketplace
+                </button>
+              </div>
+            )}
 
-          {activeView === 'backtest' && (
-            <BacktestStudio
-              onStrategyUpdated={handleUpdateStrategy}
-              initialSymbol={selectedInstrument}
-            />
-          )}
+            {activeView === 'backtest' && (
+              <BacktestStudio
+                onStrategyUpdated={handleUpdateStrategy}
+                initialSymbol={selectedInstrument}
+              />
+            )}
 
-          {activeView === 'flow' && (
-            <VisualFlowStudio initialStockSymbol={selectedInstrument} />
-          )}
+            {activeView === 'flow' && (
+              <VisualFlowStudio initialStockSymbol={selectedInstrument} />
+            )}
 
-          {activeView === 'insights' && (
-            <MarketPulseInsights
-              onSelectStockForBacktest={(symbol) => {
-                setSelectedInstrument(symbol);
-                navigateTo('backtest');
-              }}
-              onOpenFlowWithStock={(symbol) => {
-                setSelectedInstrument(symbol);
-                navigateTo('flow');
-              }}
-            />
-          )}
+            {activeView === 'insights' && (
+              <MarketPulseInsights
+                onSelectStockForBacktest={(symbol) => {
+                  setSelectedInstrument(symbol);
+                  navigateTo('backtest');
+                }}
+                onOpenFlowWithStock={(symbol) => {
+                  setSelectedInstrument(symbol);
+                  navigateTo('flow');
+                }}
+              />
+            )}
 
-          {activeView === 'forex' && (
-            <ForexPortal
-              onBackToMain={() => navigateTo('marketplace')}
-            />
-          )}
+            {activeView === 'forex' && (
+              <ForexPortal
+                onBackToMain={() => navigateTo('marketplace')}
+              />
+            )}
+          </div>
         </main>
 
         {/* Footer Minimal Notice */}

@@ -2,21 +2,10 @@ import React, { useState } from 'react';
 import {
   TrendingUp,
   BarChart2,
-  PieChart,
-  Activity,
-  Layers,
-  FileText,
-  Sliders,
-  DollarSign,
   Grid,
   ChevronDown,
-  ChevronRight,
   Shield,
-  Zap,
-  Globe,
   Settings,
-  Briefcase,
-  Search,
   PanelLeftClose,
   PanelLeft,
 } from 'lucide-react';
@@ -51,16 +40,20 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
   onToggleCollapse,
   onOpenSettings,
 }) => {
+  // Stable slug-based open sections matching defaultOpen
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    market: true,
-    quant: true,
-    analytics: false,
+    'market-trading': true,
+    'quant-algos': true,
+    'institutional-audit': false,
   });
 
-  const toggleSection = (key: string) => {
+  const getSectionSlug = (title: string) =>
+    title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  const toggleSection = (slug: string) => {
     setOpenSections((prev) => ({
       ...prev,
-      [key]: !prev[key],
+      [slug]: !prev[slug],
     }));
   };
 
@@ -109,6 +102,9 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
           onClick={() => onNavigate('landing')}
           className="flex items-center gap-2.5 cursor-pointer overflow-hidden min-w-0"
           title="Apex Quant"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && onNavigate('landing')}
         >
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#1E40AF] to-[#3B82F6] flex items-center justify-center text-white shadow-xs shrink-0 font-bold text-sm tracking-tighter">
             <span className="text-white">A</span>
@@ -127,8 +123,9 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
 
         <button
           onClick={onToggleCollapse}
-          className="p-1 rounded-md text-[#64748B] hover:text-[#0F172A] hover:bg-[#E2E8F0] transition-colors"
+          className="p-1 rounded-md text-[#64748B] hover:text-[#0F172A] hover:bg-[#E2E8F0] transition-colors active:scale-95"
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {isCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
         </button>
@@ -140,11 +137,12 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
         <div className="space-y-0.5">
           <button
             onClick={() => onNavigate('landing')}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all ${
               activeView === 'landing'
-                ? 'bg-[#E2E8F0] text-[#0F172A] font-semibold shadow-2xs'
-                : 'text-[#475569] hover:bg-[#EAEFF5] hover:text-[#0F172A]'
+                ? 'bg-[#E2E8F0] text-[#0F172A] font-semibold border-l-2 border-[#2563EB]'
+                : 'text-[#475569] hover:bg-[#EAEFF5] hover:text-[#0F172A] hover:translate-x-0.5'
             }`}
+            aria-label="Overview Dashboard"
           >
             <Grid className="w-4 h-4 text-[#2563EB] shrink-0" />
             {!isCollapsed && <span className="truncate">Overview</span>}
@@ -152,45 +150,52 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
         </div>
 
         {/* Collapsible Sections */}
-        {sections.map((section, sIdx) => {
-          const sectionKey = `sec_${sIdx}`;
-          const isOpen = openSections[sectionKey] ?? section.defaultOpen ?? true;
+        {sections.map((section) => {
+          const sectionSlug = getSectionSlug(section.title);
+          const isOpen = openSections[sectionSlug] ?? section.defaultOpen ?? true;
           const IconComponent = section.icon;
 
           return (
             <div key={section.title} className="space-y-1">
               {!isCollapsed && (
                 <button
-                  onClick={() => toggleSection(sectionKey)}
+                  onClick={() => toggleSection(sectionSlug)}
                   className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-semibold text-[#64748B] hover:text-[#0F172A] tracking-wide rounded-md transition-colors"
+                  aria-expanded={isOpen}
+                  aria-label={`Toggle section ${section.title}`}
                 >
                   <div className="flex items-center gap-2">
                     <IconComponent className="w-3.5 h-3.5 text-[#64748B]" />
                     <span>{section.title}</span>
                   </div>
-                  {isOpen ? (
-                    <ChevronDown className="w-3 h-3 text-[#94A3B8]" />
-                  ) : (
-                    <ChevronRight className="w-3 h-3 text-[#94A3B8]" />
-                  )}
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-[#94A3B8] transition-transform duration-300 ${
+                      isOpen ? 'rotate-0' : '-rotate-90'
+                    }`}
+                  />
                 </button>
               )}
 
               {/* Sub-items */}
               {(isOpen || isCollapsed) && (
-                <div className={`space-y-0.5 ${!isCollapsed ? 'pl-4 border-l border-[#CBD5E1] ml-4' : ''}`}>
+                <div
+                  className={`space-y-0.5 animate-fade-in ${
+                    !isCollapsed ? 'pl-4 border-l border-[#CBD5E1] ml-4' : ''
+                  }`}
+                >
                   {section.items.map((item) => {
                     const isActive = item.view && activeView === item.view;
                     return (
                       <button
                         key={item.id}
                         onClick={() => item.view && onNavigate(item.view)}
-                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-left transition-colors text-[11.5px] ${
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-left transition-all text-[11.5px] ${
                           isActive
-                            ? 'bg-[#DBEAFE] text-[#1E40AF] font-semibold'
-                            : 'text-[#475569] hover:bg-[#EAEFF5] hover:text-[#0F172A]'
+                            ? 'bg-[#DBEAFE] text-[#1E40AF] font-semibold border-l-2 border-[#2563EB]'
+                            : 'text-[#475569] hover:bg-[#EAEFF5] hover:text-[#0F172A] hover:translate-x-0.5'
                         }`}
                         title={item.label}
+                        aria-label={item.label}
                       >
                         <span className="truncate">{item.label}</span>
                         {!isCollapsed && item.badge && (
@@ -218,8 +223,9 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
       <div className="p-3 border-t border-[#E2E8F0] bg-[#F4F7FB] space-y-2">
         <button
           onClick={onOpenSettings}
-          className="w-full flex items-center gap-2.5 px-3 py-2 text-[#475569] hover:text-[#0F172A] hover:bg-[#E2E8F0] rounded-lg transition-colors text-left"
+          className="w-full flex items-center gap-2.5 px-3 py-2 text-[#475569] hover:text-[#0F172A] hover:bg-[#E2E8F0] rounded-lg transition-colors text-left active:scale-95"
           title="Upstox API Gateway"
+          aria-label="Open Upstox API Gateway configuration"
         >
           <Settings className="w-4 h-4 text-[#64748B] shrink-0" />
           {!isCollapsed && (

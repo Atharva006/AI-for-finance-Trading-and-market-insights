@@ -168,10 +168,19 @@ export default function TradeDetails() {
 
       {zoomedImage && (
         <div className="fixed inset-0 bg-[#00225A]/60 z-[100] flex items-center justify-center p-4 backdrop-blur-md" onClick={() => setZoomedImage(null)}>
-          <button className="absolute top-6 right-6 text-white hover:text-white/80 transition-colors p-2.5 bg-[#00225A] border border-white/20 rounded-full cursor-pointer shadow-lg">
+          <button
+            onClick={() => setZoomedImage(null)}
+            aria-label="Close zoomed view"
+            className="absolute top-6 right-6 text-white hover:text-white/80 transition-colors p-2.5 bg-[#00225A] border border-white/20 rounded-full cursor-pointer shadow-lg active:scale-95"
+          >
             <X className="w-5 h-5" />
           </button>
-          <img src={zoomedImage} alt="Zoomed" className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl bg-white border border-[#D9E2F2]" />
+          <img
+            src={zoomedImage}
+            alt="Zoomed"
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl bg-white border border-[#D9E2F2]"
+          />
         </div>
       )}
     </div>

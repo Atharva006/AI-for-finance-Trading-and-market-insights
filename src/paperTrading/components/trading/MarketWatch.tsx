@@ -167,9 +167,16 @@ export const MarketWatch: React.FC = () => {
                     <button
                       type="button"
                       disabled={alreadyAdded}
-                      className={`p-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!alreadyAdded) {
+                          handleAddSearchResult(inst);
+                        }
+                      }}
+                      aria-label={alreadyAdded ? "Already added to watchlist" : "Add to watchlist"}
+                      className={`p-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95 ${
                         alreadyAdded
-                          ? 'text-[#94A3B8] bg-[#F7F8FA]'
+                          ? 'text-[#94A3B8] bg-[#F7F8FA] cursor-not-allowed'
                           : 'bg-[#EEF3FF] text-[#00225A] hover:bg-[#00225A] hover:text-white border border-[#D9E2F2]'
                       }`}
                     >

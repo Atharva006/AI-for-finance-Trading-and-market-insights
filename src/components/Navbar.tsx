@@ -103,13 +103,21 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         {/* Left Brand Mark */}
         <div className="flex items-center gap-3">
-          <a href="#" className="flex items-center gap-2 group">
+          <a
+            href="#top"
+            onClick={(e) => {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="flex items-center gap-2 group cursor-pointer active:scale-95 transition-all"
+            aria-label="Back to top"
+          >
             <span className="font-devanagari text-2xl font-bold text-[#10B981] tracking-wider transition-transform duration-200 group-hover:scale-105">
               अर्जुन
             </span>
             <div className="h-4 w-[1px] bg-gray-300" />
             <span className="font-mono text-xs font-bold text-[#0A0A0D] tracking-widest uppercase">
-              // ARJUNA QUANT <span className="text-[#10B981] text-[10px]">v1.0</span>
+              · ARJUNA QUANT <span className="text-[#10B981] text-[10px]">v1.0</span>
             </span>
           </a>
 
