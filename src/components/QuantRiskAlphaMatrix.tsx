@@ -21,6 +21,7 @@ interface QuantRiskAlphaMatrixProps {
   initialCapital?: number;
   strategyName?: string;
   symbol?: string;
+  currencySymbol?: string; // e.g. '$' or '₹'
 }
 
 export const QuantRiskAlphaMatrix: React.FC<QuantRiskAlphaMatrixProps> = ({
@@ -28,6 +29,7 @@ export const QuantRiskAlphaMatrix: React.FC<QuantRiskAlphaMatrixProps> = ({
   initialCapital = 100000,
   strategyName = 'Strategy',
   symbol = 'NIFTY 50',
+  currencySymbol = '₹',
 }) => {
   const profile: QuantRiskProfile = calculateQuantRiskProfile(trades, initialCapital);
 
@@ -79,7 +81,7 @@ export const QuantRiskAlphaMatrix: React.FC<QuantRiskAlphaMatrixProps> = ({
                 profile.grossProfitRs >= 0 ? 'text-emerald-900' : 'text-rose-700'
               }`}
             >
-              ₹{profile.grossProfitRs.toLocaleString('en-IN')}
+              {currencySymbol}{profile.grossProfitRs.toLocaleString('en-IN')}
             </span>
           </div>
         </div>
@@ -210,7 +212,7 @@ export const QuantRiskAlphaMatrix: React.FC<QuantRiskAlphaMatrixProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-gray-500 text-[11px]">Edge Expectancy:</span>
               <span className="font-bold text-black">
-                ₹{Math.round(profile.grossProfitRs / Math.max(1, trades.length))} / fill
+                {currencySymbol}{Math.round(profile.grossProfitRs / Math.max(1, trades.length))} / fill
               </span>
             </div>
           </div>

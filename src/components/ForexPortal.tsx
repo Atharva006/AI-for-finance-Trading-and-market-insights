@@ -43,9 +43,9 @@ interface ForexPortalProps {
 }
 
 export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
-  // Selected pair state
+  // Selected pair state - Fixed strictly to 15m live execution timeframe as specified
   const [selectedPairKey, setSelectedPairKey] = useState<string>('EURUSD=X');
-  const [selectedInterval, setSelectedInterval] = useState<'15m' | '5m' | '1h'>('15m');
+  const selectedInterval = '15m'; // Execution strictly locked to 15m per Pine Script rules
   const [dateRange, setDateRange] = useState<'30d' | '60d'>('60d');
 
   // Strategy Parameters (from your Pine Script v5)
@@ -287,22 +287,13 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
               </p>
             </div>
 
-            {/* Timeframe controls */}
+            {/* Timeframe controls - Fixed to 15m live execution only */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 font-mono">Bar Interval:</span>
-              {(['15m', '5m', '1h'] as const).map((intv) => (
-                <button
-                  key={intv}
-                  onClick={() => setSelectedInterval(intv)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold font-mono transition-all ${
-                    selectedInterval === intv
-                      ? 'bg-black text-white shadow-xs'
-                      : 'bg-white border border-gray-200 text-gray-600 hover:text-black'
-                  }`}
-                >
-                  {intv}
-                </button>
-              ))}
+              <span className="text-xs text-gray-500 font-mono">Execution Timeframe:</span>
+              <div className="px-3 py-1 rounded-lg text-xs font-bold font-mono bg-black text-white shadow-xs flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>15m Strict Live Engine</span>
+              </div>
 
               <span className="text-xs text-gray-500 font-mono ml-2">Lookback:</span>
               {(['30d', '60d'] as const).map((r) => (
@@ -484,7 +475,7 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
             </div>
           </div>
 
-          {/* Right Column: Quantitative Backtest Audit & Performance */}
+          {/* Right Column: Quantitative Live Execution Audit & Performance */}
           <div className="lg:col-span-7 space-y-5">
             {/* Metrics Scorecard */}
             {backtestResult && (
@@ -607,6 +598,7 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
                 initialCapital={accountCapitalUSD}
                 strategyName="EURUSD Session Sweep (Asia-London-NY FVG Inversion)"
                 symbol={selectedPair.displayName}
+                currencySymbol="$"
               />
             )}
 
