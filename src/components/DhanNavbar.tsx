@@ -75,10 +75,10 @@ export const DhanNavbar: React.FC<DhanNavbarProps> = ({
           onClick={() => setActiveView('papertrading')}
           className={navItemClass('papertrading')}
         >
-          <span className="flex items-center gap-1.5">
+          <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
             <span>Paper Trading</span>
-            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-secondary/10 text-secondary border border-secondary/20">
-              ₹10L Virtual Desk
+            <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-secondary/15 text-secondary border border-secondary/25">
+              ₹10L
             </span>
           </span>
         </button>
