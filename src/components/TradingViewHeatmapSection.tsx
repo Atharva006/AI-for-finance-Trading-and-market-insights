@@ -3,13 +3,13 @@ import React, { useState, useEffect, useRef } from 'react';
 export type HeatmapRegion = 'INDIA' | 'US';
 
 interface TradingViewHeatmapSectionProps {
-  onNavigateToBacktest?: (symbol: string) => void;
-  onNavigateToPaperTrading?: () => void;
+  onNavigateToBacktest?: (symbol?: string) => void;
+  onNavigateToFVGAlgo?: () => void;
 }
 
 export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps> = ({
   onNavigateToBacktest,
-  onNavigateToPaperTrading,
+  onNavigateToFVGAlgo,
 }) => {
   const [region, setRegion] = useState<HeatmapRegion>('INDIA');
   const [indiaPreset, setIndiaPreset] = useState<'NIFTY50' | 'SENSEX' | 'AllIndia'>('NIFTY50');
@@ -124,27 +124,37 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
             <span className="text-[11px] font-mono tracking-wider text-secondary uppercase font-semibold">
-              Live Exchange Heatmap · TradingView Engine
+              Live Algorithmic Sector Scanner · Free TradingView Engine
             </span>
           </div>
           <h1 className="font-headline text-2xl sm:text-3xl font-bold tracking-tight text-primary flex items-center gap-2.5">
             <span className="material-symbols-outlined text-[28px] text-primary">grid_view</span>
-            <span>Market Heatmaps (India &amp; US)</span>
+            <span>Algorithmic Market Heatmaps (India &amp; US)</span>
           </h1>
           <p className="text-xs text-text-muted mt-1 max-w-2xl">
-            Real-time multi-asset market capitalization and performance tree maps. Visualize market breadth, sector rotations, and capital allocation across Indian (NSE/BSE) and US (S&amp;P 500 / NASDAQ) exchanges.
+            Real-time multi-asset market capitalization and performance tree maps for algorithmic traders. Identify high-momentum sector rotations and scan quantitative setups across NSE/BSE and US exchanges with 100% free TradingView feeds.
           </p>
         </div>
 
-        {/* Action Buttons: Paper Trading & Backtest Launch */}
+        {/* Action Buttons: Algo Backtest & Strategy Execution Desk */}
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-          {onNavigateToPaperTrading && (
+          {onNavigateToBacktest && (
             <button
-              onClick={onNavigateToPaperTrading}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-secondary text-white font-semibold text-xs shadow-xs hover:bg-secondary/90 transition-all active:scale-95 cursor-pointer"
+              onClick={() => onNavigateToBacktest(region === 'INDIA' ? 'NIFTY 50' : 'SPX')}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-white font-semibold text-xs shadow-xs hover:bg-secondary transition-all active:scale-95 cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[16px]">candlestick_chart</span>
-              <span>Trade in ₹10L Sandbox</span>
+              <span className="material-symbols-outlined text-[16px]">trending_up</span>
+              <span>Launch Algo Backtest</span>
+            </button>
+          )}
+
+          {onNavigateToFVGAlgo && (
+            <button
+              onClick={onNavigateToFVGAlgo}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-container border border-border-subtle text-primary font-semibold text-xs hover:bg-secondary hover:text-white transition-all active:scale-95 cursor-pointer shadow-xs"
+            >
+              <span className="material-symbols-outlined text-[16px]">psychology</span>
+              <span>Pine Script v5 FVG Desk</span>
             </button>
           )}
 
@@ -386,9 +396,9 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
             <span className="material-symbols-outlined text-[18px]">bolt</span>
           </div>
           <div>
-            <h4 className="font-bold text-primary font-headline text-sm">Quantitative Execution Desk</h4>
+            <h4 className="font-bold text-primary font-headline text-sm">Algorithmic Execution Scanner</h4>
             <p className="text-text-muted mt-0.5 leading-relaxed">
-              Spotting abnormal sector dispersion? Seamlessly test institutional limit entries in the Backtest Studio or execute live in the ₹10L Paper Desk.
+              Spotting abnormal sector dispersion? Seamlessly test institutional systematic setups in the Backtest Studio or deploy our Audited Asia-London-NY FVG Pine Script Algorithm.
             </p>
           </div>
         </div>

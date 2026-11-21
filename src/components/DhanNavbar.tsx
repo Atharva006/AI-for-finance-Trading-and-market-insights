@@ -61,7 +61,7 @@ export const DhanNavbar: React.FC<DhanNavbarProps> = ({
         </div>
       </div>
 
-      {/* Center: Primary Navigation Tabs */}
+      {/* Center: Primary Algorithmic Trading Navigation */}
       <nav className="hidden xl:flex items-center gap-space-xs">
         <button
           onClick={() => setActiveView('landing')}
@@ -70,29 +70,29 @@ export const DhanNavbar: React.FC<DhanNavbarProps> = ({
           Overview
         </button>
 
-        {/* First-Class Paper Trading Section */}
+        {/* Algo Marketplace (Trading & Investing Systematic Models) */}
         <button
-          onClick={() => setActiveView('papertrading')}
-          className={navItemClass('papertrading')}
+          onClick={() => setActiveView('marketplace')}
+          className={navItemClass('marketplace')}
         >
           <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-            <span>Paper Trading</span>
-            <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-secondary/15 text-secondary border border-secondary/25">
-              ₹10L
+            <span>Algo Marketplace</span>
+            <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-border-subtle">
+              Algos
             </span>
           </span>
         </button>
 
-        {/* Market Heatmaps (India & US TradingView) */}
+        {/* Free Market Heatmaps (India & US TradingView Engine for Algo Traders) */}
         <button
           onClick={() => setActiveView('heatmap')}
           className={navItemClass('heatmap')}
         >
           <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
             <span className="material-symbols-outlined text-[15px]">grid_view</span>
-            <span>Heatmaps</span>
-            <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-border-subtle">
-              IN · US
+            <span>Algo Heatmaps</span>
+            <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-bullish/10 text-bullish border border-bullish/25">
+              FREE
             </span>
           </span>
         </button>

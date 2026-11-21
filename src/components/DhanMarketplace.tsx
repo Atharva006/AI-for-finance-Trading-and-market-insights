@@ -10,12 +10,18 @@ import {
   UserOrder,
 } from '../services/watchlistStore';
 import { StockLogo } from './StockLogo';
+import { TradingViewHeatmapSection } from './TradingViewHeatmapSection';
+
+export type MarketplaceTab = 'trading' | 'investing' | 'heatmap' | 'watchlist' | 'positions' | 'orders';
 
 interface DhanMarketplaceProps {
   strategies: AlgoStrategy[];
   onSelectStrategy: (strategy: AlgoStrategy) => void;
   onOpenBacktest: (strategy: AlgoStrategy) => void;
   onNavigateToAdmin?: () => void;
+  initialTab?: MarketplaceTab;
+  onNavigateToBacktestWithSymbol?: (symbol?: string) => void;
+  onNavigateToFVG?: () => void;
 }
 
 export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
@@ -23,9 +29,12 @@ export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
   onSelectStrategy,
   onOpenBacktest,
   onNavigateToAdmin,
+  initialTab = 'trading',
+  onNavigateToBacktestWithSymbol,
+  onNavigateToFVG,
 }) => {
-  // Navigation Tabs matching Stitch Screen 2
-  const [activeTab, setActiveTab] = useState<'trading' | 'investing' | 'watchlist' | 'positions' | 'orders'>('trading');
+  // Navigation Tabs matching Stitch Screen 2 + Integrated Free Heatmap
+  const [activeTab, setActiveTab] = useState<MarketplaceTab>(initialTab);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [capitalFilter, setCapitalFilter] = useState<string>('ALL');
   const [styleFilter, setStyleFilter] = useState<string>('ALL');
@@ -155,6 +164,23 @@ export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
             type="button"
           >
             Investment &amp; Wealth
+          </button>
+
+          {/* Integrated Free Heatmap for Algorithmic Scanning */}
+          <button
+            onClick={() => setActiveTab('heatmap')}
+            className={`px-space-md py-space-sm rounded-lg font-label-md text-label-md whitespace-nowrap transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+              activeTab === 'heatmap'
+                ? 'bg-surface-card text-on-surface shadow-sm font-semibold'
+                : 'text-on-surface-variant hover:text-on-surface'
+            }`}
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[16px] text-primary">grid_view</span>
+            <span>Market Heatmap (NSE · US)</span>
+            <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-bullish/10 text-bullish border border-bullish/25">
+              FREE
+            </span>
           </button>
 
           <button
@@ -494,6 +520,15 @@ export const DhanMarketplace: React.FC<DhanMarketplaceProps> = ({
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+      {/* 6. FREE TRADINGVIEW HEATMAP FOR ALGORITHMIC SCANNING */}
+      {activeTab === 'heatmap' && (
+        <div className="w-full">
+          <TradingViewHeatmapSection
+            onNavigateToBacktest={onNavigateToBacktestWithSymbol}
+            onNavigateToFVGAlgo={onNavigateToFVG}
+          />
         </div>
       )}
     </div>

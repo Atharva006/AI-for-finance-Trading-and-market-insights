@@ -309,13 +309,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="flex flex-col gap-3 max-w-2xl relative z-10">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container border border-border-subtle self-start text-xs font-mono font-semibold text-primary">
                 <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
-                <span>TRADINGVIEW EMBED · REAL-TIME MARKET CAPITALIZATION &amp; SECTOR FLOW</span>
+                <span>100% FREE ALGO SCANNER · TRADINGVIEW ENGINE · REAL-TIME CAPITALIZATION &amp; FLOW</span>
               </div>
               <h2 className="font-headline text-2xl sm:text-3xl font-bold text-primary tracking-tight">
-                Live Market Heatmaps for Indian &amp; US Equities
+                Algorithmic Market Heatmaps for Indian &amp; US Equities
               </h2>
               <p className="text-sm text-text-secondary leading-relaxed">
-                Analyze relative sector performance and visual market breadth across Indian (NIFTY 50, BSE SENSEX, All-India) and US (S&amp;P 500, NASDAQ 100, DOW 30) markets. High-definition tree maps weighted by market capitalization and 1-day percentage dispersion.
+                Scan high-volatility momentum rotations and visual market breadth across Indian (NIFTY 50, BSE SENSEX, All-India) and US (S&amp;P 500, NASDAQ 100, DOW 30) markets for algorithmic strategies. 100% free TradingView tree maps with zero subscription or API key requirements.
               </p>
               <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-text-muted pt-1">
                 <span className="inline-flex items-center gap-1.5 text-primary font-semibold">
@@ -343,10 +343,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 className="w-full sm:w-auto px-6 py-3.5 bg-primary hover:bg-primary-container text-white font-semibold rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[18px]">grid_view</span>
-                <span>Open Market Heatmaps</span>
+                <span>Open Algo Market Heatmaps</span>
               </button>
               <span className="text-[11px] font-mono text-text-muted text-center">
-                Powered by TradingView Engine
+                100% Free · No API Key Required
               </span>
             </div>
           </div>

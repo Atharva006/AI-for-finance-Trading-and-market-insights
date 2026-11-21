@@ -215,15 +215,15 @@ export function App() {
           <PaperTradingSection />
         )}
 
-        {/* Live Market Heatmaps Section (India & US TradingView Engine) */}
+        {/* Live Algorithmic Market Heatmaps Section (India & US Free TradingView Engine) */}
         {activeView === 'heatmap' && (
           <TradingViewHeatmapSection
             onNavigateToBacktest={(symbol) => {
-              setSelectedInstrument(symbol);
+              if (symbol) setSelectedInstrument(symbol);
               navigateTo('backtest');
             }}
-            onNavigateToPaperTrading={() => {
-              navigateTo('papertrading');
+            onNavigateToFVGAlgo={() => {
+              navigateTo('forex');
             }}
           />
         )}
@@ -241,6 +241,11 @@ export function App() {
             onSelectStrategy={handleSelectStrategy}
             onOpenBacktest={handleOpenBacktest}
             onNavigateToAdmin={() => navigateTo('admin')}
+            onNavigateToBacktestWithSymbol={(symbol) => {
+              if (symbol) setSelectedInstrument(symbol);
+              navigateTo('backtest');
+            }}
+            onNavigateToFVG={() => navigateTo('forex')}
           />
         )}
 
