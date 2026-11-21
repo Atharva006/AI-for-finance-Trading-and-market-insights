@@ -294,7 +294,7 @@ export default function Login() {
         try {
           const { data, error: demoErr } = await supabase.auth.signInAnonymously();
           if (!demoErr && data?.session?.user) {
-            await init(data.session.user.id, undefined, 'Cendrix Institutional Trader');
+            await init(data.session.user.id, undefined, 'Apex Quant Trader');
             navigate(destination);
             return;
           }
@@ -315,10 +315,10 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-[#FCFCFC] text-[#111114] relative overflow-x-hidden font-sans selection:bg-[#536CF0] selection:text-white flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <SEO
-        title="Institutional Login — Free Virtual Trading Platform | Cendrix Capital"
-        description="Sign in to your Cendrix Capital virtual trading platform. Access real-time simulated order matching, portfolio risk analytics, and quantitative trading tools."
-        canonical="https://cendrix-capital-stf.vercel.app/login"
-        keywords="free paper trading platform login, virtual trading platform sign in, demo trading platform access, stock market simulator portal, Cendrix Capital login"
+        title="Institutional Sign In — Virtual Trading Platform | Apex Quant"
+        description="Sign in to your Apex Quant virtual trading platform. Access real-time simulated order matching, portfolio risk analytics, and quantitative trading tools."
+        canonical="/login"
+        keywords="paper trading platform login, virtual trading platform sign in, demo trading platform access, stock market simulator portal, Apex Quant login"
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'BreadcrumbList',
@@ -327,13 +327,13 @@ export default function Login() {
               '@type': 'ListItem',
               'position': 1,
               'name': 'Home',
-              'item': 'https://cendrix-capital-stf.vercel.app/'
+              'item': '/'
             },
             {
               '@type': 'ListItem',
               'position': 2,
               'name': 'Institutional Login',
-              'item': 'https://cendrix-capital-stf.vercel.app/login'
+              'item': '/login'
             }
           ]
         }}
@@ -350,15 +350,19 @@ export default function Login() {
         <div className="flex flex-col items-center mb-6">
           <Link to="/" className="mb-4 group flex items-center gap-3 active:scale-98 transition-transform">
             <div className="w-12 h-12 rounded-2xl bg-[#00225A] flex items-center justify-center p-2.5 shadow-md shadow-[#00225A]/15 transition-transform group-hover:scale-105 duration-200">
-              <img src="/cendrix-logo.png" alt="Cendrix Capital" className="w-full h-full object-contain brightness-0 invert" />
+              <img
+                src="https://lh3.googleusercontent.com/aida/ALJJyrDoYL4wVpXsoYtqmZkmWKJAcBOZgjR6a2u3D7pji-QCA1FXxyW_9ixEsJ_EqdIuHO3VuBvesBLo7yGqHV2rnx4bDVRyJydMU4uix9FmelUPL0wHTmmxuvG0o93CFcfmflbMIqzzl2nTZ59kuk6TnQQHRfFZxYglS5bz_oO3eHrmyLyPCEoju6CiVfP_EVZiFTGDu3oWTnesXXfL-Oyy6PZwXKIks9-rsoY_dLVzalD-vA"
+                alt="Apex Quant"
+                className="w-full h-full object-contain brightness-0 invert"
+              />
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-headline font-bold tracking-tight text-[#00225A]">
-                CENDRIX CAPITAL
+                APEX QUANT
               </span>
               <div className="flex items-center gap-1.5">
                 <span className="text-[10px] text-[#536CF0] tracking-wider font-mono font-semibold uppercase">
-                  FUNDED SIMULATOR
+                  PAPER TRADING DESK
                 </span>
                 <span className="w-1.5 h-1.5 rounded-full bg-[#12B76A] animate-pulse" />
               </div>
@@ -532,7 +536,7 @@ export default function Login() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="trader@cendrixcapital.com"
+                    placeholder="trader@apexquant.io"
                     autoComplete="email"
                     className="block w-full pl-9 pr-3 py-2.5 border border-[#D9E2F2] rounded-xl bg-[#FFFFFF] text-[#111114] focus:outline-none focus:border-[#536CF0] focus:ring-2 focus:ring-[#536CF0]/10 transition-all text-xs placeholder:text-[#94A3B8]"
                   />

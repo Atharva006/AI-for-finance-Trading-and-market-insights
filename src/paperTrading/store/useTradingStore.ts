@@ -107,8 +107,8 @@ const getInitialAccount = (): PaperAccount => {
 
 export const useTradingStore = create<TradingStoreState>((set, get) => ({
   userId: DEFAULT_USER_ID,
-  userEmail: 'trader@cendrixcapital.com',
-  userName: 'Cendrix Institutional Trader',
+  userEmail: 'trader@apexquant.io',
+  userName: 'Quant Trader',
   account: getInitialAccount(),
   orders: [],
   trades: [],

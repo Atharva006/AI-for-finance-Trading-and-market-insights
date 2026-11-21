@@ -97,17 +97,21 @@ export const MasterNavbar: React.FC<MasterNavbarProps> = ({
             className="flex items-center gap-2.5 group transition-transform active:scale-[0.98] shrink-0"
           >
             <div className="w-8 h-8 rounded-xl bg-[#00225A] flex items-center justify-center p-1.5 shadow-sm shadow-[#00225A]/15 group-hover:bg-[#536CF0] transition-colors">
-              <img src="/cendrix-logo.png" alt="Cendrix" className="w-full h-full object-contain brightness-0 invert" />
+              <img
+                src="https://lh3.googleusercontent.com/aida/ALJJyrDoYL4wVpXsoYtqmZkmWKJAcBOZgjR6a2u3D7pji-QCA1FXxyW_9ixEsJ_EqdIuHO3VuBvesBLo7yGqHV2rnx4bDVRyJydMU4uix9FmelUPL0wHTmmxuvG0o93CFcfmflbMIqzzl2nTZ59kuk6TnQQHRfFZxYglS5bz_oO3eHrmyLyPCEoju6CiVfP_EVZiFTGDu3oWTnesXXfL-Oyy6PZwXKIks9-rsoY_dLVzalD-vA"
+                alt="Apex Quant"
+                className="w-full h-full object-contain brightness-0 invert"
+              />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
                 <span className="font-headline font-bold text-sm tracking-tight text-[#00225A] whitespace-nowrap">
-                  CENDRIX CAPITAL
+                  APEX QUANT
                 </span>
                 <span className="w-2 h-2 rounded-full bg-[#12B76A] animate-pulse" title="Live Exchange Feeds Active" />
               </div>
               <span className="text-[9px] font-mono tracking-wider text-[#6B7A90] font-semibold uppercase whitespace-nowrap">
-                FUNDED SIMULATOR
+                PAPER TRADING DESK
               </span>
             </div>
           </NavLink>
@@ -213,7 +217,7 @@ export const MasterNavbar: React.FC<MasterNavbarProps> = ({
               className="flex items-center gap-2 p-1 rounded-xl hover:bg-[#F7F8FA] border border-transparent hover:border-[#D9E2F2] transition-all active:scale-[0.97]"
             >
               <div className="w-7 h-7 rounded-xl bg-[#EEF3FF] border border-[#D9E2F2] flex items-center justify-center text-xs font-bold font-mono text-[#00225A] shadow-2xs">
-                {userName ? userName.slice(0, 2).toUpperCase() : 'CN'}
+                {userName ? userName.slice(0, 2).toUpperCase() : 'AQ'}
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-[#6B7A90]" />
             </button>
@@ -221,8 +225,8 @@ export const MasterNavbar: React.FC<MasterNavbarProps> = ({
             {isUserMenuOpen && (
               <div className="absolute right-0 mt-2 w-64 bg-white border border-[#D9E2F2] rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 font-sans origin-top-right">
                 <div className="px-4 py-3 border-b border-[#D9E2F2]">
-                  <p className="text-xs font-bold text-[#00225A] truncate tracking-wide">{userName || 'Cendrix Institutional Client'}</p>
-                  <p className="text-[10px] text-[#536CF0] font-mono tracking-wider font-semibold">FUNDED SIMULATOR</p>
+                  <p className="text-xs font-bold text-[#00225A] truncate tracking-wide">{userName || 'Apex Quant Trader'}</p>
+                  <p className="text-[10px] text-[#536CF0] font-mono tracking-wider font-semibold">PAPER TRADING SIMULATOR</p>
                   {account && (
                     <div className="mt-2 pt-2 border-t border-[#D9E2F2] flex justify-between text-[11px] font-mono text-[#6B7A90]">
                       <span>Cash Balance:</span>

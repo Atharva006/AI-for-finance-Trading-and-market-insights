@@ -37,7 +37,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'POSITIONS' | 'HOLDINGS' | 'ORDERS' | 'TRADES'>('POSITIONS');
   const [isQuickStartDismissed, setIsQuickStartDismissed] = useState(() => {
     try {
-      return localStorage.getItem('cnrx_quickstart_dismissed') === 'true';
+      return localStorage.getItem('aq_quickstart_dismissed') === 'true' || localStorage.getItem('cnrx_quickstart_dismissed') === 'true';
     } catch {
       return false;
     }
@@ -74,7 +74,7 @@ export default function Dashboard() {
             <span className="w-2 h-2 rounded-full bg-[#12B76A] animate-pulse shadow-sm" title="System Live · NSE & MCX Connected" />
           </div>
           <div className="text-[11px] text-[#6B7A90] mt-1 font-mono flex items-center gap-2">
-            <span>Portfolio Account: <span className="text-[#00225A] font-semibold">{account?.account_number || 'CNRX-LIVE-001'}</span></span>
+            <span>Portfolio Account: <span className="text-[#00225A] font-semibold">{account?.account_number || 'AQ-PAPER-001'}</span></span>
             <span className="text-[#D9E2F2]">|</span>
             <span className="text-[#00225A] font-bold tracking-wider uppercase text-[10px] bg-[#EEF3FF] px-1.5 py-0.5 rounded border border-[#D9E2F2]">
               Simulated Fund
@@ -124,7 +124,7 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <h3 className="font-display text-sm sm:text-base font-bold text-[#00225A] mt-1">
-                  New to CNRX? Discover how to analyze, place orders, and manage virtual risk
+                  New to Apex Quant? Discover how to analyze, place orders, and manage virtual risk
                 </h3>
                 <p className="text-xs text-[#6B7A90] mt-1 leading-relaxed">
                   1. Search scrips (⌘K) → 2. Inspect Candlestick Charts & Depth → 3. Place simulated orders (Market/Limit/SL) → 4. Track live MTM & Greeks.
@@ -144,7 +144,7 @@ export default function Dashboard() {
                 onClick={() => {
                   setIsQuickStartDismissed(true);
                   try {
-                    localStorage.setItem('cnrx_quickstart_dismissed', 'true');
+                    localStorage.setItem('aq_quickstart_dismissed', 'true');
                   } catch {}
                 }}
                 className="p-2 rounded-xl text-[#6B7A90] hover:text-[#00225A] hover:bg-[#F7F8FA] active:scale-[0.92] transition-all cursor-pointer"

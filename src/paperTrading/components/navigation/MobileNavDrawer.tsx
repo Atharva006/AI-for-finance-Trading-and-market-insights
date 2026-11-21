@@ -97,14 +97,18 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
         <div className="p-4 border-b border-[#D9E2F2] flex items-center justify-between bg-[#FCFCFC]">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-[#00225A] flex items-center justify-center p-1.5 shadow-sm">
-              <img src="/cendrix-logo.png" alt="Cendrix Capital" className="w-full h-full object-contain brightness-0 invert" />
+              <img
+                src="https://lh3.googleusercontent.com/aida/ALJJyrDoYL4wVpXsoYtqmZkmWKJAcBOZgjR6a2u3D7pji-QCA1FXxyW_9ixEsJ_EqdIuHO3VuBvesBLo7yGqHV2rnx4bDVRyJydMU4uix9FmelUPL0wHTmmxuvG0o93CFcfmflbMIqzzl2nTZ59kuk6TnQQHRfFZxYglS5bz_oO3eHrmyLyPCEoju6CiVfP_EVZiFTGDu3oWTnesXXfL-Oyy6PZwXKIks9-rsoY_dLVzalD-vA"
+                alt="Apex Quant"
+                className="w-full h-full object-contain brightness-0 invert"
+              />
             </div>
             <div>
               <span className="font-headline text-sm font-bold tracking-tight text-[#00225A] uppercase">
-                CENDRIX CAPITAL
+                APEX QUANT
               </span>
               <p className="text-[9px] text-[#6B7A90] uppercase tracking-wider font-mono font-semibold">
-                FUNDED SIMULATOR
+                PAPER TRADING DESK
               </p>
             </div>
           </div>

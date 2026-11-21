@@ -1,6 +1,6 @@
 /**
  * Default Institutional Upstox Access Credentials
- * Pre-configured for Cendrix Capital Terminal deployment.
+ * Pre-configured for Apex Quant Terminal deployment.
  * Provides instant live data stream on Vercel and production without requiring manual user setup.
  */
 

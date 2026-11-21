@@ -12,13 +12,13 @@ export default function Terms() {
         '@type': 'ListItem',
         'position': 1,
         'name': 'Home',
-        'item': 'https://cendrix-capital-stf.vercel.app/'
+        'item': '/'
       },
       {
         '@type': 'ListItem',
         'position': 2,
         'name': 'Terms of Service',
-        'item': 'https://cendrix-capital-stf.vercel.app/terms'
+        'item': '/terms'
       }
     ]
   };
@@ -26,10 +26,10 @@ export default function Terms() {
   return (
     <div className="min-h-screen bg-[#FCFCFC] text-[#111114] font-sans py-20 px-4 sm:px-6 lg:px-8">
       <SEO
-        title="Terms of Service — Demo Trading Platform | Cendrix Capital"
-        description="Review the terms, simulated execution rules, and legal agreements for using Cendrix Capital's virtual paper trading simulator."
-        canonical="https://cendrix-capital-stf.vercel.app/terms"
-        keywords="Cendrix Capital terms of service, demo trading platform rules, simulated trading disclaimer, virtual paper trading agreement"
+        title="Terms of Service — Paper Trading Platform | Apex Quant"
+        description="Review the terms, simulated execution rules, and legal agreements for using Apex Quant's virtual paper trading simulator."
+        canonical="/terms"
+        keywords="Apex Quant terms of service, demo trading platform rules, simulated trading disclaimer, virtual paper trading agreement"
         ogType="article"
         jsonLd={breadcrumbJsonLd}
       />
@@ -39,12 +39,12 @@ export default function Terms() {
         </Link>
         
         <h1 className="text-3xl sm:text-4xl font-bold font-display text-[#00225A] tracking-tight mb-2">Terms of Service</h1>
-        <p className="text-[#536CF0] font-semibold tracking-wider text-xs uppercase mb-8 font-mono">Last Updated: October 2026 · Cendrix Capital</p>
+        <p className="text-[#536CF0] font-semibold tracking-wider text-xs uppercase mb-8 font-mono">Last Updated: October 2026 · Apex Quant Workstation</p>
         
         <div className="space-y-6 text-[#6B7A90] text-sm leading-relaxed">
           <section>
             <h2 className="text-base font-bold font-display text-[#00225A] mb-2">1. Acceptance of Terms</h2>
-            <p>By accessing or using Cendrix Capital, you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you do not have permission to access the simulated paper trading platform.</p>
+            <p>By accessing or using Apex Quant, you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you do not have permission to access the simulated paper trading platform.</p>
           </section>
           
           <section>

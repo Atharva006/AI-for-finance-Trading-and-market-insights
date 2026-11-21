@@ -297,7 +297,7 @@ export default function SettingsPage({ onOpenReset }: SettingsPageProps) {
 
   return (
     <div className="w-full max-w-full mx-auto select-none font-sans text-[#111114] pb-14 space-y-6">
-      {/* ── 1. Top Cendrix Capital Header Strip ─────────────────────────── */}
+      {/* ── 1. Top Apex Quant Header Strip ─────────────────────────── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#D9E2F2]">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -319,7 +319,7 @@ export default function SettingsPage({ onOpenReset }: SettingsPageProps) {
           <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-[#D9E2F2] text-xs font-mono shadow-xs">
             <Server className="w-3.5 h-3.5 text-[#536CF0]" />
             <span className="text-[#6B7A90]">Provider:</span>
-            <span className="font-semibold text-[#00225A]">Cendrix Direct Exchange</span>
+            <span className="font-semibold text-[#00225A]">Apex Direct Exchange</span>
             <span className="w-1.5 h-1.5 rounded-full bg-[#12B76A] animate-pulse" />
           </div>
         </div>

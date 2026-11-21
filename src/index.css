@@ -182,6 +182,7 @@ a[role="button"]:active,
 
 /* 1. Primary Button (FundingPips Navy) */
 .btn-primary,
+.btn-aq-primary,
 .btn-cendrix-gold {
   background-color: #00225A;
   color: #FFFFFF;
@@ -213,6 +214,7 @@ a[role="button"]:active,
 
 /* 2. Secondary Button (FundingPips Outline) */
 .btn-secondary,
+.btn-aq-outline,
 .btn-cendrix-outline {
   background-color: #FFFFFF;
   color: #00225A;
@@ -242,6 +244,7 @@ a[role="button"]:active,
 
 /* 3. Surface & Card Classes */
 .card-funding,
+.aq-card,
 .cendrix-card {
   background-color: #FFFFFF;
   border: 1px solid #D9E2F2;

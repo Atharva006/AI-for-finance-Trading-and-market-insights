@@ -71,8 +71,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       <div className="min-h-screen bg-[#FCFCFC] flex flex-col items-center justify-center text-[#111114] font-sans">
         <SEO noindex={true} />
         <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-white border border-[#D9E2F2] flex items-center justify-center p-2.5 shadow-sm">
-            <img src="/cendrix-logo.png" alt="Cendrix Capital" className="w-full h-full object-contain" />
+          <div className="w-12 h-12 rounded-2xl bg-[#00225A] flex items-center justify-center p-2.5 shadow-sm">
+            <img
+              src="https://lh3.googleusercontent.com/aida/ALJJyrDoYL4wVpXsoYtqmZkmWKJAcBOZgjR6a2u3D7pji-QCA1FXxyW_9ixEsJ_EqdIuHO3VuBvesBLo7yGqHV2rnx4bDVRyJydMU4uix9FmelUPL0wHTmmxuvG0o93CFcfmflbMIqzzl2nTZ59kuk6TnQQHRfFZxYglS5bz_oO3eHrmyLyPCEoju6CiVfP_EVZiFTGDu3oWTnesXXfL-Oyy6PZwXKIks9-rsoY_dLVzalD-vA"
+              alt="Apex Quant"
+              className="w-full h-full object-contain brightness-0 invert"
+            />
           </div>
           <div className="flex items-center gap-2 text-xs font-mono text-[#00225A] font-semibold">
             <Loader2 className="w-4 h-4 animate-spin text-[#536CF0]" />

@@ -66,20 +66,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenReset }) => {
       {/* Brand & Monogram Header */}
       <div className="p-4 border-b border-[#D9E2F2] bg-[#F7F8FA]">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-white border border-[#D9E2F2] flex items-center justify-center p-1.5 overflow-hidden shadow-xs">
-            <img src="/cendrix-logo.png" alt="Cendrix Capital" className="w-full h-full object-contain" />
+          <div className="w-9 h-9 rounded-xl bg-[#00225A] flex items-center justify-center p-1.5 overflow-hidden shadow-xs">
+            <img
+              src="https://lh3.googleusercontent.com/aida/ALJJyrDoYL4wVpXsoYtqmZkmWKJAcBOZgjR6a2u3D7pji-QCA1FXxyW_9ixEsJ_EqdIuHO3VuBvesBLo7yGqHV2rnx4bDVRyJydMU4uix9FmelUPL0wHTmmxuvG0o93CFcfmflbMIqzzl2nTZ59kuk6TnQQHRfFZxYglS5bz_oO3eHrmyLyPCEoju6CiVfP_EVZiFTGDu3oWTnesXXfL-Oyy6PZwXKIks9-rsoY_dLVzalD-vA"
+              alt="Apex Quant"
+              className="w-full h-full object-contain brightness-0 invert"
+            />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-display text-base font-bold tracking-tight text-[#00225A]">
-                CENDRIX
+                APEX QUANT
               </span>
               <span className="text-[9px] font-mono font-bold tracking-widest text-[#00225A] bg-[#EEF3FF] border border-[#D9E2F2] px-1 py-0.2 rounded">
-                CNRX
+                AQ
               </span>
             </div>
             <p className="text-[10px] text-[#6B7A90] uppercase tracking-wider font-semibold font-mono">
-              Cendrix Capital
+              Paper Trading Desk
             </p>
           </div>
         </div>

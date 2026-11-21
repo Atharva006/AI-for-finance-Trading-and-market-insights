@@ -309,7 +309,7 @@ export function App() {
             Institutional Systematic Strategy Engineering · Multi-Asset Portfolio Allocation
           </div>
           <div className="text-primary font-medium">
-            FundingPips / Cendrix Light Institutional UI
+            FundingPips Light Institutional Theme
           </div>
         </div>
       </footer>

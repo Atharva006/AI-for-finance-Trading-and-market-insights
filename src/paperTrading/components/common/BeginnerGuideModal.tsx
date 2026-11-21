@@ -31,7 +31,7 @@ export const BeginnerGuideModal: React.FC<{
   // Auto-launch guide on first arrival if never seen before
   useEffect(() => {
     try {
-      const hasSeen = localStorage.getItem('cnrx_intro_seen');
+      const hasSeen = localStorage.getItem('aq_intro_seen') || localStorage.getItem('cnrx_intro_seen');
       if (!hasSeen) {
         useTradingStore.getState().openGuide();
       }
@@ -105,7 +105,7 @@ export const BeginnerGuideModal: React.FC<{
 
   const handleDismiss = () => {
     try {
-      localStorage.setItem('cnrx_intro_seen', 'true');
+      localStorage.setItem('aq_intro_seen', 'true');
     } catch {
       // ignore
     }

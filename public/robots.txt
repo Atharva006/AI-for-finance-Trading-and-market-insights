@@ -1,60 +1,21 @@
-# robots.txt for Cendrix Capital (https://cendrix-capital-stf.vercel.app/)
-
+# robots.txt for Apex Quant Trading Workstation
 User-agent: *
-Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
-Disallow: /dashboard
-Disallow: /dashboard/
-Disallow: /api/
-Disallow: /upstox/
+Allow: /dashboard
+Allow: /trading-algorithms
+Allow: /forex
+Allow: /market-insights
+Disallow: /admin
 
-User-agent: Googlebot
+# LLM Crawler Policies
+User-agent: GPTBot
 Allow: /
-Disallow: /dashboard
-Disallow: /dashboard/
-Disallow: /api/
-Disallow: /upstox/
 
-User-agent: OAI-SearchBot
+User-agent: ClaudeBot
 Allow: /
-Allow: /llms.txt
-Allow: /llms-full.txt
-Disallow: /dashboard/
-Disallow: /api/
-
-User-agent: ChatGPT-User
-Allow: /
-Allow: /llms.txt
-Allow: /llms-full.txt
-Disallow: /dashboard/
-Disallow: /api/
 
 User-agent: PerplexityBot
 Allow: /
-Allow: /llms.txt
-Allow: /llms-full.txt
-Disallow: /dashboard/
-Disallow: /api/
-
-User-agent: Claude-SearchBot
-Allow: /
-Allow: /llms.txt
-Allow: /llms-full.txt
-Disallow: /dashboard/
-Disallow: /api/
 
 User-agent: Google-Extended
 Allow: /
-Allow: /llms.txt
-Allow: /llms-full.txt
-Disallow: /dashboard/
-Disallow: /api/
-
-User-agent: Applebot
-Allow: /
-Allow: /llms.txt
-Allow: /llms-full.txt
-Disallow: /dashboard/
-Disallow: /api/
-
-Sitemap: https://cendrix-capital-stf.vercel.app/sitemap.xml

@@ -30,7 +30,7 @@ export default function PortfolioPage({ onOpenReset }: PortfolioPageProps) {
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const link = document.createElement('a');
     link.setAttribute('href', encodeURI(csvContent));
-    link.setAttribute('download', `cnrx_account_statement_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `aq_account_statement_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -126,7 +126,7 @@ export default function PortfolioPage({ onOpenReset }: PortfolioPageProps) {
               </div>
               <div className="flex justify-between items-baseline py-2">
                 <span className="text-[#6B7A90] font-sans">Execution model</span>
-                <span className="text-[11px] font-mono text-[#536CF0] font-bold">Cendrix Live Fill Engine</span>
+                <span className="text-[11px] font-mono text-[#536CF0] font-bold">Apex Quant Fill Engine</span>
               </div>
             </div>
           </div>

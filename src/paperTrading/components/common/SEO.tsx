@@ -11,11 +11,11 @@ export interface SEOProps {
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
-const DEFAULT_TITLE = 'Cendrix Capital — Free Paper Trading Platform & Indian Stock Market Simulator';
+const DEFAULT_TITLE = 'Apex Quant Workstation — Institutional Paper Trading & Quantitative Studio';
 const DEFAULT_DESCRIPTION =
-  "Experience Cendrix Capital: India's premier free paper trading platform & live stock market simulator. Trade NSE equities, NIFTY 50 options, and MCX commodities with ₹10,00,000 virtual capital in a zero-risk virtual trading platform.";
-const DEFAULT_CANONICAL = 'https://cendrix-capital-stf.vercel.app/';
-const DEFAULT_OG_IMAGE = 'https://cendrix-capital-stf.vercel.app/cendrix-terminal-hero.jpg';
+  "Experience Apex Quant: India's premier paper trading platform & live quantitative simulator. Trade NSE equities, NIFTY 50 options, and MCX commodities with ₹10,00,000 virtual capital in a zero-risk virtual trading environment.";
+const DEFAULT_CANONICAL = '/';
+const DEFAULT_OG_IMAGE = '/monogram.svg';
 
 export const SEO: React.FC<SEOProps> = ({
   title = DEFAULT_TITLE,
@@ -75,7 +75,7 @@ export const SEO: React.FC<SEOProps> = ({
     canonicalLink.setAttribute('href', canonical);
 
     // 5. Open Graph Meta Tags
-    setMetaByProperty('og:site_name', 'Cendrix Capital');
+    setMetaByProperty('og:site_name', 'Apex Quant');
     setMetaByProperty('og:locale', 'en_US');
     setMetaByProperty('og:title', title);
     setMetaByProperty('og:description', description);

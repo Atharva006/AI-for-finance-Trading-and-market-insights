@@ -36,7 +36,7 @@ export class MarketDataService implements MarketDataProvider {
   }
 
   public get providerName(): string {
-    return 'Cendrix Institutional Live Exchange Feed';
+    return 'Apex Quant Institutional Live Exchange Feed';
   }
 
   public get activeProvider(): MarketDataProvider {

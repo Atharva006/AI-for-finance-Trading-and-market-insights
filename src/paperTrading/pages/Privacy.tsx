@@ -12,13 +12,13 @@ export default function Privacy() {
         '@type': 'ListItem',
         'position': 1,
         'name': 'Home',
-        'item': 'https://cendrix-capital-stf.vercel.app/'
+        'item': '/'
       },
       {
         '@type': 'ListItem',
         'position': 2,
         'name': 'Privacy Policy',
-        'item': 'https://cendrix-capital-stf.vercel.app/privacy'
+        'item': '/privacy'
       }
     ]
   };
@@ -26,10 +26,10 @@ export default function Privacy() {
   return (
     <div className="min-h-screen bg-[#FCFCFC] text-[#111114] font-sans py-20 px-4 sm:px-6 lg:px-8">
       <SEO
-        title="Privacy Policy — Cendrix Capital Trading Platform"
-        description="Learn how Cendrix Capital handles your simulated trading data, virtual account balances, and security under our zero-trust data model."
-        canonical="https://cendrix-capital-stf.vercel.app/privacy"
-        keywords="Cendrix Capital privacy policy, virtual trading platform security, paper trading data protection"
+        title="Privacy Policy — Apex Quant Trading Platform"
+        description="Learn how Apex Quant handles your simulated trading data, virtual account balances, and security under our zero-trust data model."
+        canonical="/privacy"
+        keywords="Apex Quant privacy policy, virtual trading platform security, paper trading data protection"
         ogType="article"
         jsonLd={breadcrumbJsonLd}
       />
@@ -39,7 +39,7 @@ export default function Privacy() {
         </Link>
         
         <h1 className="text-3xl sm:text-4xl font-bold font-display text-[#00225A] tracking-tight mb-2">Privacy Policy</h1>
-        <p className="text-[#536CF0] font-semibold tracking-wider text-xs uppercase mb-8 font-mono">Last Updated: October 2026 · Cendrix Capital</p>
+        <p className="text-[#536CF0] font-semibold tracking-wider text-xs uppercase mb-8 font-mono">Last Updated: October 2026 · Apex Quant Workstation</p>
         
         <div className="space-y-6 text-[#6B7A90] text-sm leading-relaxed">
           <section>
