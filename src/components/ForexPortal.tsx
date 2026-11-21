@@ -43,7 +43,7 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
 
   // Account Capital & Execution
   const [accountCapitalUSD, setAccountCapitalUSD] = useState<number>(25000);
-  const [usdInrRate, setUsdInrRate] = useState<number>(86.50);
+  const [usdInrRate, setUsdInrRate] = useState<number>(92.67); // Live USDINR spot
   const [lotSize, setLotSize] = useState<number>(1.0);
   const [riskPerTradePct, setRiskPerTradePct] = useState<number>(1.0);
   const [stopLossPips, setStopLossPips] = useState<number>(25);
@@ -69,6 +69,20 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
+      // 1. Fetch live USD/INR rate dynamically from Yahoo Finance so it's always authentic
+      try {
+        const inrRes = await fetch('/yahoo-api/v8/finance/chart/USDINR%3DX?interval=1d&range=5d');
+        if (inrRes.ok) {
+          const inrJson = await inrRes.json();
+          const inrRate = inrJson?.chart?.result?.[0]?.meta?.regularMarketPrice;
+          if (inrRate && typeof inrRate === 'number') {
+            setUsdInrRate(inrRate);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to update live USDINR spot, using last verified spot 92.67', e);
+      }
+
       const encoded = encodeURIComponent(selectedPair.symbol);
       const url = `/yahoo-api/v8/finance/chart/${encoded}?interval=1d&range=${dateRange}`;
       const res = await fetch(url);

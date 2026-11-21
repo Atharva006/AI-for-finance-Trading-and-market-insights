@@ -120,7 +120,7 @@ export function runForexBacktest(
   pairInfo: ForexPairInfo,
   params: ForexCustomStrategyParams,
   initialCapitalUSD = 25000,
-  usdInrRate = 86.50
+  usdInrRate = 92.67
 ): ForexBacktestResult {
   if (!candles || candles.length === 0 || !params.isApproved) {
     return {
