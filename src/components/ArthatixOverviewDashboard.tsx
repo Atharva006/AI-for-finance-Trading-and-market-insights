@@ -276,7 +276,6 @@ export const ArthatixOverviewDashboard: React.FC<ArthatixOverviewDashboardProps>
           </h1>
           <p className="text-xs text-[#64748B] mt-0.5 font-medium flex items-center gap-2">
             <span>NSE Live Feed connected · Direct 12ms WebSocket stream via Upstox API Gateway</span>
-            <span className="text-[10px] font-mono text-[#94A3B8]">· Updated {lastUpdated}</span>
           </p>
         </div>
 

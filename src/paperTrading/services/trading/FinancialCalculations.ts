@@ -239,7 +239,7 @@ export class FinancialCalculations {
   public static applySlippage(
     price: number,
     transactionType: TransactionType,
-    slippageBps = 5
+    slippageBps = 0
   ): number {
     const factor = slippageBps / 10000; // e.g. 5 bps = 0.0005
     const slippageAmount = price * factor;

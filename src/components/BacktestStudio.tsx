@@ -690,16 +690,16 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
               <button
                 onClick={() => setIsDoctorModalOpen(true)}
                 className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] hover:from-[#1D4ED8] hover:to-[#1E40AF] text-white rounded-lg font-label-md text-label-md shadow-xs transition-all cursor-pointer font-bold active:scale-95"
-                title="Launch Groq 120B AI Hedge-Fund Strategy Doctor & Monte Carlo Audit"
+                title="Launch Quantitative Monte Carlo Risk & Strategy Audit"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-                <span>AI Strategy Doctor (Groq 120B)</span>
+                <span>Strategy Risk Audit</span>
               </button>
             </>
           )}
         </div>
 
-        {/* Sole Strategy Engine Status Badge (Zero Mock Database Policy) */}
+        {/* Sole Strategy Engine Status Badge */}
         <div className="flex items-center gap-space-sm font-mono-sm text-mono-sm">
           <div className="flex items-center gap-2 px-space-md py-2 rounded-lg bg-surface-container-low border border-border-subtle">
             <span className="w-2.5 h-2.5 rounded-full bg-bullish animate-pulse" />
@@ -710,7 +710,7 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
           </div>
           <span className="hidden md:inline-flex items-center gap-1 text-bullish font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-bullish" />
-            LIVE YAHOO &amp; UPSTOX V2 FEEDS (ZERO MOCK DATA)
+            REAL-TIME VECTORIZED INTRADAY FEEDS
           </span>
         </div>
       </section>

@@ -3,11 +3,12 @@ import {
   BarChart2,
   TrendingUp,
   Shield,
-  Settings,
   ChevronDown,
   PanelLeftClose,
   PanelLeft,
   Sparkles,
+  HelpCircle,
+  Award,
 } from 'lucide-react';
 import { AppView } from './DhanNavbar';
 
@@ -45,9 +46,10 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
 }) => {
   // Collapsible section state with stable keys
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    ai_intelligence: true,
     market_trading: true,
     quant_algos: true,
-    ai_intelligence: true,
+    knowledge_about: true,
     institutional_governance: true,
   });
 
@@ -90,7 +92,17 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
         { id: 'marketplace', label: 'Algo Marketplace', view: 'marketplace' },
         { id: 'backtest', label: 'Backtest Studio', view: 'backtest' },
         { id: 'barreplay', label: 'Bar Replay Studio', view: 'barreplay', badge: '15m' },
-        { id: 'forex', label: 'FVG Trading Desk', view: 'forex', badge: 'v5' },
+        { id: 'forex', label: 'NRI & Global Forex Desk', view: 'forex', badge: 'Forex' },
+      ],
+    },
+    {
+      id: 'knowledge_about',
+      title: 'Research & About',
+      icon: Award,
+      defaultOpen: true,
+      items: [
+        { id: 'about', label: 'About & Prop Record', view: 'about', badge: '10+ Passed' },
+        { id: 'faq', label: 'Platform FAQ', view: 'faq' },
       ],
     },
     ...(isAdmin
@@ -114,38 +126,44 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
         isCollapsed ? 'w-16' : 'w-60 sm:w-64'
       }`}
     >
-      {/* ── Brand Header ── */}
-      <div className="h-14 px-4 flex items-center justify-between border-b border-[#E2E8F0] bg-[#F4F7FB]">
-        <div
-          onClick={() => onNavigate('landing')}
-          className="flex items-center gap-2.5 cursor-pointer overflow-hidden min-w-0 group"
-          title="Alltra Quantitative Platform"
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && onNavigate('landing')}
-        >
-          <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#021810] border border-[#10B981]/40 flex items-center justify-center shadow-xs shrink-0">
-            <img src="/alltra-logo.png" alt="Alltra" className="w-full h-full object-cover" />
-          </div>
-          {!isCollapsed && (
+      {/* ── Brand Header & Seamless Toggle ── */}
+      <div
+        className={`h-14 flex items-center border-b border-[#E2E8F0] bg-[#F4F7FB] transition-all ${
+          isCollapsed ? 'justify-center px-2' : 'justify-between px-4'
+        }`}
+      >
+        {!isCollapsed && (
+          <div
+            onClick={() => onNavigate('landing')}
+            className="flex items-center gap-2.5 cursor-pointer overflow-hidden min-w-0 group"
+            title="Alltra Quantitative Platform"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && onNavigate('landing')}
+          >
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#021810] border border-[#10B981]/40 flex items-center justify-center shadow-xs shrink-0">
+              <img src="/alltra-logo.png" alt="Alltra" className="w-full h-full object-cover" />
+            </div>
             <div className="flex flex-col min-w-0">
               <span className="font-extrabold text-[15px] text-[#0F172A] tracking-wider font-mono uppercase truncate">
                 ALLTRA
               </span>
               <span className="text-[9px] text-[#059669] font-mono tracking-widest font-semibold uppercase -mt-0.5">
-                SINCE 2026
+                QUANT LABS
               </span>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <button
           onClick={onToggleCollapse}
-          className="p-1.5 rounded-md text-[#64748B] hover:text-[#0F172A] hover:bg-[#E2E8F0] transition-colors active:scale-95"
+          className={`p-1.5 rounded-lg text-[#64748B] hover:text-[#0F172A] hover:bg-[#E2E8F0] transition-colors active:scale-95 ${
+            isCollapsed ? 'w-10 h-10 flex items-center justify-center bg-white border border-[#CBD5E1] shadow-xs' : ''
+          }`}
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {isCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+          {isCollapsed ? <PanelLeft className="w-5 h-5 text-[#2563EB]" /> : <PanelLeftClose className="w-4 h-4" />}
         </button>
       </div>
 
@@ -182,7 +200,7 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
                 )}
               </button>
 
-              {/* Canonical Sub-Items (One item per actual view) */}
+              {/* Sub-Items */}
               {(isOpen || isCollapsed) && (
                 <div
                   className={`space-y-0.5 animate-fade-in ${
@@ -211,6 +229,8 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
                             className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded ${
                               item.badge === 'Live'
                                 ? 'bg-[#DCFCE7] text-[#166534]'
+                                : item.badge === '10+ Passed'
+                                ? 'bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]'
                                 : 'bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]'
                             }`}
                           >
@@ -227,7 +247,7 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
         })}
       </div>
 
-      {/* ── Bottom Configuration & Status ── */}
+      {/* ── Bottom Configuration & Trader Status ── */}
       <div className="p-3 border-t border-[#E2E8F0] bg-[#F4F7FB] space-y-2">
         <button
           onClick={() => onNavigate('landing')}
@@ -238,28 +258,38 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
           {!isCollapsed && <span className="truncate">Public Landing Page</span>}
         </button>
 
-        <button
-          onClick={onOpenSettings}
-          className="w-full flex items-center gap-2.5 px-3 py-2 text-[#475569] hover:text-[#0F172A] hover:bg-[#E2E8F0] rounded-lg transition-colors text-left active:scale-95"
-          title="Upstox API Gateway"
-          aria-label="Open Upstox API Gateway configuration"
-        >
-          <Settings className="w-4 h-4 text-[#64748B] shrink-0" />
-          {!isCollapsed && (
-            <div className="flex-1 flex items-center justify-between min-w-0">
-              <span className="text-[11.5px] truncate font-medium">Upstox API</span>
-              <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" title="Connected" />
+        {/* Authentic Trader Profile & Prop Verification Status Badge */}
+        {!isCollapsed ? (
+          <div
+            onClick={() => onNavigate('about')}
+            className="p-2.5 rounded-xl bg-white border border-[#E2E8F0] hover:border-[#CBD5E1] transition-all cursor-pointer shadow-xs group"
+            title="Click to view Prop Trader track record"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-[#0F172A] text-white flex items-center justify-center font-mono font-bold text-[11px] shrink-0 border border-[#10B981]/30">
+                A
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[11.5px] text-[#0F172A] truncate">Atharva</span>
+                  <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" title="Systematic Engine Active" />
+                </div>
+                <div className="text-[10px] text-[#64748B] truncate">Systematic Prop Trader</div>
+              </div>
             </div>
-          )}
-        </button>
-
-        {!isCollapsed && (
-          <div className="p-2.5 rounded-lg bg-[#FFFFFF] border border-[#E2E8F0] shadow-2xs">
-            <div className="flex items-center justify-between text-[10px] text-[#64748B]">
-              <span>NSE STREAM</span>
-              <span className="text-[#16A34A] font-bold font-mono">12ms · LIVE</span>
+            <div className="mt-2 pt-2 border-t border-[#F1F5F9] flex items-center justify-between text-[9px] font-mono font-semibold text-[#166534] bg-emerald-50/70 px-2 py-1 rounded-md">
+              <span>10+ Global Prop Accounts</span>
+              <span className="text-[#2563EB]">Verified ✓</span>
             </div>
           </div>
+        ) : (
+          <button
+            onClick={() => onNavigate('about')}
+            className="w-10 h-10 mx-auto rounded-xl bg-white border border-[#CBD5E1] hover:border-[#2563EB] flex items-center justify-center text-[#0F172A] font-mono font-bold text-xs shadow-xs transition-colors"
+            title="Atharva · Systematic Prop Trader (10+ Prop Challenges Passed)"
+          >
+            A
+          </button>
         )}
       </div>
     </aside>

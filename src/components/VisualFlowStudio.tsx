@@ -1855,7 +1855,7 @@ export const VisualFlowStudio: React.FC<VisualFlowStudioProps> = ({ initialStock
               className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-container text-on-primary rounded-xl text-xs font-mono font-bold shadow-sm transition-all cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 text-bullish" />
-              <span>AI Strategy Doctor (Monte Carlo Audit)</span>
+              <span>Strategy Risk &amp; Monte Carlo Audit</span>
             </button>
           </div>
 

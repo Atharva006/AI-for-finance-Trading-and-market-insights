@@ -76,23 +76,23 @@ export const CompanyFilingAnalyzerModal: React.FC<CompanyFilingAnalyzerModalProp
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-gray-200 p-6 space-y-6 animate-in fade-in duration-200 select-none">
+      <div className="bg-white rounded-3xl max-w-5xl xl:max-w-6xl w-full max-h-[94vh] overflow-y-auto shadow-2xl border border-gray-200 p-6 sm:p-8 space-y-6 animate-in fade-in duration-200 select-none">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-surface-container-low border border-border-subtle flex items-center justify-center text-bullish shadow-xs">
-              <FileText className="w-5 h-5 text-bullish" />
+            <div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-xs">
+              <FileText className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono">
-                  SEBI LODR Quarterly Filing & Earnings Concall Deep-Dive
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest font-mono">
+                  SEBI LODR Quarterly Filing &amp; Earnings Concall Deep-Dive
                 </span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
                   {filing.quarter}
                 </span>
               </div>
-              <h2 className="text-xl font-extrabold text-[#0A0A0D] tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-[#0A0A0D] tracking-tight">
                 {stock.companyName} ({stock.symbol})
               </h2>
             </div>

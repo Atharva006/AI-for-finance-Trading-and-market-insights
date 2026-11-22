@@ -128,7 +128,7 @@ export const POPULAR_NSE_STOCKS: NseStock[] = [
   { symbol: 'INFY', name: 'Infosys Ltd.', instrument_key: 'NSE_EQ|INE009A01021', yahoo_symbol: 'INFY.NS', isIndex: false, category: 'LARGE_CAP', last_price: 1865.10 },
   { symbol: 'ICICIBANK', name: 'ICICI Bank Ltd.', instrument_key: 'NSE_EQ|INE090A01021', yahoo_symbol: 'ICICIBANK.NS', isIndex: false, category: 'LARGE_CAP', last_price: 1262.40 },
   { symbol: 'SBIN', name: 'State Bank of India', instrument_key: 'NSE_EQ|INE062A01020', yahoo_symbol: 'SBIN.NS', isIndex: false, category: 'LARGE_CAP', last_price: 842.15 },
-  { symbol: 'TATAMOTORS', name: 'Tata Motors Ltd.', instrument_key: 'NSE_EQ|INE155A01022', yahoo_symbol: 'TATAMOTORS.NS', isIndex: false, category: 'LARGE_CAP', last_price: 812.30 },
+  { symbol: 'TATAMOTORS', name: 'Tata Motors Ltd.', instrument_key: 'NSE_EQ|INE155A01022', yahoo_symbol: 'TMPV.NS', isIndex: false, category: 'LARGE_CAP', last_price: 812.30 },
   { symbol: 'ITC', name: 'ITC Ltd.', instrument_key: 'NSE_EQ|INE154A01025', yahoo_symbol: 'ITC.NS', isIndex: false, category: 'LARGE_CAP', last_price: 472.90 },
   { symbol: 'BHARTIARTL', name: 'Bharti Airtel Ltd.', instrument_key: 'NSE_EQ|INE397D01024', yahoo_symbol: 'BHARTIARTL.NS', isIndex: false, category: 'LARGE_CAP', last_price: 1612.00 },
   { symbol: 'LT', name: 'Larsen & Toubro Ltd.', instrument_key: 'NSE_EQ|INE018A01030', yahoo_symbol: 'LT.NS', isIndex: false, category: 'LARGE_CAP', last_price: 3620.50 },

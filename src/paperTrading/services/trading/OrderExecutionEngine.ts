@@ -51,7 +51,7 @@ export class OrderExecutionEngine {
     currentQuote: MarketQuote | null,
     existingPositions: Position[],
     existingHoldings: Holding[],
-    slippageBps = 5,
+    slippageBps = 0,
     allowAfterHours = true
   ): ExecutionResult {
     const {
@@ -524,7 +524,7 @@ export class OrderExecutionEngine {
     account: PaperAccount,
     positions: Position[],
     holdings: Holding[],
-    slippageBps = 5
+    slippageBps = 0
   ): {
     updatedOrders: Order[];
     newTrades: Trade[];

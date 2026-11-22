@@ -97,7 +97,7 @@ export const StrategyDoctorModal: React.FC<StrategyDoctorModalProps> = ({
                 </span>
               </div>
               <h2 className="text-xl font-extrabold text-[#0A0A0D] tracking-tight">
-                AI Strategy Doctor · {symbol}
+                Quantitative Strategy Audit · {symbol}
               </h2>
             </div>
           </div>
@@ -265,7 +265,7 @@ export const StrategyDoctorModal: React.FC<StrategyDoctorModalProps> = ({
             <div className="flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 text-emerald-600" />
               <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-black">
-                AI Strategy Doctor Prescriptions ({diagnostics.length})
+                Quantitative Risk Prescriptions ({diagnostics.length})
               </h3>
             </div>
             <button

@@ -11,7 +11,7 @@ export interface SEOProps {
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
-const DEFAULT_TITLE = 'ALLTRA — Institutional Systematic Trading & Quantitative Intelligence (Since 2026)';
+const DEFAULT_TITLE = 'ALLTRA — Institutional Systematic Trading & Quantitative Intelligence';
 const DEFAULT_DESCRIPTION =
   "Experience ALLTRA: India's premier paper trading platform, candle-by-candle bar replay & live quantitative simulator. Trade NSE equities, NIFTY 50 options, and global macro assets with ₹10,00,000 virtual capital in a zero-risk environment.";
 const DEFAULT_CANONICAL = '/';

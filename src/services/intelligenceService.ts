@@ -88,7 +88,7 @@ export const INTELLIGENCE_PRESETS: IntelligencePreset[] = [
   },
 ];
 
-const INTELLIGENCE_SYSTEM_PROMPT = `You are "ALLTRA Intelligence", the institutional quantitative reasoning, geopolitical analysis, and market intelligence engine of the ALLTRA Platform (Since 2026).
+const INTELLIGENCE_SYSTEM_PROMPT = `You are "ALLTRA Intelligence", the institutional quantitative reasoning, geopolitical analysis, and market intelligence engine of the ALLTRA Platform.
 
 YOUR MISSION & DOMAIN:
 You specialize exclusively in:

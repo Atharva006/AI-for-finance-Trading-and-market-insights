@@ -210,12 +210,12 @@ export const MarketPulseInsights: React.FC<MarketPulseInsightsProps> = ({
             </button>
             <span className="inline-flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-surface-container font-mono-sm text-mono-sm text-on-surface-variant font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-bullish"></span>
-              GROQ LPU 120B QUANT
+              QUANTITATIVE MACRO AI
             </span>
           </div>
         </div>
         <p className="font-body-md text-body-md text-text-secondary leading-relaxed">
-          {isAiLoading ? 'Synthesizing quantitative macroeconomic commentary via Groq LPU...' : (groqCommentary || pulse.regimeDescription)}
+          {isAiLoading ? 'Synthesizing quantitative macroeconomic commentary...' : (groqCommentary || pulse.regimeDescription)}
         </p>
       </section>
 

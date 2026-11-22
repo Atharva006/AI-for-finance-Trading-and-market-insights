@@ -862,7 +862,7 @@ export class SupabaseTradingRepo implements TradingRepository {
       id: 'default-settings',
       user_id: userId,
       market_data_mode: 'LIVE',
-      simulated_slippage_bps: 5,
+      simulated_slippage_bps: 0,
       allow_after_hours_fill: true,
       theme: 'dark',
       upstox_api_key: import.meta.env.VITE_UPSTOX_API_KEY || '',

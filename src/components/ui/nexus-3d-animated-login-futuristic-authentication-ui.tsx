@@ -1069,10 +1069,10 @@ export function NexusLogin({
   githubButtonText = "Quick Admin Login (admin / admin)",
   rememberMeText = "Remember my desk session",
   signupText = "Don't have an institutional account?",
-  signupLinkText = "Request Access",
+  signupLinkText = "Sign Up",
   forgotPasswordText = "Forgot password?",
   dividerText = "OR AUTHENTICATE WITH CREDENTIALS",
-  eyebrow = "ALLTRA QUANT // SINCE 2026",
+  eyebrow = "ALLTRA QUANT // SYSTEMATIC DESK",
   headline = "Empower Edge. Control Risk. Execute Deterministically.",
   tagline = "Systematic algorithm execution, live NSE orderbooks, and bar replay engine.",
   showSocialLogin = true,
@@ -1340,12 +1340,12 @@ export function NexusLogin({
                 <div className="flex flex-col">
                   <span className="text-base font-extrabold tracking-wider font-mono">{brandName}</span>
                   <span className="text-[9px] font-mono font-semibold text-[#10B981] tracking-widest uppercase">
-                    SINCE 2026
+                    QUANT LABS
                   </span>
                 </div>
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-container-low border border-border-subtle text-text-secondary font-semibold">
-                SEBI COMPLIANT
+                INSTITUTIONAL
               </span>
             </div>
 
@@ -1364,14 +1364,16 @@ export function NexusLogin({
                     onClick={handleGoogle}
                   />
 
-                  <SocialButton
-                    icon={<ShieldCheck className="h-5 w-5 text-[#10B981]" />}
-                    label={githubButtonText}
-                    loading={busy === "admin"}
-                    disabled={loading}
-                    accentGlow={true}
-                    onClick={handleAdminQuick}
-                  />
+                  {githubButtonText && onAdminQuickLogin && (
+                    <SocialButton
+                      icon={<ShieldCheck className="h-5 w-5 text-[#10B981]" />}
+                      label={githubButtonText}
+                      loading={busy === "admin"}
+                      disabled={loading}
+                      accentGlow={true}
+                      onClick={handleAdminQuick}
+                    />
+                  )}
                 </div>
 
                 <div className="my-5 flex items-center gap-4" role="separator" aria-label={dividerText}>

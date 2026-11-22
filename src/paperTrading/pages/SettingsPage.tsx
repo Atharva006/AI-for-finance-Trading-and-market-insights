@@ -55,7 +55,7 @@ export default function SettingsPage({ onOpenReset }: SettingsPageProps) {
 
   // Simulation & Mode State
   const [mode, setMode] = useState<'LIVE' | 'DEMO'>(marketDataService.getMode());
-  const [slippageBps, setSlippageBps] = useState(userSettings?.simulated_slippage_bps || 5);
+  const [slippageBps, setSlippageBps] = useState(userSettings?.simulated_slippage_bps || 0);
   const [allowAfterHours, setAllowAfterHours] = useState(userSettings?.allow_after_hours_fill ?? true);
 
   const [environment, setEnvironment] = useState<'PRODUCTION' | 'SANDBOX'>(() => {

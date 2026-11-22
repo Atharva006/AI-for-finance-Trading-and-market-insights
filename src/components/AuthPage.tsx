@@ -89,9 +89,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigateHome, onAuthSucces
         }
         signInText={isSignUpMode ? "Create Alltra Account" : "Sign In to Terminal"}
         signupText={isSignUpMode ? "Already have an institutional account?" : "Don't have an institutional account?"}
-        signupLinkText={isSignUpMode ? "Sign in instead" : "Request Access / Sign up"}
+        signupLinkText={isSignUpMode ? "Sign in instead" : "Sign Up"}
         googleButtonText="Continue with Google"
-        githubButtonText="Instant Admin Access (admin / admin)"
+        githubButtonText=""
         accentColor="#10B981"
         showSocialLogin={true}
         showRememberMe={!isSignUpMode}
@@ -101,7 +101,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigateHome, onAuthSucces
         enableMouseParallax={true}
         onSubmit={handleSubmit}
         onGoogleLogin={handleGoogleLogin}
-        onAdminQuickLogin={handleAdminQuickLogin}
         onForgotPassword={handleForgotPassword}
         onSignup={() => setIsSignUpMode((prev) => !prev)}
       />

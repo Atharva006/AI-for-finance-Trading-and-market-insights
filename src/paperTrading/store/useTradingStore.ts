@@ -365,7 +365,7 @@ export const useTradingStore = create<TradingStoreState>((set, get) => ({
         quote = fetched;
       }
     }
-    const slippageBps = userSettings?.simulated_slippage_bps ?? 5;
+    const slippageBps = userSettings?.simulated_slippage_bps ?? 0;
     const allowAfterHours = userSettings?.allow_after_hours_fill ?? true;
 
     const result = OrderExecutionEngine.processNewOrder(

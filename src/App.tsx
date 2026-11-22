@@ -19,6 +19,8 @@ import { ArthatixOverviewDashboard } from './components/ArthatixOverviewDashboar
 import { BarReplayStudio } from './components/BarReplayStudio';
 import { IntelligenceView } from './components/IntelligenceView';
 import { IntelligenceSlideDrawer } from './components/IntelligenceSlideDrawer';
+import { FAQView } from './components/FAQView';
+import { AboutView } from './components/AboutView';
 import { AlgoStrategy } from './types/algoMarketplace';
 import { getStoredLocalUser, AuthUserProfile, signOutUser } from './services/supabaseAuth';
 import {
@@ -73,6 +75,12 @@ function getViewFromPath(pathname: string, strategies: AlgoStrategy[]): { view: 
   if (cleanPath === '/intelligence' || cleanPath === '/ai-intelligence') {
     return { view: 'intelligence', strategy: null };
   }
+  if (cleanPath === '/faq') {
+    return { view: 'faq', strategy: null };
+  }
+  if (cleanPath === '/about') {
+    return { view: 'about', strategy: null };
+  }
   
   return { view: 'landing', strategy: null };
 }
@@ -107,6 +115,10 @@ function getPathForView(view: AppView, strategy?: AlgoStrategy | null): string {
       return '/bar-replay';
     case 'intelligence':
       return '/intelligence';
+    case 'faq':
+      return '/faq';
+    case 'about':
+      return '/about';
     default:
       return '/';
   }
@@ -429,6 +441,14 @@ export function App() {
             {activeView === 'intelligence' && (
               <IntelligenceView />
             )}
+
+            {activeView === 'faq' && (
+              <FAQView onNavigateTo={(view) => navigateTo(view)} />
+            )}
+
+            {activeView === 'about' && (
+              <AboutView onNavigateTo={(view) => navigateTo(view)} />
+            )}
           </div>
         </main>
 
@@ -437,12 +457,12 @@ export function App() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 font-mono text-[11px] text-[#64748B]">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
-              <span className="text-[#0F172A] font-semibold">Alltra Quantitative Workstation</span>
+              <span className="text-[#0F172A] font-semibold">ALLTRA</span>
               <span className="text-[#CBD5E1]">·</span>
-              <span>Live Virtual &amp; Algorithmic Desks</span>
+              <span>Institutional Quantitative Workstation</span>
             </div>
             <div className="text-center sm:text-right text-[#94A3B8]">
-              Alltra Institutional Engine (Since 2026) · Real-time Exchange Feeds
+              Systematic Execution &amp; Risk Analytics
             </div>
           </div>
         </footer>

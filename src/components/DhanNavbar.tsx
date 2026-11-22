@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getStoredLocalUser, signOutUser, AuthUserProfile } from '../services/supabaseAuth';
 
-export type AppView = 'landing' | 'overview' | 'papertrading' | 'heatmap' | 'marketplace' | 'backtest' | 'flow' | 'detail' | 'admin' | 'insights' | 'auth' | 'forex' | 'barreplay' | 'intelligence';
+export type AppView = 'landing' | 'overview' | 'papertrading' | 'heatmap' | 'marketplace' | 'backtest' | 'flow' | 'detail' | 'admin' | 'insights' | 'auth' | 'forex' | 'barreplay' | 'intelligence' | 'faq' | 'about';
 
 interface DhanNavbarProps {
   activeView: AppView;
@@ -52,7 +52,7 @@ export const DhanNavbar: React.FC<DhanNavbarProps> = ({
             ALLTRA
           </span>
           <span className="text-[9px] text-[#059669] font-mono tracking-widest font-semibold uppercase mt-0.5">
-            SINCE 2026
+            QUANT LABS
           </span>
         </div>
       </div>

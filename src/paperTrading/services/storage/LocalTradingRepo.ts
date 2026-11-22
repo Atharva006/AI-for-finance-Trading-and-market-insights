@@ -362,7 +362,7 @@ export class LocalTradingRepo implements TradingRepository {
       id: uuidv4(),
       user_id: userId,
       market_data_mode: 'DEMO',
-      simulated_slippage_bps: 5,
+      simulated_slippage_bps: 0,
       allow_after_hours_fill: true,
       theme: 'dark',
     };

@@ -450,9 +450,7 @@ fixedRiskUSD   = input.float(100.0, "Fixed Risk per Trade ($)", step=10.0)
               </div>
               <div className="inline-flex items-center gap-space-sm px-space-sm py-1 rounded-full bg-forex-tint border border-secondary text-secondary font-mono-sm text-mono-sm">
                 <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-                <span className="font-semibold">{currentTimeUtc}</span>
-                <span>·</span>
-                <span>{currentSessionName}</span>
+                <span className="font-semibold">{currentSessionName}</span>
               </div>
             </div>
 

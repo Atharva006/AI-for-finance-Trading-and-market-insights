@@ -111,7 +111,7 @@ export const MasterNavbar: React.FC<MasterNavbarProps> = ({
                 <span className="w-2 h-2 rounded-full bg-[#12B76A] animate-pulse" title="Live Exchange Feeds Active" />
               </div>
               <span className="text-[9px] font-mono tracking-widest text-[#059669] font-semibold uppercase whitespace-nowrap">
-                SINCE 2026
+                QUANT LABS
               </span>
             </div>
           </NavLink>

@@ -362,7 +362,7 @@ export default function Login() {
               </span>
               <div className="flex items-center gap-1.5">
                 <span className="text-[10px] text-[#059669] tracking-widest font-mono font-semibold uppercase">
-                  SINCE 2026
+                  QUANT LABS
                 </span>
                 <span className="w-1.5 h-1.5 rounded-full bg-[#12B76A] animate-pulse" />
               </div>

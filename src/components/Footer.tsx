@@ -57,7 +57,7 @@ export const Footer: React.FC = () => {
                   ALLTRA
                 </span>
                 <span className="text-[9px] text-[#059669] font-mono tracking-widest font-semibold uppercase mt-0.5">
-                  SINCE 2026
+                  QUANT LABS
                 </span>
               </div>
             </div>

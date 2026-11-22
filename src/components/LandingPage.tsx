@@ -114,7 +114,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 ALLTRA
               </span>
               <span className="text-[9px] text-[#059669] font-mono tracking-widest font-semibold uppercase mt-0.5">
-                SINCE 2026
+                QUANT LABS
               </span>
             </div>
           </div>
@@ -225,7 +225,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <div className="inline-flex items-center gap-space-sm self-start px-space-sm py-1 rounded-full bg-surface-container-low border border-border-subtle">
                     <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
                     <span className="font-mono-sm text-mono-sm text-on-surface-variant uppercase font-semibold">
-                      ALLTRA QUANTITATIVE PLATFORM // SINCE 2026
+                      ALLTRA QUANTITATIVE PLATFORM // SYSTEMATIC DESK
                     </span>
                   </div>
 
@@ -1267,7 +1267,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <span>SEBI &amp; FEMA Statutory Disclaimer</span>
               </div>
               <p className="font-body-sm text-body-sm text-text-muted leading-relaxed">
-                Investments in securities market are subject to market risks. Read all the related documents carefully before investing. Past performance is not indicative of future returns. Backtested results are hypothetical and based on historical NSE tick archives; live execution may vary due to liquidity and exchange latency. Alltra Quantitative Platform (Since 2026) is an institutional quantitative analytics and systematic execution interface.
+                Investments in securities market are subject to market risks. Read all the related documents carefully before investing. Past performance is not indicative of future returns. Backtested results are hypothetical and based on historical NSE tick archives; live execution may vary due to liquidity and exchange latency. Alltra Quantitative Platform is an institutional quantitative analytics and systematic execution interface.
               </p>
             </div>
           </section>
@@ -1282,7 +1282,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <img src="/alltra-logo.png" alt="Alltra" className="w-full h-full object-cover" />
             </div>
             <span className="font-mono font-bold text-on-surface">ALLTRA</span>
-            <span className="text-[10px] text-bullish font-semibold">SINCE 2026</span>
+            <span className="text-[10px] text-bullish font-semibold">QUANT LABS</span>
             <span className="text-outline-variant">|</span>
             <span>Real Bar-by-Bar Vectorized Quantitative Backtesting</span>
           </div>

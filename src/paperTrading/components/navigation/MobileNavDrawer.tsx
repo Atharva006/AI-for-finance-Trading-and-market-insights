@@ -108,7 +108,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                 ALLTRA
               </span>
               <p className="text-[9px] text-[#059669] uppercase tracking-widest font-mono font-semibold">
-                SINCE 2026
+                QUANT LABS
               </p>
             </div>
           </div>
