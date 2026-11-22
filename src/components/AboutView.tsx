@@ -1,22 +1,9 @@
 import React, { useState } from 'react';
 import {
-  ShieldCheck,
-  Award,
-  TrendingUp,
-  Target,
-  CheckCircle2,
-  Compass,
-  ArrowRight,
-  ExternalLink,
-  Flame,
-  Check,
-  Play,
   Maximize2,
   X,
-  FileCheck,
-  Sparkles,
-  BarChart,
-  Percent,
+  Play,
+  ArrowUpRight,
 } from 'lucide-react';
 
 interface AboutViewProps {
@@ -25,334 +12,201 @@ interface AboutViewProps {
 
 interface TestimonialCard {
   id: string;
-  category: 'Prop Firm Certifications' | 'Competition & Awards' | 'Execution Excellence';
   firm: string;
   title: string;
   date: string;
   stage: string;
-  description: string;
+  summary: string;
   imageUrl: string;
   videoUrl?: string;
-  tags: string[];
-  metrics: { label: string; value: string }[];
+  badge: string;
 }
 
 export const AboutView: React.FC<AboutViewProps> = ({ onNavigateTo }) => {
-  const [activeTab, setActiveTab] = useState<'all' | 'fundingpips' | '5ers'>('all');
+  const [filter, setFilter] = useState<'all' | '5ers' | 'fundingpips'>('all');
   const [selectedPreview, setSelectedPreview] = useState<TestimonialCard | null>(null);
 
-  const testimonials: TestimonialCard[] = [
+  const items: TestimonialCard[] = [
     {
       id: '5ers-funded',
-      category: 'Prop Firm Certifications',
       firm: 'The 5%ers',
-      title: 'Officially Funded Trader — High Stakes 5K',
-      date: 'February 27, 2026',
-      stage: 'Funded Live Account',
-      description:
-        'Awarded official funded status under The 5%ers High Stakes program upon flawless execution of risk rules, trailing drawdown limits, and target profit factor.',
+      title: 'Officially Funded Trader (5K)',
+      date: 'Feb 2026',
+      stage: 'Funded Account',
+      summary: 'Achieved funded allocation through systematic risk containment and execution discipline.',
       imageUrl: '/testimonials/5ers-funded-trader-5k.png',
       videoUrl: '/testimonials/5ers-funded-trader.mp4',
-      tags: ['High Stakes', 'Funded Account', 'Zero Drawdown Breach'],
-      metrics: [
-        { label: 'Evaluation Type', value: 'High Stakes 5K' },
-        { label: 'Firm', value: 'The 5%ers (Since 2016)' },
-        { label: 'Status', value: 'Active Live Allocation' },
-      ],
+      badge: 'Live Allocation',
     },
     {
       id: '5ers-contest-top10',
-      category: 'Competition & Awards',
       firm: 'The 5%ers',
-      title: 'Contest Top 10 — Global Trading Arena',
-      date: 'October 28, 2026',
-      stage: 'The5ers X Naveen Global Competition',
-      description:
-        'Finished in the Top 10 globally among thousands of participating international traders in The 5%ers competitive trading arena, demonstrating statistical consistency and strict risk management.',
+      title: 'Contest Top 10 Worldwide',
+      date: 'Oct 2026',
+      stage: 'Global Arena',
+      summary: 'Ranked in the top 10 globally in The5ers X Naveen international trading competition.',
       imageUrl: '/testimonials/5ers-contest-top-10.png',
-      tags: ['Top 10 Global', 'International Contest', 'Disciplined R:R'],
-      metrics: [
-        { label: 'Standing', value: 'Top 10 Worldwide' },
-        { label: 'Event', value: 'The5ers X Naveen' },
-        { label: 'Discipline', value: 'Strict Drawdown Control' },
-      ],
+      badge: 'Top 10 Global',
     },
     {
       id: '5ers-fantastic-rrr',
-      category: 'Execution Excellence',
       firm: 'The 5%ers',
-      title: 'Fantastic RRR — EUR/USD Institutional Execution',
-      date: 'June 19, 2026',
-      stage: 'Execution Quality Award',
-      description:
-        'Honored with the "Fantastic RRR" institutional execution badge on EUR/USD for adhering to high reward-to-risk setups with razor-thin stop placement and zero emotional slippage.',
+      title: 'Fantastic RRR · EUR/USD',
+      date: 'Jun 2026',
+      stage: 'Execution Award',
+      summary: 'Recognized for asymmetric risk-to-reward ratio and tight invalidation order flow.',
       imageUrl: '/testimonials/5ers-fantastic-rrr.png',
-      tags: ['EUR/USD', 'Asymmetric R:R', 'Institutional Precision'],
-      metrics: [
-        { label: 'Instrument', value: 'EUR/USD Forex' },
-        { label: 'Recognition', value: 'Exceptional Risk:Reward' },
-        { label: 'Style', value: 'Liquidity Inversion Sweeps' },
-      ],
+      badge: 'High R:R',
     },
     {
       id: '5ers-quality-trade-score-90',
-      category: 'Execution Excellence',
       firm: 'The 5%ers',
-      title: 'Quality Trade Score 90+ — Statistical Precision',
-      date: 'June 19, 2026',
-      stage: 'Audit Score Milestone',
-      description:
-        'Awarded the elite 90+ Quality Trade Score badge by proprietary evaluation algorithms, recognizing disciplined trade sizing, entry precision, and flawless trade thesis execution.',
+      title: 'Quality Trade Score 90+',
+      date: 'Jun 2026',
+      stage: 'Audit Milestone',
+      summary: 'Graded 90+ out of 100 by prop firm algorithms for entry precision and trade quality.',
       imageUrl: '/testimonials/5ers-quality-trade-score90.png',
-      tags: ['Score 90+', 'Algorithm Audited', 'Purity of Execution'],
-      metrics: [
-        { label: 'Score Level', value: '90+ Out of 100' },
-        { label: 'Instrument', value: 'EUR/USD' },
-        { label: 'Audit Method', value: 'Prop Firm Algorithmic Grading' },
-      ],
+      badge: 'Score 90+',
     },
     {
       id: 'fp-phase2-mar2026',
-      category: 'Prop Firm Certifications',
       firm: 'FundingPips',
-      title: 'Phase Two Evaluation Certificate of Achievement',
-      date: 'March 16, 2026',
-      stage: 'Phase 2 Cleared (Final Stage)',
-      description:
-        'Successfully passed Phase 2 of the FundingPips evaluation stage, meeting rigorous 5% maximum overall trailing drawdown and 4% daily drawdown criteria with zero rule violations.',
+      title: 'Phase Two Evaluation Passed',
+      date: 'Mar 2026',
+      stage: 'Phase 2 Cleared',
+      summary: 'Cleared final evaluation stage under strict 4% daily and 6% maximum drawdown limits.',
       imageUrl: '/testimonials/fundingpips-phase2-mar2026.jpg',
-      tags: ['Phase Two Passed', 'Target Achieved', 'Zero Daily Breach'],
-      metrics: [
-        { label: 'Stage', value: 'Phase Two Completed' },
-        { label: 'Date', value: 'March 16, 2026' },
-        { label: 'Verification', value: 'QR Cryptographic Code' },
-      ],
+      badge: 'Phase 2 Passed',
     },
     {
       id: 'fp-phase1-mar2026',
-      category: 'Prop Firm Certifications',
       firm: 'FundingPips',
-      title: 'Phase One Evaluation Certificate of Achievement',
-      date: 'March 11, 2026',
+      title: 'Phase One Evaluation Passed',
+      date: 'Mar 2026',
       stage: 'Phase 1 Cleared',
-      description:
-        'Completed Phase 1 of the FundingPips challenge in just 5 trading days through systematic Asian liquidity sweeps and London session continuation entries.',
+      summary: 'Completed Phase 1 targets via systematic liquidity sweep models.',
       imageUrl: '/testimonials/fundingpips-phase1-mar2026.jpg',
-      tags: ['Phase One Cleared', 'Rapid Completion', 'Systematic Execution'],
-      metrics: [
-        { label: 'Stage', value: 'Phase One Completed' },
-        { label: 'Date', value: 'March 11, 2026' },
-        { label: 'Verification', value: 'Holographic QR Verified' },
-      ],
+      badge: 'Phase 1 Passed',
     },
     {
       id: 'fp-phase1-feb2026',
-      category: 'Prop Firm Certifications',
       firm: 'FundingPips',
-      title: 'Phase One Evaluation Certificate of Achievement',
-      date: 'February 25, 2026',
+      title: 'Phase One Evaluation Passed',
+      date: 'Feb 2026',
       stage: 'Phase 1 Cleared',
-      description:
-        'Demonstrated quantitative consistency by securing the Phase One achievement on the institutional evaluation stage under high volatility market sessions.',
+      summary: 'Demonstrated consistent statistical expectancy during high-volatility sessions.',
       imageUrl: '/testimonials/fundingpips-phase1-feb2026.jpg',
-      tags: ['Phase One Cleared', 'Multi-Account Verification', 'Controlled Risk'],
-      metrics: [
-        { label: 'Stage', value: 'Phase One Completed' },
-        { label: 'Date', value: 'February 25, 2026' },
-        { label: 'Firm', value: 'FundingPips' },
-      ],
+      badge: 'Phase 1 Passed',
     },
     {
       id: 'fp-phase2-nov2025',
-      category: 'Prop Firm Certifications',
       firm: 'FundingPips',
-      title: 'Phase Two Evaluation Certificate of Achievement',
-      date: 'November 28, 2025',
-      stage: 'Phase 2 Cleared (Final Stage)',
-      description:
-        'Passed Phase 2 evaluation with strict adherence to statistical profit targets and systematic overnight risk containment.',
+      title: 'Phase Two Evaluation Passed',
+      date: 'Nov 2025',
+      stage: 'Phase 2 Cleared',
+      summary: 'Executed disciplined overnight risk control to meet final target criteria.',
       imageUrl: '/testimonials/fundingpips-phase2-nov2025.jpg',
-      tags: ['Phase Two Passed', 'Institutional Grade', 'Winter Series'],
-      metrics: [
-        { label: 'Stage', value: 'Phase Two Completed' },
-        { label: 'Date', value: 'November 28, 2025' },
-        { label: 'Verification', value: 'Verified Certificate' },
-      ],
+      badge: 'Phase 2 Passed',
     },
     {
       id: 'fp-phase1-sep2025',
-      category: 'Prop Firm Certifications',
       firm: 'FundingPips',
-      title: 'Phase One Evaluation Certificate of Achievement',
-      date: 'September 16, 2025',
+      title: 'Phase One Evaluation Passed',
+      date: 'Sep 2025',
       stage: 'Phase 1 Cleared',
-      description:
-        'Inaugural Phase 1 clearance marking the beginning of systematic evaluation milestones with a zero-drawdown breach record.',
+      summary: 'Inaugural prop challenge completion with zero daily drawdown breaches.',
       imageUrl: '/testimonials/fundingpips-phase1-sep2025.jpg',
-      tags: ['Phase One Cleared', 'Foundation Milestone', 'Systematic Baseline'],
-      metrics: [
-        { label: 'Stage', value: 'Phase One Completed' },
-        { label: 'Date', value: 'September 16, 2025' },
-        { label: 'Firm', value: 'FundingPips' },
-      ],
+      badge: 'Phase 1 Passed',
     },
   ];
 
-  const filteredTestimonials = testimonials.filter((t) => {
-    if (activeTab === 'fundingpips') return t.firm.toLowerCase().includes('fundingpips');
-    if (activeTab === '5ers') return t.firm.toLowerCase().includes('5%ers');
+  const filteredItems = items.filter((item) => {
+    if (filter === '5ers') return item.firm.includes('5%ers');
+    if (filter === 'fundingpips') return item.firm.includes('FundingPips');
     return true;
   });
 
   return (
-    <div className="w-full max-w-6xl mx-auto py-8 px-4 sm:px-6 font-sans space-y-10 animate-fade-in select-none">
-      {/* ── Top Hero & Profile Card ── */}
-      <div className="bg-white rounded-3xl p-6 sm:p-10 border border-[#E2E8F0] shadow-xs relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-emerald-100/40 via-blue-100/20 to-transparent rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="flex items-center gap-5">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#021810] border-2 border-[#10B981]/60 flex items-center justify-center p-2 shadow-sm shrink-0">
-              <img src="/alltra-logo.png" alt="Alltra Quant" className="w-full h-full object-cover" />
-            </div>
-            <div className="space-y-1">
-              <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-[11px] font-bold">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>SYSTEMATIC PROP TRADER &amp; QUANT DEVELOPER</span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] tracking-tight">
-                Atharva Bhosale
-              </h1>
-              <p className="text-xs sm:text-sm text-[#64748B] font-mono">
-                Systematic Trading Models · Algorithmic Strategy Engineering · Institutional Risk Management
-              </p>
-            </div>
+    <div className="w-full max-w-4xl mx-auto py-10 px-4 sm:px-6 font-sans space-y-12 animate-fade-in select-none text-[#0F172A]">
+      {/* ── Minimal Header ── */}
+      <header className="space-y-4 border-b border-[#E2E8F0] pb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#0F172A] p-2 flex items-center justify-center shrink-0">
+            <img src="/alltra-logo.png" alt="Alltra" className="w-full h-full object-contain" />
           </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-800 font-mono text-xs font-bold">
-              Officially Funded Trader
-            </span>
-            <span className="px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 font-mono text-xs font-bold">
-              Global Contest Top 10
-            </span>
-            <span className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-xs font-bold">
-              10+ Challenges Passed
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* ── About Me & Core Trading Philosophy ── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E8F0] shadow-xs space-y-4">
-          <div className="flex items-center gap-2.5 text-[#0F172A] font-bold text-base">
-            <Target className="w-5 h-5 text-[#2563EB]" />
-            <h2>About Me &amp; Quantitative Background</h2>
-          </div>
-          <div className="text-xs sm:text-sm text-[#475569] leading-relaxed space-y-3">
-            <p>
-              I am a quantitative finance practitioner and algorithmic trader dedicated to building verifiable, rule-based edge in financial markets. My approach discards discretionary guessing, social media noise, and emotional impulse in favor of mathematical expectancy, statistical mean reversion, and systematic order flow liquidity sweeps.
-            </p>
-            <p>
-              Having passed <strong>10+ rigorous prop firm evaluations</strong> across leading global institutions like <strong>The 5%ers</strong> and <strong>FundingPips</strong>, my trading methodology is battle-tested under strict daily drawdowns (4%), max trailing drawdowns (5-6%), and high reward-to-risk execution requirements.
-            </p>
-            <p>
-              I built <strong>ALLTRA</strong> as an institutional workstation to bridge the gap between academic quantitative finance and real-time execution—bringing institutional backtesting, bar-by-bar market replay, and disciplined algorithmic desks directly to your hands.
-            </p>
-          </div>
-
-          <div className="pt-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] text-center">
-              <div className="text-lg font-extrabold text-[#0F172A] font-mono">10+</div>
-              <div className="text-[11px] text-[#64748B]">Certificates Passed</div>
-            </div>
-            <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] text-center">
-              <div className="text-lg font-extrabold text-[#16A34A] font-mono">Top 10</div>
-              <div className="text-[11px] text-[#64748B]">Global Contest Rank</div>
-            </div>
-            <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] text-center">
-              <div className="text-lg font-extrabold text-[#2563EB] font-mono">90+</div>
-              <div className="text-[11px] text-[#64748B]">Quality Trade Score</div>
-            </div>
-            <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] text-center">
-              <div className="text-lg font-extrabold text-[#7C3AED] font-mono">0.5%</div>
-              <div className="text-[11px] text-[#64748B]">Strict Risk Per Trade</div>
-            </div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight">Atharva Bhosale</h1>
+            <p className="text-xs text-[#64748B] font-mono">Quantitative Trading &amp; Systematic Systems</p>
           </div>
         </div>
 
-        <div className="bg-[#0F172A] text-white rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col justify-between space-y-6">
-          <div className="space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-emerald-400">
-              <Compass className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold tracking-tight">The Core Philosophy</h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              "Markets are liquidity-seeking auctions. Alpha is not about forecasting headlines or gambling on volatility—it is engineered through statistical edges, disciplined risk containment, and flawless execution."
-            </p>
-          </div>
+        <p className="text-sm text-[#475569] leading-relaxed max-w-2xl font-normal">
+          I build systematic, rule-based execution models focused on statistical mean reversion and liquidity sweeps across equities and currency pairs. Rather than discretionary guessing, every strategy is tested through zero-lookahead backtests and strict capital preservation rules.
+        </p>
 
-          <div className="pt-4 border-t border-slate-800 space-y-2 text-xs font-mono text-slate-400">
-            <div className="flex items-center gap-2">
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Zero Discretionary Emotional Trading</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Verifiable Cryptographic Proof of Results</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Strict Capital Preservation First</span>
-            </div>
+        {/* Minimal Stats */}
+        <div className="flex flex-wrap items-center gap-6 pt-2 text-xs font-mono">
+          <div>
+            <span className="text-[#94A3B8] block">ACCREDITATIONS</span>
+            <span className="text-sm font-bold text-[#0F172A]">10+ Passed</span>
+          </div>
+          <div className="h-6 w-px bg-[#E2E8F0]" />
+          <div>
+            <span className="text-[#94A3B8] block">GLOBAL RANK</span>
+            <span className="text-sm font-bold text-[#0F172A]">Top 10 Contest</span>
+          </div>
+          <div className="h-6 w-px bg-[#E2E8F0]" />
+          <div>
+            <span className="text-[#94A3B8] block">TRADE AUDIT</span>
+            <span className="text-sm font-bold text-[#0F172A]">Score 90+</span>
+          </div>
+          <div className="h-6 w-px bg-[#E2E8F0]" />
+          <div>
+            <span className="text-[#94A3B8] block">RISK DISCIPLINE</span>
+            <span className="text-sm font-bold text-[#0F172A]">0.5% / Trade</span>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* ── Testimonials & Official Prop Firm Accreditations ── */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E8F0] shadow-xs space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-6">
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-2 text-xs font-mono font-bold text-[#16A34A] uppercase tracking-wider">
-              <Award className="w-4 h-4" />
-              <span>Verifiable Track Record &amp; Accreditations</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0F172A]">
-              Prop Firm Certifications &amp; Achievements
+      {/* ── Testimonials & Certifications Section ── */}
+      <section className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-bold tracking-tight uppercase font-mono text-[#64748B]">
+              Prop Firm Certifications &amp; Awards
             </h2>
-            <p className="text-xs text-[#64748B]">
-              Every certificate and badge is earned through verified live evaluations governed by institutional prop firm auditing.
+            <p className="text-xs text-[#94A3B8]">
+              Verified evaluations passed under institutional drawdown rules.
             </p>
           </div>
 
-          {/* Filter Pills */}
-          <div className="flex items-center gap-2 bg-[#F1F5F9] p-1 rounded-2xl shrink-0 self-start sm:self-auto">
+          {/* Clean Segmented Filter */}
+          <div className="inline-flex p-0.5 rounded-lg bg-[#F1F5F9] text-[11px] font-mono self-start sm:self-auto">
             <button
-              onClick={() => setActiveTab('all')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'all'
-                  ? 'bg-white text-[#0F172A] shadow-xs'
+              onClick={() => setFilter('all')}
+              className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+                filter === 'all'
+                  ? 'bg-white text-[#0F172A] font-semibold shadow-xs'
                   : 'text-[#64748B] hover:text-[#0F172A]'
               }`}
             >
-              All Accreditations ({testimonials.length})
+              All ({items.length})
             </button>
             <button
-              onClick={() => setActiveTab('5ers')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === '5ers'
-                  ? 'bg-white text-[#0F172A] shadow-xs'
+              onClick={() => setFilter('5ers')}
+              className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+                filter === '5ers'
+                  ? 'bg-white text-[#0F172A] font-semibold shadow-xs'
                   : 'text-[#64748B] hover:text-[#0F172A]'
               }`}
             >
               The 5%ers
             </button>
             <button
-              onClick={() => setActiveTab('fundingpips')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === 'fundingpips'
-                  ? 'bg-white text-[#0F172A] shadow-xs'
+              onClick={() => setFilter('fundingpips')}
+              className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+                filter === 'fundingpips'
+                  ? 'bg-white text-[#0F172A] font-semibold shadow-xs'
                   : 'text-[#64748B] hover:text-[#0F172A]'
               }`}
             >
@@ -361,179 +215,126 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigateTo }) => {
           </div>
         </div>
 
-        {/* ── Testimonials Grid ── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTestimonials.map((item) => (
+        {/* Minimal Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredItems.map((item) => (
             <div
               key={item.id}
-              className="group bg-[#FAFAFC] rounded-2xl border border-[#E2E8F0] hover:border-[#CBD5E1] hover:shadow-md transition-all overflow-hidden flex flex-col justify-between"
+              onClick={() => setSelectedPreview(item)}
+              className="group bg-white rounded-xl border border-[#E2E8F0] hover:border-[#94A3B8] transition-all p-3 cursor-pointer flex flex-col justify-between space-y-3"
             >
-              <div>
-                {/* Visual Certificate Card Preview */}
-                <div
-                  onClick={() => setSelectedPreview(item)}
-                  className="relative aspect-4/3 bg-slate-900 overflow-hidden cursor-pointer flex items-center justify-center border-b border-[#E2E8F0]"
-                >
-                  <img
-                    src={item.imageUrl}
-                    alt={item.title}
-                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 p-2"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <span className="px-3 py-1.5 rounded-xl bg-white/90 backdrop-blur-md text-[#0F172A] text-xs font-bold flex items-center gap-1.5 shadow-md">
-                      <Maximize2 className="w-3.5 h-3.5" />
-                      View Full Certificate
-                    </span>
-                  </div>
+              {/* Media Thumbnail */}
+              <div className="relative aspect-4/3 rounded-lg overflow-hidden bg-[#F8FAFC] border border-[#F1F5F9] flex items-center justify-center">
+                <img
+                  src={item.imageUrl}
+                  alt={item.title}
+                  className="w-full h-full object-contain p-2 group-hover:scale-[1.02] transition-transform duration-200"
+                  loading="lazy"
+                />
 
-                  {item.videoUrl && (
-                    <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-purple-600/90 text-white text-[10px] font-mono font-bold flex items-center gap-1 shadow-xs">
-                      <Play className="w-3 h-3 fill-white" />
-                      Video Available
-                    </span>
-                  )}
-
-                  <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur-md border border-slate-200 text-[#0F172A] text-[10px] font-mono font-bold">
-                    {item.date}
+                {item.videoUrl && (
+                  <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-[#0F172A]/80 text-white text-[9px] font-mono flex items-center gap-1 backdrop-blur-xs">
+                    <Play className="w-2.5 h-2.5 fill-white" />
+                    Video
                   </span>
-                </div>
+                )}
 
-                {/* Content Info */}
-                <div className="p-5 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                      {item.firm}
-                    </span>
-                    <span className="text-[11px] text-[#64748B] font-mono font-semibold">
-                      {item.stage}
-                    </span>
-                  </div>
-
-                  <h3 className="font-extrabold text-[#0F172A] text-sm leading-snug group-hover:text-[#2563EB] transition-colors">
-                    {item.title}
-                  </h3>
-
-                  <p className="text-xs text-[#64748B] leading-relaxed line-clamp-3">
-                    {item.description}
-                  </p>
-                </div>
+                <div className="absolute inset-0 bg-[#0F172A]/0 group-hover:bg-[#0F172A]/5 transition-colors flex items-center justify-center" />
               </div>
 
-              {/* Card Footer Metrics & Tags */}
-              <div className="p-5 pt-0 space-y-3">
-                <div className="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-white border border-[#E2E8F0] text-[10px] font-mono">
-                  {item.metrics.slice(0, 2).map((m, idx) => (
-                    <div key={idx}>
-                      <span className="text-[#94A3B8] block">{m.label}</span>
-                      <span className="font-bold text-[#0F172A] truncate block">{m.value}</span>
-                    </div>
-                  ))}
+              {/* Text Info */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-[11px] font-mono text-[#94A3B8]">
+                  <span>{item.firm}</span>
+                  <span>{item.date}</span>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5">
-                  {item.tags.map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="px-2 py-0.5 rounded-md bg-[#F1F5F9] text-[#475569] text-[10px] font-mono"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
+                <div className="flex items-start justify-between gap-1">
+                  <h3 className="text-xs font-semibold text-[#0F172A] leading-snug group-hover:text-[#2563EB] transition-colors">
+                    {item.title}
+                  </h3>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:text-[#2563EB] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
+
+                <p className="text-[11px] text-[#64748B] line-clamp-2 leading-relaxed">
+                  {item.summary}
+                </p>
+              </div>
+
+              {/* Minimal Badge */}
+              <div className="pt-1">
+                <span className="inline-block px-2 py-0.5 rounded bg-[#F1F5F9] text-[#475569] text-[10px] font-mono font-medium">
+                  {item.badge}
+                </span>
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* ── Modal Certificate / Media Inspector ── */}
+      {/* ── Minimal Philosophy Callout ── */}
+      <section className="p-6 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2">
+        <h3 className="text-xs font-mono font-bold uppercase text-[#64748B]">Engineering Principle</h3>
+        <p className="text-xs text-[#334155] leading-relaxed max-w-2xl">
+          Markets are liquidity-seeking auctions. Alpha is not about forecasting news or discretionary speculation—it is engineered through statistical edges, strict risk boundaries, and disciplined execution.
+        </p>
+      </section>
+
+      {/* ── Clean Lightbox Preview Modal ── */}
       {selectedPreview && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-[#E2E8F0] shadow-2xl relative p-6 sm:p-8 space-y-6 animate-scale-up">
-            <button
-              onClick={() => setSelectedPreview(null)}
-              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div className="space-y-1">
-              <span className="text-xs font-mono font-bold text-[#2563EB] uppercase tracking-wider">
-                {selectedPreview.firm} · {selectedPreview.stage}
-              </span>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-[#0F172A]">
-                {selectedPreview.title}
-              </h2>
-              <p className="text-xs text-[#64748B] font-mono">Issued to Atharva Bhosale · {selectedPreview.date}</p>
+        <div
+          onClick={() => setSelectedPreview(null)}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl max-w-2xl w-full border border-[#E2E8F0] shadow-xl overflow-hidden p-6 space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+              <div>
+                <span className="text-[11px] font-mono text-[#64748B] block">
+                  {selectedPreview.firm} · {selectedPreview.date}
+                </span>
+                <h3 className="text-sm font-bold text-[#0F172A]">{selectedPreview.title}</h3>
+              </div>
+              <button
+                onClick={() => setSelectedPreview(null)}
+                className="w-7 h-7 rounded-lg hover:bg-[#F1F5F9] text-[#64748B] flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
             {/* Media Presentation */}
-            <div className="rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center max-h-[500px] border border-slate-800">
+            <div className="rounded-xl overflow-hidden bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center max-h-[460px]">
               {selectedPreview.videoUrl ? (
                 <video
                   src={selectedPreview.videoUrl}
                   controls
                   autoPlay
-                  className="max-h-[500px] w-auto mx-auto"
+                  className="max-h-[460px] w-auto mx-auto"
                 />
               ) : (
                 <img
                   src={selectedPreview.imageUrl}
                   alt={selectedPreview.title}
-                  className="max-h-[500px] w-auto mx-auto object-contain p-2"
+                  className="max-h-[460px] w-auto mx-auto object-contain p-3"
                 />
               )}
             </div>
 
-            <div className="text-xs sm:text-sm text-[#475569] leading-relaxed">
-              {selectedPreview.description}
-            </div>
+            <p className="text-xs text-[#475569] leading-relaxed">
+              {selectedPreview.summary}
+            </p>
 
-            {/* Metrics Breakdown */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs font-mono">
-              {selectedPreview.metrics.map((m, idx) => (
-                <div key={idx}>
-                  <div className="text-[#94A3B8]">{m.label}</div>
-                  <div className="font-bold text-[#0F172A] mt-0.5">{m.value}</div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-end">
+            <div className="flex justify-end pt-2">
               <button
                 onClick={() => setSelectedPreview(null)}
-                className="px-5 py-2.5 rounded-xl bg-[#0F172A] hover:bg-[#1E293B] text-white text-xs font-bold transition-all cursor-pointer"
+                className="px-4 py-1.5 rounded-lg bg-[#0F172A] hover:bg-[#1E293B] text-white text-xs font-medium transition-colors cursor-pointer"
               >
-                Close Inspector
+                Close
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Call to Action ── */}
-      {onNavigateTo && (
-        <div className="bg-gradient-to-r from-[#1E40AF] to-[#2563EB] rounded-3xl p-6 sm:p-8 text-white flex flex-col sm:flex-row items-center justify-between gap-6 shadow-md">
-          <div className="space-y-1 text-center sm:text-left">
-            <h3 className="text-lg font-bold">Experience the Exact Same Execution Discipline</h3>
-            <p className="text-xs text-blue-100 max-w-xl">
-              Test systematic setups candle-by-candle with zero lookahead bias in the Bar Replay Studio, or track live execution in the NRI &amp; Global Forex Desk.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <button
-              onClick={() => onNavigateTo('barreplay')}
-              className="px-4 py-2.5 rounded-xl bg-white text-[#1E40AF] font-bold text-xs hover:bg-blue-50 transition-all shadow-xs cursor-pointer active:scale-95"
-            >
-              Launch Bar Replay
-            </button>
-            <button
-              onClick={() => onNavigateTo('forex')}
-              className="px-4 py-2.5 rounded-xl bg-blue-900/40 border border-white/20 text-white font-bold text-xs hover:bg-blue-900/60 transition-all cursor-pointer active:scale-95"
-            >
-              Forex Desk
-            </button>
           </div>
         </div>
       )}
