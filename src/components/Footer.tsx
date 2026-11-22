@@ -48,14 +48,18 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-10 border-b border-gray-200 text-xs">
           {/* Brand Info */}
           <div className="md:col-span-5 space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="font-devanagari text-2xl font-bold text-emerald-600">
-                अर्जुन
-              </span>
-              <span className="text-gray-300">|</span>
-              <span className="text-[#0A0A0D] font-bold tracking-widest uppercase">
-                APEX QUANT RESEARCH
-              </span>
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#021810] border border-[#10B981]/40 flex items-center justify-center shadow-xs shrink-0">
+                <img src="/alltra-logo.png" alt="ALLTRA" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[#0A0A0D] font-extrabold tracking-wider uppercase text-sm leading-none font-mono">
+                  ALLTRA
+                </span>
+                <span className="text-[9px] text-[#059669] font-mono tracking-widest font-semibold uppercase mt-0.5">
+                  SINCE 2026
+                </span>
+              </div>
             </div>
 
             <p className="text-[#64748B] leading-relaxed text-[11px] max-w-sm">
@@ -121,7 +125,7 @@ export const Footer: React.FC = () => {
               className="inline-flex items-center gap-2 border border-gray-300 hover:border-emerald-500 bg-white px-3 py-2 text-[#0A0A0D] hover:text-emerald-700 rounded-xl transition-colors text-xs shadow-xs"
             >
               <ArrowUp className="w-3.5 h-3.5 text-emerald-600" />
-              <span>RETURN TO APEX [TOP]</span>
+              <span>RETURN TO ALLTRA [TOP]</span>
             </button>
           </div>
         </div>

@@ -204,12 +204,12 @@ export function App() {
     }
   };
 
-  const isLandingView = activeView === 'landing';
+  const isPublicView = activeView === 'landing' || activeView === 'auth';
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex font-sans selection:bg-[#2563EB] selection:text-white antialiased">
-      {/* ── 1. Minimalist Arthatix Left Sidebar (Hidden on public Landing Page; opens when signed in / on platform) ── */}
-      {!isLandingView && (
+      {/* ── 1. Minimalist Arthatix Left Sidebar (Hidden on public Landing Page & Login Page) ── */}
+      {!isPublicView && (
         <ArthatixSidebar
           activeView={activeView}
           onNavigate={(view) => navigateTo(view)}
@@ -220,10 +220,10 @@ export function App() {
         />
       )}
 
-      {/* ── 2. Fluid Right Workspace (Full width on Landing Page) ── */}
+      {/* ── 2. Fluid Right Workspace (Full width on Landing Page & Login Page) ── */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen bg-[#F8FAFC]">
-        {/* Top Minimal Header (Hidden on public Landing Page; Landing Page has its own institutional header) */}
-        {!isLandingView && (
+        {/* Top Minimal Header (Hidden on public Landing Page & Login Page) */}
+        {!isPublicView && (
           <ArthatixTopHeader
             activeView={activeView}
             onNavigate={(view) => navigateTo(view)}
@@ -237,7 +237,7 @@ export function App() {
         )}
 
         {/* Main View Router */}
-        <main className={`flex-1 flex flex-col w-full ${isLandingView || activeView === 'papertrading' || activeView === 'barreplay' ? 'p-0' : 'px-4 pt-4 pb-2 sm:px-6 sm:pt-6 sm:pb-3'}`}>
+        <main className={`flex-1 flex flex-col w-full ${activeView === 'landing' || activeView === 'papertrading' || activeView === 'barreplay' ? 'p-0' : 'px-4 pt-4 pb-2 sm:px-6 sm:pt-6 sm:pb-3'}`}>
           <div key={activeView} className="animate-view flex-1 flex flex-col w-full">
             {activeView === 'landing' && (
               <LandingPage

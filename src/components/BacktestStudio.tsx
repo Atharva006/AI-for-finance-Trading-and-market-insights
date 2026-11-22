@@ -39,6 +39,7 @@ import { NaturalLanguagePromptBar } from './NaturalLanguagePromptBar';
 import { StockLogo } from './StockLogo';
 import { Sparkles } from 'lucide-react';
 import { ALL_CANONICAL_STRATEGIES } from '../services/canonicalStrategies';
+import { userActivityTracker } from '../services/userActivityTracker';
 
 interface BacktestStudioProps {
   onStrategyUpdated?: (strategy: AlgoStrategy) => void;
@@ -437,6 +438,19 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
           setCandles(data);
           const res = runBacktest(data, params);
           setResult(res);
+          userActivityTracker.trackBacktest({
+            strategyId: selectedStrategyId,
+            strategyName: selectedStrategyId,
+            symbol: selectedStock.symbol,
+            timeframe,
+            initialBalance: 100000,
+            finalBalance: 100000 + (res.metrics?.totalReturn || 0),
+            netPnl: res.metrics?.totalReturn || 0,
+            winRate: res.metrics?.winRate || 0,
+            profitFactor: res.metrics?.profitFactor || 1.0,
+            maxDrawdown: res.metrics?.maxDrawdownPct || 0,
+            totalTrades: res.metrics?.totalTrades || 0,
+          });
         }
       } catch (e) {
         console.error('Error fetching data:', e);
@@ -454,6 +468,19 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
     if (candles.length > 0) {
       const res = runBacktest(candles, params);
       setResult(res);
+      userActivityTracker.trackBacktest({
+        strategyId: selectedStrategyId,
+        strategyName: selectedStrategyId,
+        symbol: selectedStock.symbol,
+        timeframe,
+        initialBalance: 100000,
+        finalBalance: 100000 + (res.metrics?.totalReturn || 0),
+        netPnl: res.metrics?.totalReturn || 0,
+        winRate: res.metrics?.winRate || 0,
+        profitFactor: res.metrics?.profitFactor || 1.0,
+        maxDrawdown: res.metrics?.maxDrawdownPct || 0,
+        totalTrades: res.metrics?.totalTrades || 0,
+      });
     }
   };
 

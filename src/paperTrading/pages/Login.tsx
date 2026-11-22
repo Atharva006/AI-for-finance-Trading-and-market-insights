@@ -294,7 +294,7 @@ export default function Login() {
         try {
           const { data, error: demoErr } = await supabase.auth.signInAnonymously();
           if (!demoErr && data?.session?.user) {
-            await init(data.session.user.id, undefined, 'Apex Quant Trader');
+            await init(data.session.user.id, undefined, 'Alltra Trader');
             navigate(destination);
             return;
           }
@@ -315,10 +315,10 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-[#FCFCFC] text-[#111114] relative overflow-x-hidden font-sans selection:bg-[#536CF0] selection:text-white flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <SEO
-        title="Institutional Sign In — Virtual Trading Platform | Apex Quant"
-        description="Sign in to your Apex Quant virtual trading platform. Access real-time simulated order matching, portfolio risk analytics, and quantitative trading tools."
+        title="Institutional Sign In — ALLTRA Quantitative Platform"
+        description="Sign in to your ALLTRA quantitative trading platform. Access real-time simulated order matching, portfolio risk analytics, and quantitative trading tools."
         canonical="/login"
-        keywords="paper trading platform login, virtual trading platform sign in, demo trading platform access, stock market simulator portal, Apex Quant login"
+        keywords="paper trading platform login, virtual trading platform sign in, demo trading platform access, stock market simulator portal, ALLTRA login"
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'BreadcrumbList',
@@ -349,20 +349,20 @@ export default function Login() {
         {/* ── Brand Wordmark Header ────────────────────────────────────────── */}
         <div className="flex flex-col items-center mb-6">
           <Link to="/" className="mb-4 group flex items-center gap-3 active:scale-98 transition-transform">
-            <div className="w-12 h-12 rounded-2xl bg-[#00225A] flex items-center justify-center p-2.5 shadow-md shadow-[#00225A]/15 transition-transform group-hover:scale-105 duration-200">
+            <div className="w-12 h-12 rounded-2xl bg-[#021810] border border-[#10B981]/40 flex items-center justify-center p-1.5 shadow-md shadow-[#10B981]/15 transition-transform group-hover:scale-105 duration-200 overflow-hidden">
               <img
-                src="https://lh3.googleusercontent.com/aida/ALJJyrDoYL4wVpXsoYtqmZkmWKJAcBOZgjR6a2u3D7pji-QCA1FXxyW_9ixEsJ_EqdIuHO3VuBvesBLo7yGqHV2rnx4bDVRyJydMU4uix9FmelUPL0wHTmmxuvG0o93CFcfmflbMIqzzl2nTZ59kuk6TnQQHRfFZxYglS5bz_oO3eHrmyLyPCEoju6CiVfP_EVZiFTGDu3oWTnesXXfL-Oyy6PZwXKIks9-rsoY_dLVzalD-vA"
-                alt="Apex Quant"
-                className="w-full h-full object-contain brightness-0 invert"
+                src="/alltra-logo.png"
+                alt="ALLTRA"
+                className="w-full h-full object-cover"
               />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-headline font-bold tracking-tight text-[#00225A]">
-                APEX QUANT
+              <span className="text-xl font-mono font-extrabold tracking-wider text-[#00225A] uppercase">
+                ALLTRA
               </span>
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] text-[#536CF0] tracking-wider font-mono font-semibold uppercase">
-                  PAPER TRADING DESK
+                <span className="text-[10px] text-[#059669] tracking-widest font-mono font-semibold uppercase">
+                  SINCE 2026
                 </span>
                 <span className="w-1.5 h-1.5 rounded-full bg-[#12B76A] animate-pulse" />
               </div>

@@ -17,7 +17,7 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-[calc(100vh-98px)] flex flex-col bg-[#FCFCFC] text-[#111114] font-sans selection:bg-[#536CF0] selection:text-white overflow-x-hidden antialiased">
-      <SEO title="Virtual Trading Desk — Apex Quant Workstation" noindex={true} />
+      <SEO title="Virtual Trading Desk — ALLTRA Quantitative Workstation" noindex={true} />
       {/* ── 1. FundingPips Top Navigation Bar (Positioned under Workstation Header) ── */}
       <div className="w-full shrink-0 z-40 bg-white">
         <MasterNavbar

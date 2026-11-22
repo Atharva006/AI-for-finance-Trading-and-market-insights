@@ -1,12 +1,18 @@
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
+import { userActivityTracker } from './userActivityTracker';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://prucyogtorkhldzjbzow.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_Mikas1X03ROxjzI2QgwZBA_Rpgeci_g';
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 export const supabase: SupabaseClient | null = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    })
   : null;
 
 export interface AuthUserProfile {
@@ -18,7 +24,7 @@ export interface AuthUserProfile {
   role?: 'admin' | 'quant' | 'user';
 }
 
-const LOCAL_USER_STORAGE_KEY = 'apex_quant_auth_user';
+const LOCAL_USER_STORAGE_KEY = 'alltra_quant_auth_user';
 
 export const getStoredLocalUser = (): AuthUserProfile | null => {
   try {
@@ -33,7 +39,9 @@ export const setStoredLocalUser = (user: AuthUserProfile | null) => {
   try {
     if (user) {
       localStorage.setItem(LOCAL_USER_STORAGE_KEY, JSON.stringify(user));
+      userActivityTracker.trackLogin(user);
     } else {
+      userActivityTracker.trackLogout(getStoredLocalUser());
       localStorage.removeItem(LOCAL_USER_STORAGE_KEY);
     }
   } catch (err) {
@@ -56,7 +64,7 @@ export async function signInWithGoogle() {
   // Fallback demo auth for local / preview environments without Supabase keys
   const simulatedUser: AuthUserProfile = {
     id: 'demo-google-user-' + Date.now(),
-    email: 'quant.analyst@apexresearch.io',
+    email: 'quant.analyst@alltra.trade',
     name: 'Quantitative Analyst',
     avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     provider: 'google',
@@ -73,16 +81,17 @@ export async function signInWithEmail(email: string, password: string) {
   // Support direct administrator login: username "admin" / password "admin"
   const isAdminUser =
     cleanEmail.toLowerCase() === 'admin' ||
+    cleanEmail.toLowerCase() === 'admin@alltra.trade' ||
     cleanEmail.toLowerCase() === 'admin@apexquant.io' ||
     cleanEmail.toLowerCase() === 'admin@admin.com';
 
   if (isAdminUser) {
-    if (cleanPass === 'admin') {
+    if (cleanPass === 'admin' || cleanPass === 'admin2026') {
       const adminUser: AuthUserProfile = {
         id: 'admin-super-user-001',
-        email: 'admin@apexquant.io',
-        name: 'System Administrator',
-        avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+        email: 'admin@alltra.trade',
+        name: 'System Administrator (Alltra)',
+        avatar_url: '/alltra-icon.png',
         provider: 'institutional-admin',
         role: 'admin',
       };
@@ -100,13 +109,15 @@ export async function signInWithEmail(email: string, password: string) {
     });
     if (error) throw error;
     if (data.user) {
-      setStoredLocalUser({
+      const profile: AuthUserProfile = {
         id: data.user.id,
         email: data.user.email || cleanEmail,
         name: data.user.user_metadata?.full_name || cleanEmail.split('@')[0],
         provider: 'email',
-        role: 'quant',
-      });
+        role: data.user.user_metadata?.role === 'admin' ? 'admin' : 'quant',
+      };
+      setStoredLocalUser(profile);
+      return { user: profile, session: data.session };
     }
     return data;
   }

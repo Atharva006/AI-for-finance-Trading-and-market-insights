@@ -95,7 +95,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             title="Alltra Quantitative Platform"
           >
             <div className="w-9 h-9 rounded-xl bg-[#021810] border border-[#10B981]/40 flex items-center justify-center p-1 shadow-xs overflow-hidden group-hover:border-[#10B981] transition-colors">
-              <img src="/alltra-icon.png" alt="Alltra" className="w-full h-full object-cover" />
+              <img src="/alltra-logo.png" alt="Alltra" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col">
               <span className="font-mono font-extrabold text-[16px] text-[#0F172A] tracking-wider uppercase leading-none">
@@ -1054,6 +1054,81 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             )}
           </section>
 
+          {/* ── PHOTO SHOWCASE 3: MOBILE & CROSS-PLATFORM SYSTEMATIC SUITE ── */}
+          <section className="w-full py-space-md">
+            <div className="bg-surface-card rounded-2xl border border-border-subtle p-6 lg:p-10 shadow-sm flex flex-col gap-8">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div className="flex flex-col gap-2">
+                  <div className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-surface-container-low border border-border-subtle font-mono text-xs text-text-secondary">
+                    <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
+                    <span>CROSS-PLATFORM &amp; MOBILE TELEMETRY</span>
+                  </div>
+                  <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-on-surface">
+                    Real-time execution &amp; order-book precision on any screen.
+                  </h2>
+                  <p className="text-sm text-text-secondary max-w-2xl leading-relaxed">
+                    Monitor active algorithm state, view live candlestick telemetry, and manage portfolio risk on the go. Seamless synchronization between desktop multi-monitor setups and mobile execution.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="px-3 py-1.5 rounded-lg bg-surface-container-low font-mono text-xs font-semibold text-on-surface border border-border-subtle">
+                    iOS &amp; Android PWA
+                  </span>
+                  <span className="px-3 py-1.5 rounded-lg bg-bullish-tint font-mono text-xs font-semibold text-bullish border border-bullish/20">
+                    12ms Low-Latency Sync
+                  </span>
+                </div>
+              </div>
+
+              {/* High-Resolution Mobile Photos Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center justify-items-center pt-2">
+                {/* Mobile Photo 1 */}
+                <div className="flex flex-col items-center gap-4 w-full max-w-md">
+                  <div className="rounded-3xl overflow-hidden border-4 border-[#1E293B] shadow-2xl bg-[#090D14] w-full group transition-transform duration-500 hover:scale-[1.02]">
+                    <div className="h-6 bg-[#0F172A] flex items-center justify-center">
+                      <div className="w-16 h-1 rounded-full bg-[#334155]" />
+                    </div>
+                    <img
+                      src="/mobile-chart-1.png"
+                      alt="Alltra Mobile Real-Time Candlestick Charting"
+                      className="w-full h-auto object-cover max-h-[580px]"
+                    />
+                  </div>
+                  <div className="flex flex-col items-center text-center gap-1">
+                    <span className="font-mono text-xs font-bold text-on-surface">
+                      LIVE INTRADAY CANDLESTICKS &amp; FACTOR OVERLAYS
+                    </span>
+                    <span className="text-[11px] text-text-secondary">
+                      Full TradingView Lightweight Charts on mobile with zero lookahead
+                    </span>
+                  </div>
+                </div>
+
+                {/* Mobile Photo 2 */}
+                <div className="flex flex-col items-center gap-4 w-full max-w-md">
+                  <div className="rounded-3xl overflow-hidden border-4 border-[#1E293B] shadow-2xl bg-[#090D14] w-full group transition-transform duration-500 hover:scale-[1.02]">
+                    <div className="h-6 bg-[#0F172A] flex items-center justify-center">
+                      <div className="w-16 h-1 rounded-full bg-[#334155]" />
+                    </div>
+                    <img
+                      src="/mobile-chart-2.png"
+                      alt="Alltra Mobile Order Routing & Portfolio Metrics"
+                      className="w-full h-auto object-cover max-h-[580px]"
+                    />
+                  </div>
+                  <div className="flex flex-col items-center text-center gap-1">
+                    <span className="font-mono text-xs font-bold text-on-surface">
+                      INSTITUTIONAL RISK CONTROL &amp; ORDER FLOW
+                    </span>
+                    <span className="text-[11px] text-text-secondary">
+                      One-tap position management, automated SL/TP fills &amp; live PnL audit
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* ── SECTION: 04 // OPERATIONAL SPECIFICATIONS (FAQ) ── */}
           <section className="w-full py-space-md flex flex-col gap-space-lg">
             <div className="flex flex-col gap-space-xs">
@@ -1192,7 +1267,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-space-sm font-mono-sm text-mono-sm text-text-muted">
           <div className="flex items-center gap-space-sm">
             <div className="w-5 h-5 rounded-md bg-[#021810] border border-[#10B981]/40 flex items-center justify-center p-0.5 overflow-hidden">
-              <img src="/alltra-icon.png" alt="Alltra" className="w-full h-full object-cover" />
+              <img src="/alltra-logo.png" alt="Alltra" className="w-full h-full object-cover" />
             </div>
             <span className="font-mono font-bold text-on-surface">ALLTRA</span>
             <span className="text-[10px] text-bullish font-semibold">SINCE 2026</span>

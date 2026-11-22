@@ -114,7 +114,7 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
           onKeyDown={(e) => e.key === 'Enter' && onNavigate('landing')}
         >
           <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#021810] border border-[#10B981]/40 flex items-center justify-center shadow-xs shrink-0">
-            <img src="/alltra-icon.png" alt="Alltra" className="w-full h-full object-cover" />
+            <img src="/alltra-logo.png" alt="Alltra" className="w-full h-full object-cover" />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col min-w-0">

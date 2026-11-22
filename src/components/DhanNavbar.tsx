@@ -41,22 +41,18 @@ export const DhanNavbar: React.FC<DhanNavbarProps> = ({
       {/* Left: Brand Monogram & Name */}
       <div
         onClick={() => setActiveView('landing')}
-        className="flex items-center gap-space-sm shrink-0 cursor-pointer group"
-        title="Apex Quant Trading Workstation"
+        className="flex items-center gap-2.5 shrink-0 cursor-pointer select-none group"
+        title="ALLTRA Quantitative Platform"
       >
-        <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center p-1.5 shadow-xs group-hover:bg-secondary transition-colors">
-          <img
-            alt="Apex Quant AQ Monogram"
-            className="h-full w-full object-contain brightness-0 invert"
-            src="https://lh3.googleusercontent.com/aida/ALJJyrDoYL4wVpXsoYtqmZkmWKJAcBOZgjR6a2u3D7pji-QCA1FXxyW_9ixEsJ_EqdIuHO3VuBvesBLo7yGqHV2rnx4bDVRyJydMU4uix9FmelUPL0wHTmmxuvG0o93CFcfmflbMIqzzl2nTZ59kuk6TnQQHRfFZxYglS5bz_oO3eHrmyLyPCEoju6CiVfP_EVZiFTGDu3oWTnesXXfL-Oyy6PZwXKIks9-rsoY_dLVzalD-vA"
-          />
+        <div className="w-9 h-9 rounded-xl bg-[#021810] border border-[#10B981]/40 flex items-center justify-center p-1 shadow-xs overflow-hidden group-hover:border-[#10B981] transition-colors">
+          <img src="/alltra-logo.png" alt="ALLTRA" className="w-full h-full object-cover" />
         </div>
         <div className="flex flex-col">
-          <span className="font-headline font-bold text-base text-primary tracking-tight">
-            apex quant
+          <span className="font-mono font-extrabold text-[16px] text-[#0F172A] tracking-wider uppercase leading-none">
+            ALLTRA
           </span>
-          <span className="text-[9px] font-mono font-semibold uppercase tracking-wider text-text-muted">
-            Trading Workstation
+          <span className="text-[9px] text-[#059669] font-mono tracking-widest font-semibold uppercase mt-0.5">
+            SINCE 2026
           </span>
         </div>
       </div>

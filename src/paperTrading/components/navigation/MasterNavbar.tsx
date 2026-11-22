@@ -98,8 +98,8 @@ export const MasterNavbar: React.FC<MasterNavbarProps> = ({
           >
             <div className="w-8 h-8 rounded-xl bg-[#021810] border border-[#10B981]/40 flex items-center justify-center p-1 shadow-sm shadow-[#10B981]/15 group-hover:border-[#10B981] transition-colors overflow-hidden">
               <img
-                src="/alltra-icon.png"
-                alt="Alltra"
+                src="/alltra-logo.png"
+                alt="ALLTRA"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -225,7 +225,7 @@ export const MasterNavbar: React.FC<MasterNavbarProps> = ({
             {isUserMenuOpen && (
               <div className="absolute right-0 mt-2 w-64 bg-white border border-[#D9E2F2] rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 font-sans origin-top-right">
                 <div className="px-4 py-3 border-b border-[#D9E2F2]">
-                  <p className="text-xs font-bold text-[#00225A] truncate tracking-wide">{userName || 'Apex Quant Trader'}</p>
+                  <p className="text-xs font-bold text-[#00225A] truncate tracking-wide">{userName || 'Alltra Trader'}</p>
                   <p className="text-[10px] text-[#536CF0] font-mono tracking-wider font-semibold">PAPER TRADING SIMULATOR</p>
                   {account && (
                     <div className="mt-2 pt-2 border-t border-[#D9E2F2] flex justify-between text-[11px] font-mono text-[#6B7A90]">

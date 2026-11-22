@@ -11,11 +11,11 @@ export interface SEOProps {
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
-const DEFAULT_TITLE = 'Apex Quant Workstation — Institutional Paper Trading & Quantitative Studio';
+const DEFAULT_TITLE = 'ALLTRA — Institutional Systematic Trading & Quantitative Intelligence (Since 2026)';
 const DEFAULT_DESCRIPTION =
-  "Experience Apex Quant: India's premier paper trading platform & live quantitative simulator. Trade NSE equities, NIFTY 50 options, and MCX commodities with ₹10,00,000 virtual capital in a zero-risk virtual trading environment.";
+  "Experience ALLTRA: India's premier paper trading platform, candle-by-candle bar replay & live quantitative simulator. Trade NSE equities, NIFTY 50 options, and global macro assets with ₹10,00,000 virtual capital in a zero-risk environment.";
 const DEFAULT_CANONICAL = '/';
-const DEFAULT_OG_IMAGE = '/monogram.svg';
+const DEFAULT_OG_IMAGE = '/alltra-logo.png';
 
 export const SEO: React.FC<SEOProps> = ({
   title = DEFAULT_TITLE,
@@ -75,7 +75,7 @@ export const SEO: React.FC<SEOProps> = ({
     canonicalLink.setAttribute('href', canonical);
 
     // 5. Open Graph Meta Tags
-    setMetaByProperty('og:site_name', 'Apex Quant');
+    setMetaByProperty('og:site_name', 'ALLTRA');
     setMetaByProperty('og:locale', 'en_US');
     setMetaByProperty('og:title', title);
     setMetaByProperty('og:description', description);

@@ -14,31 +14,61 @@ function quantMarketProxyPlugin() {
   const handler = async (req: any, res: any, next: any) => {
     if (req.url && req.url.startsWith('/yahoo-api/')) {
       const cleanPath = req.url.replace('/yahoo-api', '');
-      const endpoints = [
-        `https://query1.finance.yahoo.com${cleanPath}`,
-        `https://query2.finance.yahoo.com${cleanPath}`,
-      ];
 
-      for (const targetUrl of endpoints) {
-        for (const ua of BROWSER_USER_AGENTS) {
-          try {
-            const apiRes = await fetch(targetUrl, {
-              headers: {
-                'User-Agent': ua,
-                Accept: 'application/json, text/plain, */*',
-              },
-            });
+      // Ticker alias mapping to handle Yahoo Finance renames / demergers (e.g. TATAMOTORS -> TMPV.NS)
+      const aliasMap: Record<string, string[]> = {
+        'TATAMOTORS.NS': ['TMPV.NS', 'TMCV.NS', 'TATAMOTORS.NS'],
+        'TATAMOTORS': ['TMPV.NS', 'TMCV.NS', 'TATAMOTORS.NS'],
+        'TMPV': ['TMPV.NS'],
+        'TMCV': ['TMCV.NS'],
+        'M%26M.NS': ['MM.NS', 'M%26M.NS'],
+        'M&M.NS': ['MM.NS', 'M&M.NS'],
+        'BAJAJ-AUTO.NS': ['BAJAJ-AUTO.NS', 'BAJAJ_AUTO.NS'],
+      };
 
-            if (apiRes.ok) {
-              const data = await apiRes.text();
-              res.setHeader('Content-Type', 'application/json');
-              res.setHeader('Access-Control-Allow-Origin', '*');
-              res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-              res.statusCode = 200;
-              res.end(data);
-              return;
+      const pathsToTry = [cleanPath];
+      for (const [orig, aliases] of Object.entries(aliasMap)) {
+        if (cleanPath.includes(orig)) {
+          for (const alias of aliases) {
+            const altPath = cleanPath.replace(orig, alias);
+            if (!pathsToTry.includes(altPath)) {
+              pathsToTry.push(altPath);
             }
-          } catch (_) {}
+          }
+        }
+      }
+
+      for (const p of pathsToTry) {
+        const endpoints = [
+          `https://query1.finance.yahoo.com${p}`,
+          `https://query2.finance.yahoo.com${p}`,
+        ];
+
+        for (const targetUrl of endpoints) {
+          for (const ua of BROWSER_USER_AGENTS) {
+            try {
+              const apiRes = await fetch(targetUrl, {
+                headers: {
+                  'User-Agent': ua,
+                  Accept: 'application/json, text/plain, */*',
+                },
+              });
+
+              if (apiRes.ok) {
+                const data = await apiRes.text();
+                // Validate that response contains actual chart data and not a delisted error
+                if (data.includes('"result":null') && data.includes('"error":')) {
+                  continue; // Try next alias / endpoint
+                }
+                res.setHeader('Content-Type', 'application/json');
+                res.setHeader('Access-Control-Allow-Origin', '*');
+                res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+                res.statusCode = 200;
+                res.end(data);
+                return;
+              }
+            } catch (_) {}
+          }
         }
       }
 

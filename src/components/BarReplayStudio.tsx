@@ -36,6 +36,7 @@ import {
   Grid,
 } from 'lucide-react';
 import { Candle } from '../types/backtest';
+import { userActivityTracker } from '../services/userActivityTracker';
 import {
   fetchIntradayCandles,
   REPLAY_TICKER_PRESETS,
@@ -773,11 +774,42 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
     if (!replayState || replayState.activePosition) return;
     const sl = orderSl.trim() ? parseFloat(orderSl) : null;
     const tp = orderTp.trim() ? parseFloat(orderTp) : null;
+    const currentPrice = replayState.allCandles[replayState.currentIndex]?.close || 0;
+
+    userActivityTracker.trackOrder({
+      symbol,
+      side: orderSide === 'LONG' ? 'BUY' : 'SELL',
+      orderType: 'MARKET',
+      quantity: orderQty,
+      price: currentPrice,
+      stopLoss: sl || undefined,
+      takeProfit: tp || undefined,
+      module: 'BAR_REPLAY',
+    });
+
     setReplayState((prev) => (prev ? openPosition(prev, orderSide, orderQty, sl, tp) : null));
   };
 
   const handleManualClose = () => {
     if (!replayState || !replayState.activePosition) return;
+    const pos = replayState.activePosition;
+    const currentPrice = replayState.allCandles[replayState.currentIndex]?.close || 0;
+    const exitPnl =
+      pos.side === 'LONG'
+        ? (currentPrice - pos.entryPrice) * pos.qty
+        : (pos.entryPrice - currentPrice) * pos.qty;
+
+    userActivityTracker.trackOrder({
+      symbol,
+      side: pos.side === 'LONG' ? 'SELL' : 'BUY',
+      orderType: 'MARKET',
+      quantity: pos.qty,
+      price: currentPrice,
+      pnl: exitPnl,
+      status: 'FILLED',
+      module: 'BAR_REPLAY',
+    });
+
     setReplayState((prev) => (prev ? closePosition(prev) : null));
   };
 
