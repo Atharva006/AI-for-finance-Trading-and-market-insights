@@ -1,0 +1,24 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/market/quotes",
+      "destination": "/api/market-quotes"
+    },
+    {
+      "source": "/yahoo-api/(.*)",
+      "destination": "/api/yahoo?path=$1"
+    },
+    {
+      "source": "/upstox-api/(.*)",
+      "destination": "/api/upstox?path=$1"
+    },
+    {
+      "source": "/upstox/(.*)",
+      "destination": "/api/upstox?path=$1"
+    },
+    {
+      "source": "/((?!api/|testimonials/|.*\\..*).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

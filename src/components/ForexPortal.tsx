@@ -86,15 +86,28 @@ export const ForexPortal: React.FC<ForexPortalProps> = ({ onBackToMain }) => {
 
       // 2. Fetch intraday candles for the selected pair (15m is recommended for session FVG sweeps)
       const encoded = encodeURIComponent(selectedPair.symbol);
-      const url = `/yahoo-api/v8/finance/chart/${encoded}?interval=${selectedInterval}&range=${dateRange}`;
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error(`Failed to fetch live quotes for ${selectedPair.displayName} (Status: ${res.status})`);
+      const urlCandidates = [
+        `/yahoo-api/v8/finance/chart/${encoded}?interval=${selectedInterval}&range=${dateRange}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${selectedPair.symbol}?interval=${selectedInterval}&range=${dateRange}`)}`,
+      ];
+
+      let raw: any = null;
+      for (const url of urlCandidates) {
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            const json = await res.json();
+            const r = json?.chart?.result?.[0];
+            if (r?.timestamp && r?.indicators?.quote?.[0]) {
+              raw = r;
+              break;
+            }
+          }
+        } catch (_) {}
       }
-      const json = await res.json();
-      const raw = json?.chart?.result?.[0];
-      if (!raw || !raw.timestamp || !raw.indicators?.quote?.[0]) {
-        throw new Error(`No historical quotes returned for ${selectedPair.displayName}`);
+
+      if (!raw) {
+        throw new Error(`Unable to fetch real-time Forex stream for ${selectedPair.displayName}. Please verify connection.`);
       }
 
       const timestamps = raw.timestamp;
