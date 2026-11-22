@@ -108,18 +108,21 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
         <div
           onClick={() => onNavigate('landing')}
           className="flex items-center gap-2.5 cursor-pointer overflow-hidden min-w-0 group"
-          title="Arthatix Platform"
+          title="Alltra Quantitative Platform"
           role="button"
           tabIndex={0}
           onKeyDown={(e) => e.key === 'Enter' && onNavigate('landing')}
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#1E40AF] via-[#2563EB] to-[#3B82F6] flex items-center justify-center text-white shadow-xs shrink-0 font-bold text-sm tracking-tighter">
-            <span className="text-white">A</span>
+          <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#021810] border border-[#10B981]/40 flex items-center justify-center shadow-xs shrink-0">
+            <img src="/alltra-icon.png" alt="Alltra" className="w-full h-full object-cover" />
           </div>
           {!isCollapsed && (
-            <div className="flex items-center gap-1 min-w-0">
-              <span className="font-bold text-[15px] text-[#0F172A] tracking-tight truncate">
-                Artha<span className="text-[#2563EB]">tix</span>
+            <div className="flex flex-col min-w-0">
+              <span className="font-extrabold text-[15px] text-[#0F172A] tracking-wider font-mono uppercase truncate">
+                ALLTRA
+              </span>
+              <span className="text-[9px] text-[#059669] font-mono tracking-widest font-semibold uppercase -mt-0.5">
+                SINCE 2026
               </span>
             </div>
           )}

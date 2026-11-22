@@ -399,12 +399,12 @@ export function App() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 font-mono text-[11px] text-[#64748B]">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
-              <span className="text-[#0F172A] font-semibold">Arthatix Quant Workstation</span>
+              <span className="text-[#0F172A] font-semibold">Alltra Quantitative Workstation</span>
               <span className="text-[#CBD5E1]">·</span>
               <span>Live Virtual &amp; Algorithmic Desks</span>
             </div>
             <div className="text-center sm:text-right text-[#94A3B8]">
-              Institutional Quantitative Engine · Real-time Exchange Feeds
+              Alltra Institutional Engine (Since 2026) · Real-time Exchange Feeds
             </div>
           </div>
         </footer>

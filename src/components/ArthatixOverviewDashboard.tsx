@@ -244,7 +244,7 @@ export const ArthatixOverviewDashboard: React.FC<ArthatixOverviewDashboardProps>
   ];
 
   const topLosers = constituents.losers.length > 0 ? constituents.losers : [
-    { symbol: 'TATAMOTORS', ltp: '₹782.20', change: '-1.18%', vol: '1.45 Cr', isPositive: false, name: 'Tata Motors', numericLtp: 782, numericChangePct: -1.18, turnover: '₹1.1k Cr', high: '₹795', low: '₹778' },
+    { symbol: 'TMPV', ltp: '₹266.35', change: '-1.18%', vol: '1.45 Cr', isPositive: false, name: 'Tata Motors PV', numericLtp: 266.35, numericChangePct: -1.18, turnover: '₹1.1k Cr', high: '₹272', low: '₹263' },
     { symbol: 'ITC', ltp: '₹478.10', change: '-0.82%', vol: '1.18 Cr', isPositive: false, name: 'ITC Limited', numericLtp: 478, numericChangePct: -0.82, turnover: '₹560 Cr', high: '₹484', low: '₹475' },
     { symbol: 'SBIN', ltp: '₹842.10', change: '-0.45%', vol: '2.48 Cr', isPositive: false, name: 'SBI', numericLtp: 842, numericChangePct: -0.45, turnover: '₹2.1k Cr', high: '₹849', low: '₹838' },
   ];

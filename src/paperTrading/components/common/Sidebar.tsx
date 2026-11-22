@@ -66,24 +66,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenReset }) => {
       {/* Brand & Monogram Header */}
       <div className="p-4 border-b border-[#D9E2F2] bg-[#F7F8FA]">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#00225A] flex items-center justify-center p-1.5 overflow-hidden shadow-xs">
+          <div className="w-9 h-9 rounded-xl bg-[#021810] border border-[#10B981]/40 flex items-center justify-center p-1 overflow-hidden shadow-xs">
             <img
-              src="https://lh3.googleusercontent.com/aida/ALJJyrDoYL4wVpXsoYtqmZkmWKJAcBOZgjR6a2u3D7pji-QCA1FXxyW_9ixEsJ_EqdIuHO3VuBvesBLo7yGqHV2rnx4bDVRyJydMU4uix9FmelUPL0wHTmmxuvG0o93CFcfmflbMIqzzl2nTZ59kuk6TnQQHRfFZxYglS5bz_oO3eHrmyLyPCEoju6CiVfP_EVZiFTGDu3oWTnesXXfL-Oyy6PZwXKIks9-rsoY_dLVzalD-vA"
-              alt="Apex Quant"
-              className="w-full h-full object-contain brightness-0 invert"
+              src="/alltra-icon.png"
+              alt="Alltra"
+              className="w-full h-full object-cover"
             />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-display text-base font-bold tracking-tight text-[#00225A]">
-                APEX QUANT
+              <span className="font-mono font-extrabold text-base tracking-wider text-[#00225A] uppercase">
+                ALLTRA
               </span>
-              <span className="text-[9px] font-mono font-bold tracking-widest text-[#00225A] bg-[#EEF3FF] border border-[#D9E2F2] px-1 py-0.2 rounded">
-                AQ
+              <span className="text-[9px] font-mono font-bold tracking-widest text-[#059669] bg-[#ECFDF5] border border-[#10B981]/30 px-1 py-0.2 rounded">
+                2026
               </span>
             </div>
-            <p className="text-[10px] text-[#6B7A90] uppercase tracking-wider font-semibold font-mono">
-              Paper Trading Desk
+            <p className="text-[10px] text-[#059669] uppercase tracking-wider font-semibold font-mono">
+              Institutional Desk
             </p>
           </div>
         </div>

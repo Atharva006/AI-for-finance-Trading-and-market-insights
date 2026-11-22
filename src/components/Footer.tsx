@@ -129,7 +129,7 @@ export const Footer: React.FC = () => {
         {/* Copyright */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#94A3B8]">
           <div>
-            © 2026 ARJUNA QUANT LABS. ALL QUANTITATIVE MODELS OPERATE IN-MEMORY FOR RESEARCH & DEMONSTRATION.
+            © 2026 ALLTRA QUANT LABS. ALL QUANTITATIVE MODELS OPERATE IN-MEMORY FOR RESEARCH & DEMONSTRATION.
           </div>
           <div className="flex items-center gap-4">
             <span className="hover:text-black cursor-pointer">TERMS</span>

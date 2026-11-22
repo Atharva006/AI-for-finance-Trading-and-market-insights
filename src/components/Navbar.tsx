@@ -141,16 +141,20 @@ export const Navbar: React.FC<NavbarProps> = ({
               e.preventDefault();
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="flex items-center gap-2 group cursor-pointer active:scale-95 transition-all"
+            className="flex items-center gap-2.5 group cursor-pointer active:scale-95 transition-all"
             aria-label="Back to top"
           >
-            <span className="font-devanagari text-2xl font-bold text-[#10B981] tracking-wider transition-transform duration-200 group-hover:scale-105">
-              अर्जुन
-            </span>
-            <div className="h-4 w-[1px] bg-gray-300" />
-            <span className="font-mono text-xs font-bold text-[#0A0A0D] tracking-widest uppercase">
-              · ARJUNA QUANT <span className="text-[#10B981] text-[10px]">v1.0</span>
-            </span>
+            <div className="w-7 h-7 rounded-lg bg-[#021810] border border-[#10B981]/40 flex items-center justify-center p-0.5 overflow-hidden shadow-xs">
+              <img src="/alltra-icon.png" alt="Alltra" className="w-full h-full object-cover" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-mono text-sm font-extrabold text-[#0A0A0D] tracking-wider uppercase">
+                ALLTRA
+              </span>
+              <span className="text-[9px] text-[#059669] font-mono tracking-widest font-semibold uppercase -mt-0.5">
+                SINCE 2026
+              </span>
+            </div>
           </a>
 
           <div className="hidden sm:block font-mono text-[10px] text-gray-400 ml-2">

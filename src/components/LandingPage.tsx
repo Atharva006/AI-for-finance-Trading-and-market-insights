@@ -27,15 +27,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     setOpenFaq((prev) => (prev === index ? null : index));
   };
 
-  const featuredStrat = activeStrategies.find((s) => s.id === 'algo-nifty-trend-pullback-chandelier') || activeStrategies[0];
+  const featuredStrat =
+    activeStrategies.find((s) => s.id === 'algo-nifty-trend-pullback-chandelier') || activeStrategies[0];
 
   const handleOpenStrategy = (targetIdOrCategory: string) => {
-    const match = activeStrategies.find(
-      (s) =>
-        s.id.toLowerCase().includes(targetIdOrCategory.toLowerCase()) ||
-        s.name.toLowerCase().includes(targetIdOrCategory.toLowerCase()) ||
-        s.category.toLowerCase().includes(targetIdOrCategory.toLowerCase())
-    ) || activeStrategies[0];
+    const match =
+      activeStrategies.find(
+        (s) =>
+          s.id.toLowerCase().includes(targetIdOrCategory.toLowerCase()) ||
+          s.name.toLowerCase().includes(targetIdOrCategory.toLowerCase()) ||
+          s.category.toLowerCase().includes(targetIdOrCategory.toLowerCase())
+      ) || activeStrategies[0];
 
     if (onSelectStrategy) {
       onSelectStrategy(match);
@@ -53,17 +55,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="flex items-center gap-space-lg">
             <span className="inline-flex items-center gap-space-sm text-on-surface">
               <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
-              NSE CASH: LIVE FEED
+              NSE CASH &amp; NFO: LIVE STREAM
             </span>
-            <span>LATENCY: 12ms (Direct NSE Stream)</span>
+            <span>LATENCY: 12ms (Direct Exchange Co-Lo)</span>
             <span>
-              NIFTY 50-EMA: <span className="text-bullish">72% Above</span>
+              NIFTY 50-EMA: <span className="text-bullish font-semibold">72% Above</span>
             </span>
             <span>
-              FII/DII FLOW: <span className="text-bullish">+₹2,827 Cr</span>
+              FII/DII FLOW: <span className="text-bullish font-semibold">+₹2,827 Cr</span>
             </span>
             <span>G-SEC (Rf): 6.50%</span>
             <span>GROQ LPU: 120B Quant</span>
+            <span>
+              BAR REPLAY: <span className="text-secondary font-semibold">5m / 15m / 30m / 1h / 1d Active</span>
+            </span>
           </div>
 
           <div className="flex items-center gap-space-md shrink-0">
@@ -86,14 +91,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Logo & Brand Identity */}
           <div
             onClick={() => onNavigateToView('landing')}
-            className="flex items-center gap-space-sm shrink-0 cursor-pointer select-none"
+            className="flex items-center gap-2.5 shrink-0 cursor-pointer select-none group"
+            title="Alltra Quantitative Platform"
           >
-            <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-sm tracking-tight shadow-xs">
-              AQ
+            <div className="w-9 h-9 rounded-xl bg-[#021810] border border-[#10B981]/40 flex items-center justify-center p-1 shadow-xs overflow-hidden group-hover:border-[#10B981] transition-colors">
+              <img src="/alltra-icon.png" alt="Alltra" className="w-full h-full object-cover" />
             </div>
-            <span className="font-title-md text-title-md text-on-surface tracking-tight lowercase">
-              apex quant
-            </span>
+            <div className="flex flex-col">
+              <span className="font-mono font-extrabold text-[16px] text-[#0F172A] tracking-wider uppercase leading-none">
+                ALLTRA
+              </span>
+              <span className="text-[9px] text-[#059669] font-mono tracking-widest font-semibold uppercase mt-0.5">
+                SINCE 2026
+              </span>
+            </div>
           </div>
 
           {/* Public Navigation Links */}
@@ -105,6 +116,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Overview
             </button>
             <button
+              onClick={() => onNavigateToView('barreplay')}
+              className="px-space-sm py-1.5 font-label-md text-label-md text-secondary font-semibold hover:text-secondary hover:bg-forex-tint rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <span className="material-symbols-outlined text-[16px]">history_toggle_off</span>
+              Bar Replay [15m Replay]
+            </button>
+            <button
               onClick={() => onNavigateToView('marketplace')}
               className="px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer"
             >
@@ -114,7 +132,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={() => onNavigateToView('backtest', featuredStrat)}
               className="px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer"
             >
-              Backtest Studio [Yahoo Daily]
+              Backtest Studio
             </button>
             <button
               onClick={() => onNavigateToView('insights')}
@@ -126,7 +144,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={() => onNavigateToView('forex')}
               className="px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer"
             >
-              NRI Forex Desk [EUR/GBP]
+              NRI Forex Desk
             </button>
             <button
               onClick={() => onNavigateToView('admin')}
@@ -139,10 +157,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Action CTAs */}
           <div className="flex items-center gap-space-sm shrink-0">
             <button
-              onClick={() => onNavigateToView('forex')}
-              className="hidden sm:inline-flex items-center px-space-sm py-1.5 rounded-lg bg-forex-tint border border-secondary text-secondary font-label-md text-label-md hover:bg-secondary hover:text-on-secondary transition-colors cursor-pointer"
+              onClick={() => onNavigateToView('barreplay')}
+              className="hidden sm:inline-flex items-center gap-1 px-space-sm py-1.5 rounded-lg bg-forex-tint border border-secondary text-secondary font-label-md text-label-md hover:bg-secondary hover:text-on-secondary transition-colors cursor-pointer"
             >
-              NRI / Forex Portal
+              <span className="material-symbols-outlined text-[16px]">play_circle</span>
+              Bar Replay
             </button>
             <button
               onClick={() => onNavigateToView('marketplace')}
@@ -151,11 +170,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Algorithms
             </button>
             <button
-              onClick={() => onNavigateToView('backtest', featuredStrat)}
+              onClick={() => onNavigateToView('overview')}
               className="inline-flex items-center gap-space-xs px-space-md py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors cursor-pointer shadow-xs active:scale-95"
             >
-              <span className="material-symbols-outlined text-[16px]">trending_up</span>
-              Launch Backtest
+              <span className="material-symbols-outlined text-[16px]">desktop_windows</span>
+              Launch Terminal
             </button>
 
             {/* User / Sign In Button */}
@@ -183,10 +202,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </header>
 
       {/* ── 1. MAIN CONTENT (Offset for fixed header) ── */}
-      <main className="w-full pt-24 px-margin bg-background flex-1">
-        <div className="flex flex-col w-full max-w-7xl mx-auto">
-          {/* ── 1. HERO SECTION (12-Column Grid) ── */}
-          <section className="w-full py-space-xl">
+      <main className="w-full pt-28 px-margin bg-background flex-1">
+        <div className="flex flex-col w-full max-w-7xl mx-auto gap-space-xl">
+          {/* ── HERO SECTION (12-Column Grid) ── */}
+          <section className="w-full pt-4">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
               {/* Left Column (7 cols): Value Proposition */}
               <div className="lg:col-span-7 flex flex-col justify-between gap-space-lg py-space-sm">
@@ -194,7 +213,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <div className="inline-flex items-center gap-space-sm self-start px-space-sm py-1 rounded-full bg-surface-container-low border border-border-subtle">
                     <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
                     <span className="font-mono-sm text-mono-sm text-on-surface-variant uppercase font-semibold">
-                      NSE &amp; NFO Systematic Desk
+                      ALLTRA QUANTITATIVE PLATFORM // SINCE 2026
                     </span>
                   </div>
 
@@ -203,7 +222,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </h1>
 
                   <p className="font-body-md text-body-md text-text-secondary max-w-2xl leading-relaxed">
-                    Performance analytics and systematic algorithm baskets for NSE equities and options. Zero emotional guesswork. Pure mathematical edge verified across historical market regimes.
+                    Performance analytics, candle-by-candle bar replay, and systematic algorithm execution for NSE equities, index derivatives, and global macro desks. Zero emotional guesswork. Pure mathematical edge verified across historical market regimes.
                   </p>
                 </div>
 
@@ -213,8 +232,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     onClick={() => onNavigateToView('overview')}
                     className="inline-flex items-center gap-space-sm px-space-lg py-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors shadow-sm cursor-pointer active:scale-95"
                   >
-                    <span>Open Dashboard</span>
+                    <span>Open Alltra Workstation</span>
                     <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  </button>
+
+                  <button
+                    onClick={() => onNavigateToView('barreplay')}
+                    className="inline-flex items-center gap-space-sm px-space-lg py-3 rounded-lg bg-forex-tint text-secondary border border-secondary font-label-md text-label-md hover:bg-secondary hover:text-white transition-colors shadow-sm cursor-pointer active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">candlestick_chart</span>
+                    <span>Bar Replay Studio</span>
                   </button>
 
                   <a
@@ -238,8 +265,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </span>
                   <span className="text-outline-variant">|</span>
                   <span className="inline-flex items-center gap-space-xs">
-                    <span className="text-text-muted">ORDERS:</span>
-                    <span className="text-on-surface font-semibold">Limit Orders Only</span>
+                    <span className="text-text-muted">EXECUTION:</span>
+                    <span className="text-on-surface font-semibold">Deterministic DMA</span>
                   </span>
                 </div>
               </div>
@@ -342,8 +369,84 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </section>
 
-          {/* ── 2. SECTION: 01 // Platform Architecture ── */}
-          <section className="w-full py-space-xl flex flex-col gap-space-lg">
+          {/* ── PHOTO SHOWCASE 1: THE ALLTRA TERMINAL WORKSTATION ── */}
+          <section className="w-full">
+            <div className="w-full rounded-2xl overflow-hidden border border-border-subtle shadow-xl bg-[#090D14] flex flex-col group">
+              {/* Terminal Window Header Bar */}
+              <div className="px-5 py-3.5 bg-[#0D1321] border-b border-[#1E293B] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-[#EF4444]" />
+                    <span className="w-3 h-3 rounded-full bg-[#F59E0B]" />
+                    <span className="w-3 h-3 rounded-full bg-[#10B981]" />
+                  </div>
+                  <div className="flex items-center gap-2 text-white font-semibold">
+                    <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+                    <span>ALLTRA QUANTITATIVE WORKSTATION // MULTI-DESK TERMINAL</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-[#94A3B8]">
+                  <span className="hidden sm:inline">NSE LIVE CO-LO: 12ms</span>
+                  <span className="hidden sm:inline">|</span>
+                  <span>GROQ LPU REASONING ACTIVE</span>
+                  <span className="hidden md:inline">|</span>
+                  <span className="text-[#10B981] font-semibold">NIFTY 50 CONSTITUENTS: 100% LIVE</span>
+                </div>
+              </div>
+
+              {/* High-Resolution Terminal Photo Preview */}
+              <div className="relative aspect-[16/9] max-h-[620px] w-full overflow-hidden bg-[#000000]">
+                <img
+                  src="/alltra-terminal-hero.jpg"
+                  alt="Alltra Institutional Quantitative Trading Terminal"
+                  className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.01]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#090D14] via-transparent to-transparent opacity-75" />
+
+                {/* Floating Interactive Badges */}
+                <div className="absolute bottom-6 left-6 right-6 flex flex-wrap items-end justify-between gap-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="bg-[#0D1321]/95 backdrop-blur-md border border-[#10B981]/50 rounded-xl px-4 py-2.5 flex items-center gap-3 shadow-xl">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-ping" />
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-[#94A3B8] uppercase font-mono">Execution Speed</span>
+                        <span className="text-xs font-mono font-bold text-white">NSE Direct Market Access (12ms)</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-[#0D1321]/95 backdrop-blur-md border border-[#38BDF8]/50 rounded-xl px-4 py-2.5 flex items-center gap-3 shadow-xl">
+                      <span className="material-symbols-outlined text-[#38BDF8] text-[18px]">candlestick_chart</span>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-[#94A3B8] uppercase font-mono">Candle-by-Candle</span>
+                        <span className="text-xs font-mono font-bold text-white">5m, 15m, 30m, 1h, 1d Bar Replay</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => onNavigateToView('barreplay')}
+                      className="px-4 py-2.5 rounded-xl bg-white/10 text-white font-mono text-xs font-bold hover:bg-white/20 backdrop-blur-md border border-white/20 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">play_circle</span>
+                      <span>OPEN BAR REPLAY</span>
+                    </button>
+
+                    <button
+                      onClick={() => onNavigateToView('overview')}
+                      className="px-5 py-2.5 rounded-xl bg-[#10B981] text-[#021810] font-mono text-xs font-bold hover:bg-[#34D399] transition-all shadow-lg shadow-[#10B981]/30 flex items-center gap-2 cursor-pointer active:scale-95"
+                    >
+                      <span>ENTER WORKSTATION</span>
+                      <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ── SECTION: 01 // PLATFORM ARCHITECTURE ── */}
+          <section className="w-full py-space-md flex flex-col gap-space-lg">
             <div className="flex flex-col gap-space-xs">
               <span className="font-mono-sm text-mono-sm text-text-muted uppercase font-semibold">
                 01 // Platform Architecture
@@ -410,12 +513,222 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </section>
 
-          {/* ── 3. SECTION: 02 // Algorithms & Baskets ── */}
-          <section className="w-full py-space-xl flex flex-col gap-space-lg" id="algorithms-section">
+          {/* ── PHOTO SHOWCASE 2: DEEP QUANTITATIVE ANALYTICS ── */}
+          <section className="w-full py-space-sm">
+            <div className="bg-surface-card rounded-2xl border border-border-subtle p-6 lg:p-8 shadow-sm flex flex-col lg:flex-row items-center gap-8">
+              {/* Left Column: Visual description */}
+              <div className="lg:w-1/2 flex flex-col gap-4">
+                <div className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-surface-container-low border border-border-subtle font-mono text-xs text-text-secondary">
+                  <span className="w-2 h-2 rounded-full bg-secondary" />
+                  <span>VECTORIZED RESEARCH &amp; MONTE CARLO</span>
+                </div>
+
+                <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-on-surface">
+                  Deep quantitative analytics, drawdown matrices &amp; equity curves.
+                </h2>
+
+                <p className="text-sm text-text-secondary leading-relaxed">
+                  Analyze strategy stress tests across bull runs, bear markets, and volatility spikes. Alltra calculates walk-forward returns, Sharpe/Sortino ratios, underwater drawdowns, and distribution frequencies across millions of simulated ticks.
+                </p>
+
+                <div className="grid grid-cols-2 gap-3 pt-2 font-mono text-xs">
+                  <div className="p-3 rounded-lg bg-surface-container-low border border-border-subtle">
+                    <span className="text-text-muted block text-[10px] uppercase">Transaction Friction</span>
+                    <span className="font-bold text-on-surface">SEBI / STT / Stamp Duty Modeled</span>
+                  </div>
+                  <div className="p-3 rounded-lg bg-surface-container-low border border-border-subtle">
+                    <span className="text-text-muted block text-[10px] uppercase">Walk-Forward Windows</span>
+                    <span className="font-bold text-on-surface">Out-of-Sample Validated</span>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    onClick={() => onNavigateToView('backtest', featuredStrat)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-mono text-xs font-semibold hover:bg-primary-container transition-colors shadow-xs"
+                  >
+                    <span>LAUNCH BACKTEST SUITE</span>
+                    <span className="material-symbols-outlined text-[16px]">trending_up</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Right Column: High-Res Analytics Photo */}
+              <div className="lg:w-1/2 w-full rounded-xl overflow-hidden border border-border-subtle shadow-md group">
+                <img
+                  src="/alltra-quant-analytics.jpg"
+                  alt="Alltra Quantitative Analytics & Strategy Engineering"
+                  className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* ── SECTION: 02 // CANDLE-BY-CANDLE BAR REPLAY ENGINE ── */}
+          <section className="w-full py-space-sm">
+            <div className="bg-surface-card rounded-2xl border border-secondary/20 p-6 lg:p-8 shadow-sm flex flex-col lg:flex-row-reverse items-center gap-8">
+              {/* Right Column: Visual description */}
+              <div className="lg:w-1/2 flex flex-col gap-4">
+                <div className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-forex-tint border border-secondary/40 font-mono text-xs text-secondary font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                  <span>ZERO-LOOKAHEAD BAR REPLAY STUDIO</span>
+                </div>
+
+                <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-on-surface">
+                  Step candle-by-candle through real market history.
+                </h2>
+
+                <p className="text-sm text-text-secondary leading-relaxed">
+                  Practice discretionary execution or test systematic order fills with authentic TradingView charts. Rewind time on any of the 50 NIFTY 50 constituent stocks, draw trendlines and order-block zones, and execute simulated Long/Short trades with automated SL/TP risk enforcement.
+                </p>
+
+                <div className="grid grid-cols-3 gap-2 pt-2 font-mono text-xs">
+                  <div className="p-2.5 rounded-lg bg-surface-container-low border border-border-subtle text-center">
+                    <span className="text-[10px] text-text-muted uppercase block">Timeframes</span>
+                    <span className="font-bold text-on-surface">5m · 15m · 30m · 1h · 1d</span>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-surface-container-low border border-border-subtle text-center">
+                    <span className="text-[10px] text-text-muted uppercase block">Draw Tools</span>
+                    <span className="font-bold text-on-surface">Ray · Zone · Trend</span>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-surface-container-low border border-border-subtle text-center">
+                    <span className="text-[10px] text-text-muted uppercase block">Constituents</span>
+                    <span className="font-bold text-on-surface">All 50 NIFTY Stocks</span>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    onClick={() => onNavigateToView('barreplay')}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-secondary text-white font-mono text-xs font-semibold hover:bg-secondary/90 transition-colors shadow-xs"
+                  >
+                    <span>OPEN BAR REPLAY STUDIO</span>
+                    <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Left Column: Visual Showcase Photo / Interactive Mockup */}
+              <div className="lg:w-1/2 w-full rounded-xl overflow-hidden border border-border-subtle shadow-md bg-[#0F172A] p-4 text-white font-mono text-xs flex flex-col gap-3">
+                <div className="flex items-center justify-between border-b border-[#334155] pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-sm text-[#38BDF8]">RELIANCE.NS</span>
+                    <span className="px-1.5 py-0.5 rounded bg-[#1E293B] text-[10px] text-[#94A3B8]">15m CANDLE</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[11px] text-[#94A3B8]">
+                    <span>REPLAY: BAR 84/375</span>
+                    <span className="text-[#10B981] font-bold">PNL: +₹14,250.00</span>
+                  </div>
+                </div>
+
+                {/* Simulated Chart Viewport with Candlesticks */}
+                <div className="h-44 w-full bg-[#0B0F17] rounded-lg p-2 flex flex-col justify-between relative overflow-hidden">
+                  <div className="absolute inset-x-0 top-1/2 h-[1px] border-b border-dashed border-[#1E293B]" />
+                  <div className="absolute inset-x-0 top-1/4 h-[1px] border-b border-dashed border-[#10B981]/30">
+                    <span className="text-[9px] text-[#10B981] bg-[#0B0F17] px-1 float-right">TP: ₹2,980.00</span>
+                  </div>
+                  <div className="absolute inset-x-0 bottom-1/4 h-[1px] border-b border-dashed border-[#EF4444]/30">
+                    <span className="text-[9px] text-[#EF4444] bg-[#0B0F17] px-1 float-right">SL: ₹2,910.00</span>
+                  </div>
+
+                  {/* Trendline Canvas Overlay Simulation */}
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                    <line x1="20" y1="120" x2="340" y2="40" stroke="#38BDF8" strokeWidth="2" strokeDasharray="3 3" />
+                    <rect x="140" y="55" width="120" height="25" fill="#10B981" fillOpacity="0.12" stroke="#10B981" strokeWidth="1" strokeDasharray="2 2" />
+                  </svg>
+
+                  <div className="flex items-end justify-between h-full pt-4 pb-2 z-10 px-2">
+                    {[
+                      { h: 40, c: '#10B981' }, { h: 55, c: '#10B981' }, { h: 48, c: '#EF4444' }, { h: 65, c: '#10B981' },
+                      { h: 72, c: '#10B981' }, { h: 60, c: '#EF4444' }, { h: 80, c: '#10B981' }, { h: 90, c: '#10B981' },
+                      { h: 82, c: '#EF4444' }, { h: 105, c: '#10B981' }, { h: 110, c: '#10B981' }, { h: 98, c: '#EF4444' },
+                    ].map((bar, i) => (
+                      <div key={i} className="flex flex-col items-center">
+                        <div className="w-[1px] h-3 bg-white/40" />
+                        <div
+                          style={{ height: `${bar.h}px`, backgroundColor: bar.c }}
+                          className="w-3 rounded-xs shadow-xs"
+                        />
+                        <div className="w-[1px] h-2 bg-white/40" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Replay Controls Toolbar */}
+                <div className="flex items-center justify-between pt-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="px-2 py-1 rounded bg-[#1E293B] text-[10px] text-white font-semibold">0.5x</span>
+                    <span className="px-2 py-1 rounded bg-[#10B981] text-[10px] text-[#021810] font-bold">1x</span>
+                    <span className="px-2 py-1 rounded bg-[#1E293B] text-[10px] text-white font-semibold">2x</span>
+                    <span className="px-2 py-1 rounded bg-[#1E293B] text-[10px] text-white font-semibold">5x</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-[#94A3B8]">STEP FORWARD [➔]</span>
+                    <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ── PHOTO SHOWCASE 3: MULTI-ASSET & GLOBAL FOREX DESK ── */}
+          <section className="w-full py-space-sm">
+            <div className="bg-surface-card rounded-2xl border border-border-subtle p-6 lg:p-8 shadow-sm flex flex-col lg:flex-row items-center gap-8">
+              {/* Left Column: Visual description */}
+              <div className="lg:w-1/2 flex flex-col gap-4">
+                <div className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-forex-tint border border-secondary/30 font-mono text-xs text-secondary font-semibold">
+                  <span className="material-symbols-outlined text-[16px]">public</span>
+                  <span>GLOBAL NRI &amp; MULTI-ASSET ROUTING</span>
+                </div>
+
+                <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-on-surface">
+                  Institutional multi-asset desks: Equities, Derivatives, Forex &amp; MCX.
+                </h2>
+
+                <p className="text-sm text-text-secondary leading-relaxed">
+                  Seamlessly bridge domestic Indian exchanges with international liquidity. Alltra supports non-resident Indian (NRI) account routing, EUR/GBP algorithmic currency pairs, and automated Fair Value Gap (FVG) execution.
+                </p>
+
+                <div className="grid grid-cols-2 gap-3 pt-2 font-mono text-xs">
+                  <div className="p-3 rounded-lg bg-surface-container-low border border-border-subtle">
+                    <span className="text-text-muted block text-[10px] uppercase">Cross-Border Compliance</span>
+                    <span className="font-bold text-on-surface">SEBI / FEMA Regulated Desks</span>
+                  </div>
+                  <div className="p-3 rounded-lg bg-surface-container-low border border-border-subtle">
+                    <span className="text-text-muted block text-[10px] uppercase">Liquidity Model</span>
+                    <span className="font-bold text-on-surface">Fair Value Gap &amp; Order Blocks</span>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    onClick={() => onNavigateToView('forex')}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-mono text-xs font-semibold hover:bg-primary-container transition-colors shadow-xs"
+                  >
+                    <span>EXPLORE NRI FOREX PORTAL</span>
+                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Right Column: Multi-Asset High-Res Photo */}
+              <div className="lg:w-1/2 w-full rounded-xl overflow-hidden border border-border-subtle shadow-md group">
+                <img
+                  src="/alltra-multi-asset.jpg"
+                  alt="Alltra Multi-Asset Global Institutional Desk"
+                  className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* ── SECTION: 03 // ALGORITHMS & BASKETS ── */}
+          <section className="w-full py-space-lg flex flex-col gap-space-lg" id="algorithms-section">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
               <div className="flex flex-col gap-space-xs">
                 <span className="font-mono-sm text-mono-sm text-text-muted uppercase font-semibold">
-                  02 // Algorithms &amp; Baskets
+                  03 // Systematic Strategies &amp; Baskets
                 </span>
                 <h2 className="font-headline-md text-headline-md text-on-surface">
                   Systematic strategies across market regimes.
@@ -423,7 +736,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
 
               {/* Segmented Control */}
-              <div className="inline-flex p-1 rounded-lg bg-surface-container-low self-start md:self-auto border border-border-subtle" role="tablist">
+              <div
+                className="inline-flex p-1 rounded-lg bg-surface-container-low self-start md:self-auto border border-border-subtle"
+                role="tablist"
+              >
                 <button
                   onClick={() => setAlgoTab('trading')}
                   className={`px-space-md py-2 rounded-md font-label-md text-label-md transition-all cursor-pointer ${
@@ -738,11 +1054,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             )}
           </section>
 
-          {/* ── 4. SECTION: 03 // Operational Specifications (FAQ) ── */}
-          <section className="w-full py-space-xl flex flex-col gap-space-lg">
+          {/* ── SECTION: 04 // OPERATIONAL SPECIFICATIONS (FAQ) ── */}
+          <section className="w-full py-space-md flex flex-col gap-space-lg">
             <div className="flex flex-col gap-space-xs">
               <span className="font-mono-sm text-mono-sm text-text-muted uppercase font-semibold">
-                03 // Operational Specifications
+                04 // Operational Specifications
               </span>
               <h2 className="font-headline-md text-headline-md text-on-surface">
                 Frequently Asked Questions
@@ -758,7 +1074,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   type="button"
                 >
                   <span className="font-title-md text-title-md text-on-surface font-semibold">
-                    How does paper execution work before deploying live capital?
+                    How does the Alltra Bar Replay engine prevent lookahead bias?
                   </span>
                   <span
                     className="material-symbols-outlined text-on-surface-variant transition-transform duration-200"
@@ -770,7 +1086,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 {openFaq === 1 && (
                   <div className="px-space-lg pb-space-md border-t border-surface-container-low pt-3">
                     <p className="font-body-sm text-body-sm text-text-secondary leading-relaxed">
-                      Paper execution runs against the live NSE tick stream with simulated limit-order queue positioning. You can validate fill rates, intraday MTM swings, and webhook latency in real time without risking capital.
+                      Alltra stores the full historical dataset in memory and uses a strict pointer `allCandles.slice(0, currentIndex + 1)`. When stepping candle-by-candle, future bars are completely invisible to both chart rendering and simulated risk evaluation, ensuring zero lookahead bias.
                     </p>
                   </div>
                 )}
@@ -784,7 +1100,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   type="button"
                 >
                   <span className="font-title-md text-title-md text-on-surface font-semibold">
-                    What is the difference between Trading Algorithms and Investment &amp; Wealth Algos?
+                    How does paper execution work before deploying live capital?
                   </span>
                   <span
                     className="material-symbols-outlined text-on-surface-variant transition-transform duration-200"
@@ -796,7 +1112,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 {openFaq === 2 && (
                   <div className="px-space-lg pb-space-md border-t border-surface-container-low pt-3">
                     <p className="font-body-sm text-body-sm text-text-secondary leading-relaxed">
-                      Trading Algorithms operate on intraday and positional index derivatives (NIFTY, BANKNIFTY, FINNIFTY) with higher turnover and strict daily stop-losses. Investment &amp; Wealth Algos rebalance NSE cash-equity baskets and ETFs weekly or monthly with capital requirements below ₹1.1L.
+                      Paper execution runs against the live NSE tick stream with simulated limit-order queue positioning. You can validate fill rates, intraday MTM swings, and webhook latency in real time without risking capital.
                     </p>
                   </div>
                 )}
@@ -864,7 +1180,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <span>SEBI &amp; FEMA Statutory Disclaimer</span>
               </div>
               <p className="font-body-sm text-body-sm text-text-muted leading-relaxed">
-                Investments in securities market are subject to market risks. Read all the related documents carefully before investing. Past performance is not indicative of future returns. Backtested results are hypothetical and based on historical NSE tick archives; live execution may vary due to liquidity and exchange latency. Apex Quant Research Workstation is a quantitative analytics and systematic execution interface.
+                Investments in securities market are subject to market risks. Read all the related documents carefully before investing. Past performance is not indicative of future returns. Backtested results are hypothetical and based on historical NSE tick archives; live execution may vary due to liquidity and exchange latency. Alltra Quantitative Platform (Since 2026) is an institutional quantitative analytics and systematic execution interface.
               </p>
             </div>
           </section>
@@ -872,17 +1188,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </main>
 
       {/* ── 6. PUBLIC FOOTER ── */}
-      <footer className="w-full bg-surface-card border-t border-border-subtle px-margin py-space-sm mt-auto">
+      <footer className="w-full bg-surface-card border-t border-border-subtle px-margin py-4 mt-auto">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-space-sm font-mono-sm text-mono-sm text-text-muted">
           <div className="flex items-center gap-space-sm">
-            <span className="w-2 h-2 rounded-full bg-bullish" />
+            <div className="w-5 h-5 rounded-md bg-[#021810] border border-[#10B981]/40 flex items-center justify-center p-0.5 overflow-hidden">
+              <img src="/alltra-icon.png" alt="Alltra" className="w-full h-full object-cover" />
+            </div>
+            <span className="font-mono font-bold text-on-surface">ALLTRA</span>
+            <span className="text-[10px] text-bullish font-semibold">SINCE 2026</span>
+            <span className="text-outline-variant">|</span>
             <span>Real Bar-by-Bar Vectorized Quantitative Backtesting</span>
           </div>
           <div>
             Institutional Systematic Strategy Engineering · Multi-Asset Portfolio Allocation
           </div>
           <div>
-            Apex Quant Research Workstation
+            © 2026 ALLTRA QUANT LABS. All Rights Reserved.
           </div>
         </div>
       </footer>

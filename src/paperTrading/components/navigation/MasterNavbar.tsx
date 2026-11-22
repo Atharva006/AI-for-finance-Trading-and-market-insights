@@ -96,22 +96,22 @@ export const MasterNavbar: React.FC<MasterNavbarProps> = ({
             to="/dashboard"
             className="flex items-center gap-2.5 group transition-transform active:scale-[0.98] shrink-0"
           >
-            <div className="w-8 h-8 rounded-xl bg-[#00225A] flex items-center justify-center p-1.5 shadow-sm shadow-[#00225A]/15 group-hover:bg-[#536CF0] transition-colors">
+            <div className="w-8 h-8 rounded-xl bg-[#021810] border border-[#10B981]/40 flex items-center justify-center p-1 shadow-sm shadow-[#10B981]/15 group-hover:border-[#10B981] transition-colors overflow-hidden">
               <img
-                src="https://lh3.googleusercontent.com/aida/ALJJyrDoYL4wVpXsoYtqmZkmWKJAcBOZgjR6a2u3D7pji-QCA1FXxyW_9ixEsJ_EqdIuHO3VuBvesBLo7yGqHV2rnx4bDVRyJydMU4uix9FmelUPL0wHTmmxuvG0o93CFcfmflbMIqzzl2nTZ59kuk6TnQQHRfFZxYglS5bz_oO3eHrmyLyPCEoju6CiVfP_EVZiFTGDu3oWTnesXXfL-Oyy6PZwXKIks9-rsoY_dLVzalD-vA"
-                alt="Apex Quant"
-                className="w-full h-full object-contain brightness-0 invert"
+                src="/alltra-icon.png"
+                alt="Alltra"
+                className="w-full h-full object-cover"
               />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className="font-headline font-bold text-sm tracking-tight text-[#00225A] whitespace-nowrap">
-                  APEX QUANT
+                <span className="font-mono font-extrabold text-sm tracking-wider text-[#00225A] whitespace-nowrap uppercase">
+                  ALLTRA
                 </span>
                 <span className="w-2 h-2 rounded-full bg-[#12B76A] animate-pulse" title="Live Exchange Feeds Active" />
               </div>
-              <span className="text-[9px] font-mono tracking-wider text-[#6B7A90] font-semibold uppercase whitespace-nowrap">
-                PAPER TRADING DESK
+              <span className="text-[9px] font-mono tracking-widest text-[#059669] font-semibold uppercase whitespace-nowrap">
+                SINCE 2026
               </span>
             </div>
           </NavLink>
