@@ -81,6 +81,14 @@ export const AdminStrategyPortal: React.FC<AdminStrategyPortalProps> = ({
   const [isCompiling, setIsCompiling] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  const handleDeleteAlgorithm = (strat: AlgoStrategy) => {
+    onDeleteStrategy(strat.id);
+    setSuccessMessage(`Algorithm "${strat.name}" deleted successfully.`);
+    setTimeout(() => {
+      setSuccessMessage((prev) => (prev?.includes(strat.name) ? null : prev));
+    }, 4000);
+  };
+
   useEffect(() => {
     fetchAllNseStocks().then((stocks) => {
       setAllStocks(stocks);
@@ -355,9 +363,14 @@ export const AdminStrategyPortal: React.FC<AdminStrategyPortalProps> = ({
                         <span>Test</span>
                       </button>
                       <button
-                        onClick={() => onDeleteStrategy(strat.id)}
-                        className="p-1.5 rounded-lg text-text-muted hover:text-bearish hover:bg-bearish-tint transition-colors cursor-pointer"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteAlgorithm(strat);
+                        }}
+                        className="p-1.5 rounded-lg text-text-muted hover:text-bearish hover:bg-bearish-tint transition-colors cursor-pointer active:scale-95"
                         title="Delete Algorithm"
+                        aria-label={`Delete ${strat.name}`}
                       >
                         <span className="material-symbols-outlined text-[16px]">delete</span>
                       </button>
