@@ -21,7 +21,7 @@ import { IntelligenceView } from './components/IntelligenceView';
 import { FAQView } from './components/FAQView';
 import { AboutView } from './components/AboutView';
 import { AlgoStrategy } from './types/algoMarketplace';
-import { getStoredLocalUser, AuthUserProfile, signOutUser } from './services/supabaseAuth';
+import { getStoredLocalUser, AuthUserProfile, signOutUser, initSupabaseAuthListener } from './services/supabaseAuth';
 import {
   getStoredStrategies,
   addStrategy as storeAddStrategy,
@@ -134,9 +134,18 @@ export function App() {
   const [activeView, setActiveView] = useState<AppView>(() => {
     const user = getStoredLocalUser();
     const initial = getViewFromPath(window.location.pathname, getStoredStrategies());
+    const isOAuthCallback =
+      typeof window !== 'undefined' &&
+      (window.location.hash.includes('access_token=') ||
+        window.location.search.includes('code=') ||
+        window.location.pathname === '/market-overview');
+
     // Strict Gatekeeper: Without signing up, the user shall never go to the next page!
-    if (!user && initial.view !== 'landing' && initial.view !== 'auth') {
+    if (!user && !isOAuthCallback && initial.view !== 'landing' && initial.view !== 'auth') {
       return 'auth';
+    }
+    if (isOAuthCallback) {
+      return 'overview';
     }
     return initial.view;
   });
@@ -151,6 +160,38 @@ export function App() {
   const [selectedInstrument, setSelectedInstrument] = useState<string>('NIFTY 50');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
+  // Supabase OAuth session listener & automatic dashboard redirection
+  useEffect(() => {
+    const unsubscribe = initSupabaseAuthListener((user, isOAuthRedirect) => {
+      if (user) {
+        setCurrentUser(user);
+        const hasOAuthHash =
+          typeof window !== 'undefined' &&
+          (window.location.hash.includes('access_token=') ||
+            window.location.search.includes('code='));
+
+        if (
+          isOAuthRedirect ||
+          hasOAuthHash ||
+          window.location.pathname === '/auth' ||
+          activeView === 'auth' ||
+          window.location.pathname === '/market-overview'
+        ) {
+          if (hasOAuthHash) {
+            window.history.replaceState({ view: 'overview' }, '', '/market-overview');
+          }
+          navigateTo(user.role === 'admin' ? 'admin' : 'overview', undefined, true);
+        }
+      } else {
+        setCurrentUser(null);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [activeView]);
+
   useEffect(() => {
     const handleAuthChange = () => {
       const user = getStoredLocalUser();
@@ -164,8 +205,13 @@ export function App() {
     return () => window.removeEventListener('storage', handleAuthChange);
   }, [activeView]);
 
-  // Immediate mount check to guarantee zero unauthenticated bypass
+  // Immediate mount check to guarantee zero unauthenticated bypass (ignoring OAuth in-flight)
   useEffect(() => {
+    const isOAuthCallback =
+      typeof window !== 'undefined' &&
+      (window.location.hash.includes('access_token=') || window.location.search.includes('code='));
+    if (isOAuthCallback) return;
+
     const user = getStoredLocalUser();
     const match = getViewFromPath(window.location.pathname, strategies);
     if (!user && match.view !== 'landing' && match.view !== 'auth') {

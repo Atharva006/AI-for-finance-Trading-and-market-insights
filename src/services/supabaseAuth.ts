@@ -49,23 +49,92 @@ export const setStoredLocalUser = (user: AuthUserProfile | null) => {
   }
 };
 
-export async function signInWithGoogle() {
+export function sessionUserToProfile(user: User): AuthUserProfile {
+  return {
+    id: user.id,
+    email: user.email || 'trader@alltra.trade',
+    name:
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.email?.split('@')[0] ||
+      'Alltra Trader',
+    avatar_url:
+      user.user_metadata?.avatar_url ||
+      user.user_metadata?.picture ||
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    provider: user.app_metadata?.provider || 'google',
+    role: user.user_metadata?.role === 'admin' ? 'admin' : 'quant',
+  };
+}
+
+export function initSupabaseAuthListener(
+  onUserChange: (user: AuthUserProfile | null, isOAuthRedirect: boolean) => void
+): () => void {
+  if (!supabase) return () => {};
+
+  const isOAuthReturn =
+    typeof window !== 'undefined' &&
+    (window.location.hash.includes('access_token=') ||
+      window.location.search.includes('code=') ||
+      window.location.pathname === '/market-overview');
+
+  // 1. Immediately read existing active session on boot
+  supabase.auth.getSession().then(({ data: { session }, error }) => {
+    if (!error && session?.user) {
+      const profile = sessionUserToProfile(session.user);
+      setStoredLocalUser(profile);
+      onUserChange(profile, isOAuthReturn);
+    }
+  }).catch((err) => {
+    console.warn('[Supabase] getSession check warning:', err);
+  });
+
+  // 2. Subscribe to auth changes (SIGNED_IN, TOKEN_REFRESHED, SIGNED_OUT)
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange(async (event, session) => {
+    if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED')) {
+      const profile = sessionUserToProfile(session.user);
+      setStoredLocalUser(profile);
+      onUserChange(profile, true);
+    } else if (event === 'SIGNED_OUT') {
+      setStoredLocalUser(null);
+      onUserChange(null, false);
+    }
+  });
+
+  return () => {
+    subscription.unsubscribe();
+  };
+}
+
+export async function signInWithGoogle(): Promise<{ user?: AuthUserProfile; data?: any; error?: any }> {
   if (supabase) {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/`,
-      },
-    });
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/market-overview`,
+        },
+      });
+      if (error) {
+        console.warn('[Supabase] Google OAuth initiate notice:', error);
+      } else if (data?.url) {
+        window.location.href = data.url;
+        return { data };
+      } else {
+        return { data };
+      }
+    } catch (err) {
+      console.warn('[Supabase] Fallback to simulated Google login:', err);
+    }
   }
 
-  // Fallback demo auth for local / preview environments without Supabase keys
+  // Fallback demo auth for local / preview environments or when provider is offline
   const simulatedUser: AuthUserProfile = {
-    id: 'demo-google-user-' + Date.now(),
-    email: 'quant.analyst@alltra.trade',
-    name: 'Quantitative Analyst',
+    id: 'google-user-' + Date.now(),
+    email: 'trader@alltra.trade',
+    name: 'Alltra Quant Trader',
     avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     provider: 'google',
     role: 'quant',

@@ -67,25 +67,23 @@ export const IntelligenceView: React.FC = () => {
       {/* ── Top Minimal Header Bar ── */}
       <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0] mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-white border border-[#E2E8F0] flex items-center justify-center shadow-xs">
-            <Sparkles className="w-4 h-4 text-[#2563EB]" />
-          </div>
-          <div>
-            <h1 className="text-sm font-bold text-[#0F172A] leading-none">ALLTRA Intelligence</h1>
-            <span className="text-[11px] text-[#64748B]">Macroeconomic &amp; Market Research</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-[#E2E8F0] shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
+            <span className="text-xs font-semibold text-[#0F172A]">Alltra Intelligence 4o</span>
+            <span className="text-[10px] text-[#94A3B8]">▾</span>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <button
             onClick={handleNewChat}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1] text-[#0F172A] text-xs font-medium hover:bg-[#F1F5F9] transition-colors shadow-xs active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black text-white text-xs font-medium hover:bg-[#1E293B] transition-colors shadow-xs active:scale-95 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>New Chat</span>
+            <span>+ New Chat</span>
           </button>
 
-          <div className="w-8 h-8 rounded-full bg-[#0F172A] text-white flex items-center justify-center font-bold text-xs">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#3B82F6] to-[#8B5CF6] text-white flex items-center justify-center font-bold text-xs shadow-xs">
             {userName.charAt(0)}
           </div>
         </div>
@@ -98,7 +96,7 @@ export const IntelligenceView: React.FC = () => {
           {/* Soft Glowing Pearl / Orb */}
           <div className="relative mb-6">
             <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#93C5FD] via-[#C4B5FD] to-[#E0E7FF] shadow-lg shadow-blue-200/50 flex items-center justify-center animate-pulse">
-              <div className="w-10 h-10 rounded-full bg-white/60 backdrop-blur-xs" />
+              <div className="w-10 h-10 rounded-full bg-white/70 backdrop-blur-xs" />
             </div>
           </div>
 
@@ -118,32 +116,49 @@ export const IntelligenceView: React.FC = () => {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Initiate a query or ask about markets, news, or geopolitics..."
+              placeholder="✦ Initiate a query or send a command to the AI..."
               className="w-full resize-none text-xs sm:text-sm font-sans text-[#0F172A] placeholder:text-[#94A3B8] outline-none bg-transparent"
             />
 
             <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#F1F5F9]">
               {/* Quick Pills */}
               <div className="flex flex-wrap items-center gap-1.5">
-                {quickPills.map((pill, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleSendMessage(pill.prompt)}
-                    className="px-2.5 py-1 rounded-lg bg-[#F8FAFC] hover:bg-[#EFF6FF] border border-[#E2E8F0] hover:border-[#BFDBFE] text-[11px] text-[#475569] hover:text-[#1E40AF] transition-colors cursor-pointer"
-                  >
-                    {pill.label}
-                  </button>
-                ))}
+                <button
+                  onClick={() => handleSendMessage('Perform deep reasoning on how current Middle East tensions impact crude oil prices and Indian inflation.')}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F8FAFC] hover:bg-[#EFF6FF] border border-[#E2E8F0] hover:border-[#BFDBFE] text-[11px] text-[#475569] hover:text-[#1E40AF] transition-colors cursor-pointer"
+                >
+                  <Sparkles className="w-3 h-3 text-[#2563EB]" />
+                  <span>Reasoning</span>
+                </button>
+                <button
+                  onClick={() => handleSendMessage('Create a quantitative market hedge strategy for high volatility regimes.')}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F8FAFC] hover:bg-[#EFF6FF] border border-[#E2E8F0] hover:border-[#BFDBFE] text-[11px] text-[#475569] hover:text-[#1E40AF] transition-colors cursor-pointer"
+                >
+                  <TrendingUp className="w-3 h-3 text-[#10B981]" />
+                  <span>Create Strategy</span>
+                </button>
+                <button
+                  onClick={() => handleSendMessage('Initiate deep research on historical correlation between US Dollar index (DXY) and Indian IT/Banking sectors.')}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F8FAFC] hover:bg-[#EFF6FF] border border-[#E2E8F0] hover:border-[#BFDBFE] text-[11px] text-[#475569] hover:text-[#1E40AF] transition-colors cursor-pointer"
+                >
+                  <Compass className="w-3 h-3 text-[#8B5CF6]" />
+                  <span>Deep Research</span>
+                </button>
               </div>
 
-              {/* Submit Button */}
-              <button
-                onClick={() => handleSendMessage()}
-                disabled={isLoading || !inputText.trim()}
-                className="w-8 h-8 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-[#CBD5E1] text-white flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
-              >
-                <ArrowUp className="w-4 h-4" />
-              </button>
+              {/* Submit & Token Counter */}
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-md bg-[#F1F5F9] text-[10px] font-mono text-[#64748B]">
+                  {inputText.length}
+                </span>
+                <button
+                  onClick={() => handleSendMessage()}
+                  disabled={isLoading || !inputText.trim()}
+                  className="w-8 h-8 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-[#CBD5E1] text-white flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+                >
+                  <ArrowUp className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

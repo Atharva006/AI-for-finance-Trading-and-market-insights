@@ -47,7 +47,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigateHome, onAuthSucces
   };
 
   const handleGoogleLogin = async () => {
-    await signInWithGoogle();
+    try {
+      const res = await signInWithGoogle();
+      if (res?.user) {
+        onAuthSuccess?.(res.user);
+      }
+    } catch (err: any) {
+      console.error('Google sign-in error:', err);
+    }
   };
 
   const handleAdminQuickLogin = async () => {
