@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getStoredLocalUser, signOutUser, AuthUserProfile } from '../services/supabaseAuth';
 
-export type AppView = 'landing' | 'overview' | 'papertrading' | 'heatmap' | 'marketplace' | 'backtest' | 'flow' | 'detail' | 'admin' | 'insights' | 'auth' | 'forex';
+export type AppView = 'landing' | 'overview' | 'papertrading' | 'heatmap' | 'marketplace' | 'backtest' | 'flow' | 'detail' | 'admin' | 'insights' | 'auth' | 'forex' | 'barreplay';
 
 interface DhanNavbarProps {
   activeView: AppView;

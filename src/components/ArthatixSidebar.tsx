@@ -78,6 +78,7 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
       items: [
         { id: 'marketplace', label: 'Algo Marketplace', view: 'marketplace' },
         { id: 'backtest', label: 'Backtest Studio', view: 'backtest' },
+        { id: 'barreplay', label: 'Bar Replay Studio', view: 'barreplay', badge: '15m' },
         { id: 'forex', label: 'FVG Trading Desk', view: 'forex', badge: 'v5' },
       ],
     },

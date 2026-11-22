@@ -16,6 +16,7 @@ import { TradingViewHeatmapSection } from './components/TradingViewHeatmapSectio
 import { ArthatixSidebar } from './components/ArthatixSidebar';
 import { ArthatixTopHeader } from './components/ArthatixTopHeader';
 import { ArthatixOverviewDashboard } from './components/ArthatixOverviewDashboard';
+import { BarReplayStudio } from './components/BarReplayStudio';
 import { AlgoStrategy } from './types/algoMarketplace';
 import { getStoredLocalUser, AuthUserProfile, signOutUser } from './services/supabaseAuth';
 import {
@@ -64,6 +65,9 @@ function getViewFromPath(pathname: string, strategies: AlgoStrategy[]): { view: 
   if (cleanPath === '/auth' || cleanPath === '/sign-in') {
     return { view: 'auth', strategy: null };
   }
+  if (cleanPath === '/bar-replay' || cleanPath === '/bar-replay-studio') {
+    return { view: 'barreplay', strategy: null };
+  }
   
   return { view: 'landing', strategy: null };
 }
@@ -94,6 +98,8 @@ function getPathForView(view: AppView, strategy?: AlgoStrategy | null): string {
       return '/forex';
     case 'auth':
       return '/auth';
+    case 'barreplay':
+      return '/bar-replay';
     default:
       return '/';
   }
@@ -231,7 +237,7 @@ export function App() {
         )}
 
         {/* Main View Router */}
-        <main className={`flex-1 flex flex-col w-full ${isLandingView || activeView === 'papertrading' ? 'p-0' : 'px-4 pt-4 pb-2 sm:px-6 sm:pt-6 sm:pb-3'}`}>
+        <main className={`flex-1 flex flex-col w-full ${isLandingView || activeView === 'papertrading' || activeView === 'barreplay' ? 'p-0' : 'px-4 pt-4 pb-2 sm:px-6 sm:pt-6 sm:pb-3'}`}>
           <div key={activeView} className="animate-view flex-1 flex flex-col w-full">
             {activeView === 'landing' && (
               <LandingPage
@@ -257,6 +263,11 @@ export function App() {
                   navigateTo('backtest');
                 }}
               />
+            )}
+
+            {/* Candle-by-Candle Bar Replay Studio */}
+            {activeView === 'barreplay' && (
+              <BarReplayStudio />
             )}
 
             {/* First-Class Live Paper Trading Desk (Direct simulation - zero landing page) */}
