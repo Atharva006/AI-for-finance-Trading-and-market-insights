@@ -403,9 +403,38 @@ class UserActivityTrackerService {
     }
   }
 
-  // ── Supabase REST Fallback Sync ──
+  // ── Supabase Cloud Sync (REST & User Metadata Sync) ──
+  private async updateUserMetadataInSupabase(userId: string, metadataUpdates: Record<string, any>) {
+    if (!SUPABASE_URL || !SUPABASE_KEY || !userId) return;
+    try {
+      await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_metadata: metadataUpdates,
+        }),
+      });
+    } catch (e) {
+      console.warn('[Supabase Sync] Admin metadata update notice:', e);
+    }
+  }
+
   private async syncSessionToSupabase(session: UserSessionRecord) {
     if (!SUPABASE_URL || !SUPABASE_KEY) return;
+    // 1. Sync directly to user record metadata in Supabase
+    this.updateUserMetadataInSupabase(session.userId, {
+      last_online: session.lastHeartbeat,
+      is_online: session.isOnline,
+      user_agent: session.userAgent,
+      platform: session.platform,
+      last_login_time: session.loginTime,
+    });
+
+    // 2. Also try user_sessions table if migrated
     try {
       await fetch(`${SUPABASE_URL}/rest/v1/user_sessions`, {
         method: 'POST',
@@ -431,6 +460,21 @@ class UserActivityTrackerService {
 
   private async syncOrderToSupabase(order: UserOrderRecord) {
     if (!SUPABASE_URL || !SUPABASE_KEY) return;
+    // 1. Sync live executed trade count and last trade to user record in Supabase
+    const allUserOrders = this.getStoredOrders().filter(o => o.userId === order.userId);
+    this.updateUserMetadataInSupabase(order.userId, {
+      total_orders_count: allUserOrders.length,
+      last_order: {
+        symbol: order.symbol,
+        side: order.side,
+        quantity: order.quantity,
+        price: order.price,
+        timestamp: order.timestamp,
+        module: order.module,
+      },
+    });
+
+    // 2. Also try user_orders table if migrated
     try {
       await fetch(`${SUPABASE_URL}/rest/v1/user_orders`, {
         method: 'POST',
@@ -460,6 +504,22 @@ class UserActivityTrackerService {
 
   private async syncBacktestToSupabase(bt: UserBacktestRecord) {
     if (!SUPABASE_URL || !SUPABASE_KEY) return;
+    // 1. Sync last backtested strategy and metrics to user record in Supabase
+    const allUserBacktests = this.getStoredBacktests().filter(b => b.userId === bt.userId);
+    this.updateUserMetadataInSupabase(bt.userId, {
+      total_backtests_count: allUserBacktests.length,
+      last_tested_strategy: {
+        strategy_name: bt.strategyName,
+        symbol: bt.symbol,
+        timeframe: bt.timeframe,
+        win_rate: bt.winRate,
+        net_pnl: bt.netPnl,
+        total_trades: bt.totalTrades,
+        timestamp: bt.timestamp,
+      },
+    });
+
+    // 2. Also try user_backtests table if migrated
     try {
       await fetch(`${SUPABASE_URL}/rest/v1/user_backtests`, {
         method: 'POST',

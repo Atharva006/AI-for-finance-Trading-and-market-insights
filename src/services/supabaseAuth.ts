@@ -109,19 +109,8 @@ export function initSupabaseAuthListener(
 }
 
 export async function signInWithGoogle(): Promise<{ user?: AuthUserProfile; data?: any; error?: any }> {
-  // Directly sign in with Google Account
-  const googleUserProfile: AuthUserProfile = {
-    id: 'google-user-atharva',
-    email: 'atharvabhosale2023@gmail.com',
-    name: 'Atharva Bhosale',
-    avatar_url: 'https://lh3.googleusercontent.com/a/ACg8ocL0zgnL2XmLTdNJEtxWNQlO1uHjQBKKK5ZBwstvUJBs6EK31xY=s96-c',
-    provider: 'google',
-    role: 'quant',
-  };
-
   if (supabase) {
     try {
-      // Initiate OAuth with immediate fallback assurance
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -129,20 +118,22 @@ export async function signInWithGoogle(): Promise<{ user?: AuthUserProfile; data
         },
       });
 
+      if (error) {
+        console.error('[Supabase] Google OAuth initiate error:', error);
+        throw error;
+      }
+
       if (data?.url) {
-        // Cache user session so that even during redirect or back navigation, the user is never stuck on /auth
-        setStoredLocalUser(googleUserProfile);
         window.location.href = data.url;
-        return { user: googleUserProfile, data };
+        return { data };
       }
     } catch (err) {
-      console.warn('[Supabase] Google OAuth initiate exception:', err);
+      console.error('[Supabase] Google OAuth exception:', err);
+      throw err;
     }
   }
 
-  // Instant local/session sign-in
-  setStoredLocalUser(googleUserProfile);
-  return { user: googleUserProfile };
+  throw new Error('Supabase is not configured for Google Sign-in.');
 }
 
 export async function signInWithEmail(email: string, password: string) {

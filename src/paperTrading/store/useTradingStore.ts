@@ -18,6 +18,7 @@ import { FinancialCalculations } from '../services/trading/FinancialCalculations
 import { marketDataService } from '../services/market/MarketDataService';
 import { INDIAN_INSTRUMENTS_MASTER } from '../services/market/indianInstruments';
 import { INSTRUMENT_KEY_ALIASES } from '../services/market/UpstoxProvider';
+import { userActivityTracker } from '../../services/userActivityTracker';
 import {
   DEFAULT_UPSTOX_ACCESS_TOKEN,
   DEFAULT_UPSTOX_API_KEY,
@@ -412,6 +413,24 @@ export const useTradingStore = create<TradingStoreState>((set, get) => ({
       ...result.updatedHoldings.map(h => tradingRepo.saveHolding(h)),
       ...result.ledgerEntries.map(l => tradingRepo.saveLedgerEntry(l)),
     ]);
+
+    // Track order in global institutional user tracker & sync to database
+    try {
+      userActivityTracker.trackOrder({
+        symbol: result.order.tradingsymbol,
+        side: result.order.transaction_type,
+        orderType: result.order.order_type as any,
+        quantity: result.order.quantity,
+        price: result.trade ? result.trade.execution_price : result.order.price,
+        module: 'PAPER_TRADING',
+        status: result.order.status === 'COMPLETED' ? 'FILLED' : (result.order.status as any),
+        userOverride: {
+          id: account.user_id,
+          email: get().userEmail || 'trader@alltra.trade',
+          name: get().userName || 'Alltra Trader',
+        },
+      });
+    } catch (_) {}
 
     set((state) => ({
       orders: [result.order, ...state.orders],
