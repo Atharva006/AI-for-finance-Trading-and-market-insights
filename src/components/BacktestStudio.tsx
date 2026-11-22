@@ -844,7 +844,7 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
                   }`}
                 >
                   <Globe className="w-3.5 h-3.5 text-bullish" />
-                  <span>Yahoo Finance (Free Daily · Inception)</span>
+                  <span>Historical Daily</span>
                 </button>
                 <button
                   type="button"
@@ -920,7 +920,7 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span>
                   {timeframe === '1d' && dataProvider === 'yahoo'
-                    ? `Yahoo Finance Free Daily (${candles.length} Candles)`
+                    ? `Historical Daily (${candles.length} Candles)`
                     : `Upstox Stream (${candles.length} Candles)`}
                 </span>
               </div>
@@ -1027,7 +1027,7 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
           <div className="space-y-1 pb-1">
             <NaturalLanguagePromptBar
               onApplyParsedStrategy={handleApplyParsedPrompt}
-              placeholder='Ask Groq 120B AI: e.g. "INFY PSAR swing with 1% RPT and 100 SMA"...'
+              placeholder='Describe strategy: e.g. "INFY PSAR swing with 1% RPT and 100 SMA"...'
             />
           </div>
 
@@ -1719,26 +1719,23 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
             </div>
           )}
 
-          {/* Groq 120B AI Hedge-Fund Review & Optimization Bar */}
+          {/* Quantitative Strategy Audit */}
           {result && (
-            <div className="bg-gradient-to-r from-[#F0FDF4] via-[#EFF6FF] to-white border border-[#BFDBFE] rounded-xl p-4 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="bg-white border border-[#E2E8F0] rounded-xl p-4 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#2563EB] text-white flex items-center justify-center shadow-xs shrink-0 mt-0.5">
-                  <Sparkles className="w-5 h-5 text-amber-300" />
+                <div className="w-8 h-8 rounded-lg bg-[#0F172A] text-white flex items-center justify-center shadow-xs shrink-0 mt-0.5">
+                  <Sparkles className="w-4 h-4 text-emerald-400" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs uppercase tracking-wide text-[#1E40AF]">
-                      Groq LPU 120B Quantitative Edge Audit
-                    </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
-                      {result.metrics.profitFactor >= 2 ? 'Institutional Edge: High' : result.metrics.profitFactor >= 1.4 ? 'Moderate Edge' : 'Defensive Consolidation'}
+                    <span className="font-bold text-xs uppercase tracking-wide text-[#0F172A]">
+                      Quantitative Risk &amp; Edge Evaluation
                     </span>
                   </div>
-                  <p className="text-xs text-[#334155] mt-1 leading-relaxed">
+                  <p className="text-xs text-[#475569] mt-1 leading-relaxed">
                     {result.metrics.profitFactor >= 2
-                      ? `Calculated Profit Factor of ${result.metrics.profitFactor} with Sharpe ${result.metrics.sharpeRatio?.toFixed(2)} and Max DD of -${Math.abs(result.metrics.maxDrawdownPct).toFixed(1)}%. Model exhibits statistically significant edge against benchmark drift.`
-                      : `Strategy generated ${result.metrics.totalTrades} fills with ${result.metrics.winRate}% win rate. Run full Monte Carlo audit to stress-test 95th percentile drawdown risk.`}
+                      ? `Profit Factor of ${result.metrics.profitFactor} with Sharpe ${result.metrics.sharpeRatio?.toFixed(2)} and Max DD of -${Math.abs(result.metrics.maxDrawdownPct).toFixed(1)}%. Model shows statistically solid edge against benchmark drift.`
+                      : `Strategy generated ${result.metrics.totalTrades} fills with ${result.metrics.winRate}% win rate. Run Monte Carlo evaluation to analyze risk metrics.`}
                   </p>
                 </div>
               </div>
@@ -1746,10 +1743,10 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => setIsDoctorModalOpen(true)}
-                  className="px-3.5 py-2 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all cursor-pointer"
+                  className="px-3.5 py-2 rounded-lg bg-[#0F172A] hover:bg-[#1E293B] text-white font-medium text-xs flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-                  <span>Full 500-Iteration Audit</span>
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Audit Strategy</span>
                 </button>
               </div>
             </div>

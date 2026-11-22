@@ -12,6 +12,7 @@ import {
   Sliders,
   PlayCircle,
   Globe,
+  Info,
 } from 'lucide-react';
 import { AppView } from './DhanNavbar';
 
@@ -48,6 +49,7 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
     { id: 'backtest', label: 'Backtest Studio', view: 'backtest', icon: Sliders },
     { id: 'barreplay', label: 'Bar Replay Studio', view: 'barreplay', icon: PlayCircle, badge: '15m' },
     { id: 'forex', label: 'NRI Forex Desk', view: 'forex', icon: Globe },
+    { id: 'about', label: 'About Alltra', view: 'about', icon: Info },
     ...(isAdmin
       ? [
           { id: 'admin', label: 'Strategy Compiler', view: 'admin' as AppView, icon: Shield, badge: 'Admin' },
@@ -154,16 +156,15 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
         })}
       </div>
 
-      {/* ── Minimal Bottom Indicator ── */}
+      {/* ── Minimal Bottom Footer ── */}
       <div className="p-3 border-t border-[#E2E8F0] bg-[#FFFFFF] flex items-center justify-between text-[11px] text-[#94A3B8] font-mono">
         {!isCollapsed ? (
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
-            <span className="text-[#64748B] font-sans font-medium">Alltra Active</span>
+            <span className="text-[#94A3B8] text-[10px] tracking-wide">ALLTRA PLATFORM</span>
           </div>
         ) : (
           <div className="w-full flex justify-center">
-            <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#94A3B8]" />
           </div>
         )}
       </div>

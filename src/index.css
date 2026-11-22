@@ -399,11 +399,11 @@ a[role="button"]:active,
 @keyframes anim-view-in {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.995);
+    transform: translateX(-16px) scale(0.995);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateX(0) scale(1);
   }
 }
 

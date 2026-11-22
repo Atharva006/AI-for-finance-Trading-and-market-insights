@@ -88,29 +88,20 @@ export const INTELLIGENCE_PRESETS: IntelligencePreset[] = [
   },
 ];
 
-const INTELLIGENCE_SYSTEM_PROMPT = `You are "ALLTRA Intelligence", the institutional quantitative reasoning, geopolitical analysis, and market intelligence engine of the ALLTRA Platform.
+const INTELLIGENCE_SYSTEM_PROMPT = `You are "ALLTRA Intelligence", the institutional quantitative reasoning and market intelligence advisor.
 
-YOUR MISSION & DOMAIN:
-You specialize exclusively in:
-1. Global Geopolitics & Foreign Affairs: Iran-Israel conflict, Middle East escalation, Red Sea naval shipping bottlenecks, Russia-Ukraine war, US-China trade/semiconductor tariffs, OPEC+ output quotas, and global supply chain disruptions.
-2. Market Transmission Mechanisms: Exactly how geopolitical events transmit into:
-   - Commodity markets: Brent Crude (CL=F), Gold Spot (GC=F), Silver (SI=F), Natural Gas (NG=F).
-   - Currencies & Yields: USD/INR exchange rate, Dollar Index (DXY), US 10-Year Treasury Yields, Indian 10-Year G-Sec Yield (6.50% risk-free rate).
-   - Indian Equity Universe: NIFTY 50 and key constituents (Reliance Industries, ONGC, Tata Motors, Asian Paints, TCS, Infosys, HDFC Bank, ICICI Bank, L&T, Bharat Electronics, Hindustan Aeronautics).
-3. Sectoral Winner/Loser Patterns:
-   - Upstream Winners: Oil explorers (ONGC, Oil India), defense contractors (BEL, HAL), gold/bullion safe havens.
-   - Downstream Compressed: Paint manufacturers (Asian Paints, Berger Paints) where crude derivatives account for ~50% of raw material costs; Tyre makers (MRF, Apollo) due to synthetic rubber; Aviation (InterGlobe/IndiGo) where ATF is ~40% of OpEx; Oil Marketing Companies (IOC, BPCL, HPCL) when retail fuel prices are frozen.
+RESPONSE TONE & FORMAT (CLAUDE-LIKE):
+- Adopt the communication style of Anthropic's Claude: calm, concise, remarkably insightful, objective, and intellectually honest.
+- Keep responses short, direct, and focused on essential reasoning rather than rambling walls of text.
+- STRICT FORMATTING RULE: NEVER use markdown asterisks (**) or bullet stars (*), arrows (->, =>), or markdown hashes (##, ###).
+- Do not output raw hyphens or slashes as bullet points. Write clean, natural prose paragraphs.
+- Use natural sentence structure, italic emphasis sparingly, and clean capitalization.
 
-STRICT CONSTRAINTS & BEHAVIORAL RULES:
-1. EXCLUSIVE DOMAIN FOCUS: You operate ONLY in financial markets, geopolitical macroeconomics, quantitative strategy patterns, and risk analysis. NEVER discuss generic AI trivia, OpenAI, Anthropic, ChatGPT, coding trivia, creative writing, or off-topic subjects. If an off-topic question is asked, respond: "As ALLTRA Intelligence, I operate strictly within market dynamics, geopolitical transmission, and quantitative portfolio patterns. Let's focus on your market, macro, or stock analysis questions."
-2. NO RECKLESS BUY/SELL TIPS: Provide rigorous pattern recognition, historical precedents, and scenario probabilities—NEVER direct reckless gambling calls like "Buy stock X right now!" or "Sell stock Y immediately!". Always frame analysis around:
-   - Historical Precedent: What happened during similar historical shocks (e.g. 1973 Yom Kippur, 1990 Gulf War, 2022 Ukraine invasion, 2024 Middle East events).
-   - Current Macro Catalyst & Catalysts to Monitor.
-   - Scenario Probabilities: Base Case, Bull Case, Bear Case.
-   - Invalidation Points & Risk Management: Stop-loss considerations, volatility management, position sizing.
-3. EPISTEMIC HUMILITY ("NO PLANNING" RULE): If a scenario is unconfirmed, speculative, or lacks sufficient verifiable market data, NEVER guess or invent fake news. Explicitly state: "No planning / Insufficient confirmed intelligence: Rather than speculating, confirmed market evidence indicates..."
-4. PERSONALITY & STYLE: Super-friendly, deeply articulate, highly analytical, ambitious, and professional. Structure complex insights using clean GitHub Markdown with clear headers (###), bullet points, and comparative tables.
-5. MULTI-TURN CONTEXT MEMORY: Remember all previous messages in this conversation session. If the user refers to "it", "that stock", "the war", or "its margins", resolve the context seamlessly from previous discussion.`;
+YOUR DOMAIN & EXPERTISE:
+1. Geopolitics & Foreign Affairs: Middle East / Iran-Israel conflict, Red Sea shipping, OPEC+ quotas, trade tariffs, central bank decisions.
+2. Market Transmission: How geopolitical events transmit into Brent Crude, Gold, USD/INR, and Indian equities (NIFTY 50, Reliance, ONGC, IT, Banks, Asian Paints).
+3. Objective Pattern Analysis: Compare to historical patterns (1973, 1990, 2022). Never give reckless gambling or buy/sell tips.
+4. Epistemic Humility: When uncertain, clearly say "Insufficient confirmed intelligence" instead of guessing.`;
 
 const STORAGE_KEY_CHAT = 'alltra_intelligence_chat_v1';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
@@ -271,103 +262,39 @@ export class IntelligenceService {
   private generateDeterministicOfflineResponse(prompt: string): string {
     const q = prompt.toLowerCase();
 
-    if (q.includes('iran') || q.includes('israel') || q.includes('war') || q.includes('middle east')) {
-      return `### 🌍 Geopolitical Intelligence Brief: Iran-Israel Escalation & Market Transmission
+    if (q.includes('iran') || q.includes('israel') || q.includes('war') || q.includes('middle east') || q.includes('crude')) {
+      return `Geopolitical tensions in the Middle East primarily transmit to Indian markets through energy logistics and the Strait of Hormuz.
 
-#### 1. Geopolitical Transmission Mechanism
-The primary risk conduit to Indian financial markets is **energy supply logistics and the Strait of Hormuz**, through which ~20% of global petroleum liquids transit.
+Brent crude risk premiums tend to elevate towards 85 to 90 dollars per barrel during active escalation. Because India imports over 85 percent of its crude oil, sustained higher prices exert pressure on the domestic current account deficit and the rupee.
 
-| Channel | Direct Transmission | Indian Market Impact |
-| :--- | :--- | :--- |
-| **Brent Crude ($)** | Risk premium expansion towards $85–$95/bbl | Widening current account deficit (India imports >85% crude) |
-| **Currency (USD/INR)** | Dollar Index (DXY) flight-to-safety | Pressure towards 84.50+ unless stabilized by RBI reserves |
-| **Equities (NIFTY)** | Valuation contraction & FII liquidity outflows | Initial knee-jerk test of 50-EMA support (~23,800–24,000) |
-| **Safe Havens** | Gold Spot (GC=F) & Silver (SI=F) surge | Multi-month highs as sovereign & institutional hedges expand |
+In Indian equities, upstream energy producers such as ONGC and domestic defense manufacturers like Bharat Electronics have historically shown relative strength. Downstream consumer sectors like paints, tyres, and aviation typically face margin compression due to higher input and fuel costs.
 
----
-
-#### 2. Sectoral Winners vs. Margin Compressed
-* **Relative Winners & Outperformers:**
-  - **Upstream Energy (ONGC, Oil India):** Realizations rise with higher crude benchmark prices without proportionate lifting cost increases.
-  - **Refining Giants (Reliance Industries):** High complexity gross refining margins (GRMs) cushion upstream volatility.
-  - **Domestic Defense (Bharat Electronics / BEL, HAL):** Structural government capex insulation and export order book expansion.
-  - **Bullion:** Physical gold and sovereign gold bonds outperforming equities.
-
-* **Margin Compressed Sectors:**
-  - **Paint Companies (Asian Paints, Berger):** Raw material basket is ~50% crude derivatives (titanium dioxide, phthalic anhydride). Margin pressure follows with a 1-quarter lag.
-  - **Tyre Manufacturers (MRF, Apollo Tyres):** Synthetic rubber input costs surge.
-  - **Aviation (InterGlobe / IndiGo):** Aviation Turbine Fuel (ATF) represents 38–42% of total operational expenditure.
-
----
-
-#### 3. Historical Precedents & Probability Scenarios
-* **Historical Pattern (1990 Gulf War, 2022 Ukraine Shock, 2024 Escalations):**
-  - Shocks triggered an initial 3%–7% drawdown in the NIFTY 50 over 10 trading sessions.
-  - Once shipping disruption clarity emerged (no physical closure of Hormuz), the market staged sharp V-shaped recoveries within 25–40 days.
-* **Probability Regimes:**
-  - **Base Case (65% Probability):** Contained proxy skirmishes, crude oscillates between $78–$88/bbl. NIFTY absorbs volatility in a consolidating range.
-  - **Severe Tail Risk (25% Probability):** Direct energy infrastructure strikes leading to Hormuz blockade. Crude spikes >$105/bbl. Requires defensive cash allocation (>20%) and Gold hedges.
-  - **De-escalation (10% Probability):** Ceasefire talks; crude falls back to $72/bbl; strong relief rally in consumer cyclicals.
-
-> **Institutional Invalidation Level:** A daily close on NIFTY 50 below 23,600 invalidates the medium-term bullish structure. Maintain strict position sizing (max 1% risk per trade).`;
+During historical precedents including 1990 and 2022, markets experienced an initial 3 to 5 percent drawdown followed by recovery once logistical clarity returned. Rather than reacting impulsively, quantitative risk models suggest maintaining disciplined position sizing and defined stop loss levels.`;
     }
 
-    if (q.includes('ongc') || q.includes('asian paints') || q.includes('crude') || q.includes('oil')) {
-      return `### 🛢️ Sectoral Pattern Analysis: Crude Oil Dynamics (ONGC vs. Asian Paints)
+    if (q.includes('ongc') || q.includes('asian paints') || q.includes('oil')) {
+      return `Crude oil movements create an inverse relationship between upstream producers and downstream petrochemical consumers.
 
-#### 1. Historical Correlation Framework
-Crude oil has an inverse transmission correlation between upstream state producers and downstream petrochemical consumers:
+ONGC benefits directly from higher Brent crude realizations, which expand its operating cash flow so long as windfall tax thresholds are managed.
 
-* **ONGC (Upstream Explorer):**
-  - High positive beta to Brent crude realizations. Every $10/bbl sustained rise in crude adds approximately ₹8–₹10/share to ONGC's annual cash flow.
-  - Net realizations are typically capped if the windfall tax mechanism is activated above $75/bbl.
-* **Asian Paints (Downstream Decorative Paints):**
-  - Strong inverse correlation to crude over a 6-month horizon. Over 50% of the raw material cost is crude-linked.
-  - Pricing power enables partial pass-through, but competitive pressure from new entrants limits immediate gross margin recovery.
+Conversely, decorative paint companies like Asian Paints incur substantial raw material pressure when crude surges, as petroleum derivatives represent roughly half of their raw material basket.
 
----
-
-#### 2. Pattern Blueprint for Investors
-* **When Crude is Surging ($85+):** Historical data indicates pairing a long upstream position (ONGC) with an underweight stance on decorative paints provides an effective market-neutral hedge.
-* **When Crude Reverts Below $75:** Paint companies experience accelerated gross margin expansion within two subsequent quarterly filings.`;
+Historical quantitative patterns suggest pairing long upstream energy exposure with conservative allocations in paint and transport equities during elevated oil price regimes.`;
     }
 
     if (q.includes('nifty') || q.includes('stock') || q.includes('fii') || q.includes('market')) {
-      return `### 📊 Market Intelligence Brief: NIFTY 50 Structure & Institutional Flows
+      return `The NIFTY 50 is currently consolidating within its institutional value corridor around the 50-day moving average.
 
-#### 1. Technical Framework & Market Regime
-* **Current Benchmark State:** NIFTY 50 is trading within its institutional value zone around the 50-day Exponential Moving Average (50-EMA).
-* **Key Reaction Levels:**
-  - **Primary Resistance:** 24,550 – 24,700 (Heavy Call Open Interest accumulation).
-  - **Immediate Support:** 24,050 – 24,150 (Previous swing breakout anchor).
-  - **Structural Invalidation:** 23,800 (Breach of 100-EMA signals regime shift from trend-following to mean-reversion).
+Foreign institutional flows remain sensitive to US 10-year Treasury yields and dollar strength, while consistent domestic institutional participation provides resilient liquidity absorption on market dips.
 
----
-
-#### 2. Institutional Liquidity Transmission
-* **FII Net Selling Pressure:** Driven by elevated US 10-Year yields (~4.40%) and comparative valuation arbitrage toward beaten-down emerging markets.
-* **DII Domestic Absorption:** Monthly SIP inflows exceeding ₹25,000 Cr provide a structural liquidity floor, preventing historical 15%+ cascade crashes during external macro shocks.
-
-> **Risk Directive:** Prioritize capital preservation with defined Risk-to-Reward (minimum 1:1.5) on intraday setups. Do not average down on losing positions.`;
+Key structural levels to monitor are 24,550 on the upside and 24,050 as immediate foundational support. Systematic strategies perform best in this regime by waiting for confirmed pullbacks rather than chasing intraday breakouts.`;
     }
 
-    // Default institutional intelligence overview
-    return `### 🧠 ALLTRA Intelligence Analysis: Market Context & Strategic Framework
+    return `Current market conditions reflect a consolidating regime across benchmark indices, influenced by global interest rate trajectories and ongoing geopolitical vigilance.
 
-Thank you for consulting **ALLTRA Intelligence**. Based on current market telemetry, historical quantitative patterns, and active geopolitical data:
+Capital is rotating selectively toward defensive balance sheets, domestic infrastructure, and capital goods while high-valuation consumer discretionary faces near-term consolidation.
 
-#### 1. Current Market Landscape
-* **Benchmark:** NIFTY 50 is navigating an institutional consolidation corridor with key support anchored at the 50-EMA.
-* **Macro Backdrop:** Geopolitical tensions in the Middle East and shifting interest rate expectations keep the Volatility Index (India VIX) active in the 14.5–16.5 regime.
-* **Sectoral Rotation:** Capital is visibly rotating from high-PE consumer discretionary toward defensive value, domestic defense (BEL, HAL), and upstream energy (ONGC).
-
----
-
-#### 2. Strategic Probability Scenarios
-* **Base Case:** Range-bound oscillation with rotational sector leadership. Ideal for breakout pullback algorithms with tight stop-losses.
-* **Tail-Risk Caution:** In the event of confirmed shipping disruptions or crude shocks above $90/bbl, anticipate pressure on INR and consumer cyclicals.
-
-> **Notice:** As an institutional intelligence engine, I do not provide direct buy/sell tips. I provide verifiable historical patterns, probability corridors, and risk frameworks. Feel free to ask about specific stocks, geopolitics (Iran-Israel, US-China), or portfolio risk hedges!`;
+From an institutional perspective, preserving capital through defined risk-to-reward ratios and avoiding emotional over-trading remains the most reliable strategy.`;
   }
 }
 
