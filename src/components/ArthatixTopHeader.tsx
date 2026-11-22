@@ -22,6 +22,9 @@ interface ArthatixTopHeaderProps {
   onOpenSettings: () => void;
   selectedInstrument: string;
   setSelectedInstrument?: (inst: string) => void;
+  isAdmin?: boolean;
+  currentUser?: { name?: string; email?: string; role?: string } | null;
+  onSignOut?: () => void;
 }
 
 interface SearchItem {
@@ -69,6 +72,9 @@ export const ArthatixTopHeader: React.FC<ArthatixTopHeaderProps> = ({
   onOpenSettings,
   selectedInstrument,
   setSelectedInstrument,
+  isAdmin = false,
+  currentUser = null,
+  onSignOut,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -79,10 +85,12 @@ export const ArthatixTopHeader: React.FC<ArthatixTopHeaderProps> = ({
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const avatarDropdownRef = useRef<HTMLDivElement>(null);
 
+  const availableIndex = isAdmin ? SEARCH_INDEX : SEARCH_INDEX.filter((item) => item.id !== 'dest-compiler');
+
   // Filtered search results
   const filteredResults = searchQuery.trim() === ''
-    ? SEARCH_INDEX.slice(0, 7)
-    : SEARCH_INDEX.filter((item) => {
+    ? availableIndex.slice(0, 7)
+    : availableIndex.filter((item) => {
         const q = searchQuery.toLowerCase();
         return (
           item.title.toLowerCase().includes(q) ||
@@ -368,11 +376,11 @@ export const ArthatixTopHeader: React.FC<ArthatixTopHeaderProps> = ({
             className="flex items-center gap-2 pl-1 pr-1.5 py-1 rounded-lg hover:bg-[#F1F5F9] transition-all cursor-pointer border border-transparent hover:border-[#E2E8F0] active:scale-95"
             aria-label="Open user menu"
           >
-            <div className="w-7 h-7 rounded-full bg-[#1E293B] text-white flex items-center justify-center font-bold text-xs ring-2 ring-[#E2E8F0]">
-              A
+            <div className={`w-7 h-7 rounded-full text-white flex items-center justify-center font-bold text-xs ring-2 ${isAdmin ? 'bg-primary ring-bullish' : 'bg-[#1E293B] ring-[#E2E8F0]'}`}>
+              {isAdmin ? 'AD' : (currentUser?.name?.[0]?.toUpperCase() || 'A')}
             </div>
             <span className="hidden md:inline font-semibold text-xs text-[#0F172A]">
-              Atharva
+              {isAdmin ? 'System Admin' : (currentUser?.name || 'Atharva')}
             </span>
             <ChevronDown
               className={`w-3.5 h-3.5 text-[#64748B] transition-transform duration-200 ${
@@ -382,11 +390,33 @@ export const ArthatixTopHeader: React.FC<ArthatixTopHeaderProps> = ({
           </button>
 
           {isAvatarOpen && (
-            <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl border border-[#CBD5E1] shadow-xl z-50 p-1.5 animate-fade-in text-xs">
+            <div className="absolute right-0 top-full mt-2 w-60 bg-white rounded-xl border border-[#CBD5E1] shadow-xl z-50 p-1.5 animate-fade-in text-xs">
               <div className="px-3 py-2 border-b border-[#F1F5F9] mb-1">
-                <p className="font-bold text-xs text-[#0F172A]">Atharva</p>
-                <p className="text-[11px] text-[#64748B] truncate">Institutional Trader · NSE</p>
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-xs text-[#0F172A]">
+                    {isAdmin ? 'System Administrator' : (currentUser?.name || 'Atharva')}
+                  </p>
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${isAdmin ? 'bg-bullish-tint text-bullish' : 'bg-surface-container text-text-muted'}`}>
+                    {isAdmin ? 'ADMIN' : 'QUANT'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#64748B] truncate mt-0.5 font-mono">
+                  {currentUser?.email || (isAdmin ? 'admin@apexquant.io' : 'quant.desk@apexquant.in')}
+                </p>
               </div>
+
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setIsAvatarOpen(false);
+                    onNavigate('admin');
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-primary font-semibold hover:bg-surface-container-low transition-colors"
+                >
+                  <SlidersHorizontal className="w-4 h-4 text-primary" />
+                  <span>Strategy Compiler (Admin)</span>
+                </button>
+              )}
 
               <button
                 onClick={() => {
@@ -423,16 +453,33 @@ export const ArthatixTopHeader: React.FC<ArthatixTopHeaderProps> = ({
 
               <div className="h-px bg-[#F1F5F9] my-1" />
 
-              <button
-                onClick={() => {
-                  setIsAvatarOpen(false);
-                  onNavigate('auth');
-                }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-[#DC2626] hover:bg-[#FEF2F2] transition-colors"
-              >
-                <LogIn className="w-4 h-4 text-[#DC2626]" />
-                <span>Sign in / Switch Account</span>
-              </button>
+              {currentUser || isAdmin ? (
+                <button
+                  onClick={() => {
+                    setIsAvatarOpen(false);
+                    if (onSignOut) {
+                      onSignOut();
+                    } else {
+                      onNavigate('auth');
+                    }
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-[#DC2626] hover:bg-[#FEF2F2] transition-colors cursor-pointer"
+                >
+                  <LogIn className="w-4 h-4 text-[#DC2626]" />
+                  <span>Sign Out / Switch Account</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIsAvatarOpen(false);
+                    onNavigate('auth');
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-primary hover:bg-[#EFF6FF] transition-colors cursor-pointer"
+                >
+                  <LogIn className="w-4 h-4 text-primary" />
+                  <span>Sign in (Admin / Google)</span>
+                </button>
+              )}
             </div>
           )}
         </div>

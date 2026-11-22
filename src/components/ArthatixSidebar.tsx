@@ -16,6 +16,7 @@ interface ArthatixSidebarProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   onOpenSettings: () => void;
+  isAdmin?: boolean;
 }
 
 interface NavSubItem {
@@ -39,6 +40,7 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
   isCollapsed,
   onToggleCollapse,
   onOpenSettings,
+  isAdmin = false,
 }) => {
   // Collapsible section state with stable keys
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -80,15 +82,19 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
         { id: 'forex', label: 'FVG Trading Desk', view: 'forex', badge: 'v5' },
       ],
     },
-    {
-      id: 'institutional_governance',
-      title: 'Institutional Governance',
-      icon: Shield,
-      defaultOpen: true,
-      items: [
-        { id: 'admin', label: 'Strategy Compiler', view: 'admin' },
-      ],
-    },
+    ...(isAdmin
+      ? [
+          {
+            id: 'institutional_governance',
+            title: 'Institutional Governance',
+            icon: Shield,
+            defaultOpen: true,
+            items: [
+              { id: 'admin', label: 'Strategy Compiler', view: 'admin' as AppView },
+            ],
+          },
+        ]
+      : []),
   ];
 
   return (

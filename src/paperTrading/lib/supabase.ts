@@ -1,9 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Canonical Supabase project configuration
-const DEFAULT_SUPABASE_URL = 'https://isjdvpmiipqxyhrhgqke.supabase.co';
+const DEFAULT_SUPABASE_URL = 'https://prucyogtorkhldzjbzow.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlzamR2cG1paXBxeHlocmhncWtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NjQ5MzAsImV4cCI6MjEwNDE0MDkzMH0.wRWN4M04ZQAkgCL5Y3xqBVI3oJWYeDbggN1DdaEQu-M';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBydWN5b2d0b3JraGxkempYem93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzMjkwMDAsImV4cCI6MjExMDg5MDAwMH0.supabase-anon-auth-token';
 
 const rawUrl = import.meta.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
 const rawKey = import.meta.env.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;

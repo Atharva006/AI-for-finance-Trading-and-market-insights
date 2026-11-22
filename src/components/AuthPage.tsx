@@ -46,8 +46,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigateHome, onAuthSucces
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const [showPassword, setShowPassword] = useState(false);
-  const [emailInput, setEmailInput] = useState('quant.desk@apexquant.in');
-  const [passwordInput, setPasswordInput] = useState('••••••••••••');
+  const [emailInput, setEmailInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
   const [fullNameInput, setFullNameInput] = useState('');
   const [upstoxApiKey, setUpstoxApiKey] = useState('09a471c2-7b89-4b1a-9f5e-128a9c3d4e5f');
   const [upstoxSecret, setUpstoxSecret] = useState('••••••••••••••••');
@@ -301,17 +301,38 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigateHome, onAuthSucces
                   </div>
                 )}
 
+                <div className="flex items-center justify-between p-2.5 rounded-lg bg-surface-container-low border border-border-subtle text-xs mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px] text-primary">admin_panel_settings</span>
+                    <div>
+                      <span className="font-semibold text-on-surface">Institutional Admin: </span>
+                      <span className="font-mono text-primary font-bold">admin / admin</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmailInput('admin');
+                      setPasswordInput('admin');
+                      setErrorMsg(null);
+                    }}
+                    className="px-2.5 py-1 rounded bg-primary text-on-primary font-bold text-[11px] hover:bg-primary-container transition-all cursor-pointer active:scale-95 shadow-xs"
+                  >
+                    Fill Admin
+                  </button>
+                </div>
+
                 <div className="flex flex-col gap-1.5">
                   <label className="font-label-md text-label-md text-on-surface" htmlFor="auth-email">
-                    Institutional Email
+                    Username or Institutional Email
                   </label>
                   <input
                     id="auth-email"
                     name="email"
-                    type="email"
+                    type="text"
                     value={emailInput}
                     onChange={(e) => setEmailInput(e.target.value)}
-                    placeholder="name@institution.com"
+                    placeholder="admin or name@institution.com"
                     className="w-full px-3.5 py-2.5 rounded-lg bg-surface-card border border-border-subtle font-mono-md text-mono-md text-on-surface placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors"
                   />
                 </div>

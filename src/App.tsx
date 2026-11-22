@@ -17,6 +17,7 @@ import { ArthatixSidebar } from './components/ArthatixSidebar';
 import { ArthatixTopHeader } from './components/ArthatixTopHeader';
 import { ArthatixOverviewDashboard } from './components/ArthatixOverviewDashboard';
 import { AlgoStrategy } from './types/algoMarketplace';
+import { getStoredLocalUser, AuthUserProfile, signOutUser } from './services/supabaseAuth';
 import {
   getStoredStrategies,
   addStrategy as storeAddStrategy,
@@ -117,6 +118,22 @@ export function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedInstrument, setSelectedInstrument] = useState<string>('NIFTY 50');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [currentUser, setCurrentUser] = useState<AuthUserProfile | null>(() => getStoredLocalUser());
+  const isAdmin = currentUser?.role === 'admin';
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setCurrentUser(getStoredLocalUser());
+    };
+    window.addEventListener('storage', handleAuthChange);
+    return () => window.removeEventListener('storage', handleAuthChange);
+  }, []);
+
+  const handleSignOut = async () => {
+    await signOutUser();
+    setCurrentUser(null);
+    navigateTo('landing');
+  };
 
   // Synchronize browser history and popstate events
   useEffect(() => {
@@ -190,6 +207,7 @@ export function App() {
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        isAdmin={isAdmin}
       />
 
       {/* ── 2. Fluid Right Workspace ── */}
@@ -201,6 +219,9 @@ export function App() {
           onOpenSettings={() => setIsSettingsOpen(true)}
           selectedInstrument={selectedInstrument}
           setSelectedInstrument={setSelectedInstrument}
+          isAdmin={isAdmin}
+          currentUser={currentUser}
+          onSignOut={handleSignOut}
         />
 
         {/* Main View Router */}
@@ -250,8 +271,15 @@ export function App() {
 
             {activeView === 'auth' && (
               <AuthPage
-                onNavigateHome={() => navigateTo('marketplace')}
-                onAuthSuccess={() => navigateTo('marketplace')}
+                onNavigateHome={() => navigateTo('landing')}
+                onAuthSuccess={(user) => {
+                  setCurrentUser(user);
+                  if (user.role === 'admin') {
+                    navigateTo('admin');
+                  } else {
+                    navigateTo('landing');
+                  }
+                }}
               />
             )}
 
@@ -270,15 +298,33 @@ export function App() {
             )}
 
             {activeView === 'admin' && (
-              <AdminStrategyPortal
-                strategies={strategies}
-                onAddStrategy={handleAddStrategy}
-                onUpdateStrategy={handleUpdateStrategy}
-                onDeleteStrategy={handleDeleteStrategy}
-                onTestBacktest={(strat) => {
-                  navigateTo('backtest', strat);
-                }}
-              />
+              isAdmin ? (
+                <AdminStrategyPortal
+                  strategies={strategies}
+                  onAddStrategy={handleAddStrategy}
+                  onUpdateStrategy={handleUpdateStrategy}
+                  onDeleteStrategy={handleDeleteStrategy}
+                  onTestBacktest={(strat) => {
+                    navigateTo('backtest', strat);
+                  }}
+                />
+              ) : (
+                <div className="max-w-md mx-auto my-16 p-8 bg-surface-card border border-border-subtle rounded-2xl shadow-sm text-center space-y-4">
+                  <div className="w-12 h-12 rounded-xl bg-bearish-tint text-bearish flex items-center justify-center mx-auto">
+                    <span className="material-symbols-outlined text-[24px]">shield_lock</span>
+                  </div>
+                  <h2 className="text-xl font-bold text-on-surface">Institutional Governance Restricted</h2>
+                  <p className="text-sm text-text-muted leading-relaxed">
+                    Strategy Compiler is restricted strictly to System Administrators. Please sign in with administrator credentials (username: <code className="font-mono text-primary font-bold">admin</code>, password: <code className="font-mono text-primary font-bold">admin</code>).
+                  </p>
+                  <button
+                    onClick={() => navigateTo('auth')}
+                    className="px-6 py-2.5 bg-primary text-on-primary font-label-md text-label-md rounded-xl hover:bg-primary-container transition-all active:scale-95 cursor-pointer shadow-xs"
+                  >
+                    Sign In as Administrator
+                  </button>
+                </div>
+              )
             )}
 
             {activeView === 'detail' && selectedStrategy && (
