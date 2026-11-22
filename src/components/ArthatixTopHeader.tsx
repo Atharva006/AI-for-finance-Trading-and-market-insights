@@ -58,7 +58,6 @@ const SEARCH_INDEX: SearchItem[] = [
   { id: 'dest-market', title: 'Algo Marketplace', subtitle: 'Audited quantitative strategies with Sharpe & Drawdown analytics', category: 'destination', view: 'marketplace', badge: 'Market' },
   { id: 'dest-heatmaps', title: 'Market Heatmaps', subtitle: 'Interactive TradingView SENSEX / Nifty 50 market breadth map', category: 'destination', view: 'heatmap', badge: 'Heatmap' },
   { id: 'dest-insights', title: 'Market Insights', subtitle: 'Fundamental pulse, valuation ratios, institutional radar', category: 'destination', view: 'insights', badge: 'Insights' },
-  { id: 'dest-flow', title: 'Flow Canvas', subtitle: 'Visual algorithmic automation and workflow studio', category: 'destination', view: 'flow', badge: 'Canvas' },
   { id: 'dest-fvg', title: 'FVG Trading Desk', subtitle: 'Asia-London-NY Fair Value Gap session liquidity algorithmic desk', category: 'destination', view: 'forex', badge: 'Desk' },
   { id: 'dest-compiler', title: 'Strategy Compiler', subtitle: 'Institutional strategy code generator and risk governance', category: 'destination', view: 'admin', badge: 'Audit' },
 ];

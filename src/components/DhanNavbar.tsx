@@ -112,13 +112,6 @@ export const DhanNavbar: React.FC<DhanNavbarProps> = ({
         </button>
 
         <button
-          onClick={() => setActiveView('flow')}
-          className={navItemClass('flow')}
-        >
-          Flow Canvas [n8n Nodes]
-        </button>
-
-        <button
           onClick={() => setActiveView('insights')}
           className={navItemClass('insights')}
         >

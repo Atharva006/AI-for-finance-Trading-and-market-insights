@@ -30,12 +30,11 @@ import { StockLogo } from './StockLogo';
 
 interface MarketPulseInsightsProps {
   onSelectStockForBacktest: (symbol: string) => void;
-  onOpenFlowWithStock: (symbol: string) => void;
+  onOpenFlowWithStock?: (symbol: string) => void;
 }
 
 export const MarketPulseInsights: React.FC<MarketPulseInsightsProps> = ({
   onSelectStockForBacktest,
-  onOpenFlowWithStock,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSector, setSelectedSector] = useState<string>('ALL');
@@ -377,13 +376,6 @@ export const MarketPulseInsights: React.FC<MarketPulseInsightsProps> = ({
                         >
                           Backtest
                         </button>
-                        <button
-                          onClick={() => onOpenFlowWithStock(stock.symbol)}
-                          className="px-2.5 py-1 bg-primary hover:bg-primary-container text-on-primary rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
-                          title={`Open ${stock.symbol} in n8n Visual Flow Studio`}
-                        >
-                          Flow Canvas
-                        </button>
                       </div>
                     </td>
                   </tr>
@@ -400,7 +392,6 @@ export const MarketPulseInsights: React.FC<MarketPulseInsightsProps> = ({
         onClose={() => setSelectedFilingStock(null)}
         stock={selectedFilingStock}
         onSelectForBacktest={onSelectStockForBacktest}
-        onOpenFlowCanvas={onOpenFlowWithStock}
       />
     </div>
   );

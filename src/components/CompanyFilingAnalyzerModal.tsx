@@ -12,7 +12,6 @@ import {
   AlertCircle,
   ArrowUpRight,
   Sliders,
-  Workflow,
   Quote,
   Layers,
 } from 'lucide-react';
@@ -34,7 +33,6 @@ interface CompanyFilingAnalyzerModalProps {
   onClose: () => void;
   stock: FundamentalStockData | null;
   onSelectForBacktest?: (symbol: string) => void;
-  onOpenFlowCanvas?: (symbol: string) => void;
 }
 
 export const CompanyFilingAnalyzerModal: React.FC<CompanyFilingAnalyzerModalProps> = ({
@@ -42,7 +40,6 @@ export const CompanyFilingAnalyzerModal: React.FC<CompanyFilingAnalyzerModalProp
   onClose,
   stock,
   onSelectForBacktest,
-  onOpenFlowCanvas,
 }) => {
   const [analysis, setAnalysis] = useState<CompanyFilingAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -343,19 +340,6 @@ export const CompanyFilingAnalyzerModal: React.FC<CompanyFilingAnalyzerModalProp
               >
                 <Sliders className="w-3.5 h-3.5" />
                 <span>Backtest Strategy ({stock.symbol})</span>
-              </button>
-            )}
-
-            {onOpenFlowCanvas && (
-              <button
-                onClick={() => {
-                  onOpenFlowCanvas(stock.symbol);
-                  onClose();
-                }}
-                className="px-4 py-2 bg-primary hover:bg-primary-container text-on-primary rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
-              >
-                <Workflow className="w-3.5 h-3.5 text-bullish" />
-                <span>Open in Flow Canvas</span>
               </button>
             )}
 

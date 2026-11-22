@@ -6,7 +6,6 @@ import { LandingPage } from './components/LandingPage';
 import { DhanMarketplace } from './components/DhanMarketplace';
 import { DhanStrategyDetail } from './components/DhanStrategyDetail';
 import { BacktestStudio } from './components/BacktestStudio';
-import { VisualFlowStudio } from './components/VisualFlowStudio';
 import { AdminStrategyPortal } from './components/AdminStrategyPortal';
 import { UpstoxSettingsModal } from './components/UpstoxSettingsModal';
 import { MarketPulseInsights } from './components/MarketPulseInsights';
@@ -41,11 +40,8 @@ function getViewFromPath(pathname: string, strategies: AlgoStrategy[]): { view: 
   if (cleanPath === '/trading-algorithms') {
     return { view: 'marketplace', strategy: null };
   }
-  if (cleanPath === '/trading-algorithms/backtesting-studio') {
+  if (cleanPath === '/trading-algorithms/backtesting-studio' || cleanPath === '/trading-algorithms/flow-studio') {
     return { view: 'backtest', strategy: null };
-  }
-  if (cleanPath === '/trading-algorithms/flow-studio') {
-    return { view: 'flow', strategy: null };
   }
   if (cleanPath.startsWith('/trading-algorithms/detail/')) {
     const id = decodeURIComponent(cleanPath.replace('/trading-algorithms/detail/', ''));
@@ -81,7 +77,7 @@ function getPathForView(view: AppView, strategy?: AlgoStrategy | null): string {
     case 'backtest':
       return '/trading-algorithms/backtesting-studio';
     case 'flow':
-      return '/trading-algorithms/flow-studio';
+      return '/trading-algorithms/backtesting-studio';
     case 'detail':
       return strategy ? `/trading-algorithms/detail/${encodeURIComponent(strategy.id)}` : '/trading-algorithms';
     case 'insights':
@@ -297,19 +293,11 @@ export function App() {
               />
             )}
 
-            {activeView === 'flow' && (
-              <VisualFlowStudio initialStockSymbol={selectedInstrument} />
-            )}
-
             {activeView === 'insights' && (
               <MarketPulseInsights
                 onSelectStockForBacktest={(symbol) => {
                   setSelectedInstrument(symbol);
                   navigateTo('backtest');
-                }}
-                onOpenFlowWithStock={(symbol) => {
-                  setSelectedInstrument(symbol);
-                  navigateTo('flow');
                 }}
               />
             )}
