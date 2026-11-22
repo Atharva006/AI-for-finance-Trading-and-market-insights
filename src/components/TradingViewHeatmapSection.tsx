@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 
 export type HeatmapRegion = 'INDIA' | 'US';
 
@@ -14,12 +14,44 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
   const [region, setRegion] = useState<HeatmapRegion>('INDIA');
   const [blockSize, setBlockSize] = useState<'market_cap_basic' | 'volume'>('market_cap_basic');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const widgetContainerRef = useRef<HTMLDivElement>(null);
 
-  // Build direct, rock-solid TradingView Heatmap embed URL
+  // Dynamically load the TradingView Heatmap script module
+  useEffect(() => {
+    const scriptSrc = 'https://widgets.tradingview-widget.com/w/en/tv-heatmap.js';
+    if (!document.querySelector(`script[src="${scriptSrc}"]`)) {
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = scriptSrc;
+      script.async = true;
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  // Mount the official <tv-heatmap> custom element
+  useEffect(() => {
+    if (!widgetContainerRef.current) return;
+    widgetContainerRef.current.innerHTML = '';
+
+    const heatmapEl = document.createElement('tv-heatmap');
+    heatmapEl.setAttribute('heatmap-type', 'stock');
+    heatmapEl.setAttribute('data-source', region === 'INDIA' ? 'SENSEX' : 'SPX500');
+    heatmapEl.setAttribute('grouping', 'sector');
+    heatmapEl.setAttribute('block-size', blockSize);
+    heatmapEl.setAttribute('block-color', 'change');
+    heatmapEl.style.width = '100%';
+    heatmapEl.style.height = '100%';
+    heatmapEl.style.minHeight = '650px';
+    heatmapEl.style.display = 'block';
+
+    widgetContainerRef.current.appendChild(heatmapEl);
+  }, [region, blockSize]);
+
+  // Direct iframe fallback URL using SENSEX for Indian markets
   const iframeSrc = useMemo(() => {
     const config = {
       exchanges: [],
-      dataSource: region === 'INDIA' ? 'NIFTY50' : 'SPX500',
+      dataSource: region === 'INDIA' ? 'SENSEX' : 'SPX500',
       grouping: 'sector',
       blockSize: blockSize,
       blockColor: 'change',
@@ -37,7 +69,7 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
     return `https://www.tradingview-widget.com/embed-widget/stock-heatmap/?locale=en#${encodeURIComponent(JSON.stringify(config))}`;
   }, [region, blockSize]);
 
-  // Indian Sector Telemetry Data (NSE Real-time Benchmarks)
+  // Indian Sector Telemetry Data (NSE / BSE Real-time Benchmarks)
   const indianSectors = [
     { name: 'NIFTY BANK', change: '+0.84%', bullish: true, weight: '33.2%' },
     { name: 'NIFTY IT', change: '+1.42%', bullish: true, weight: '13.8%' },
@@ -78,7 +110,7 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
             Market Heatmaps
           </h1>
           <p className="text-xs text-[#64748B] mt-0.5">
-            Real-time sector breadth and percentage dispersion across BSE, NSE, and US markets.
+            Real-time sector breadth and percentage dispersion across BSE (SENSEX) and US markets.
           </p>
         </div>
 
@@ -86,7 +118,7 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
         <div className="flex flex-wrap items-center gap-2 shrink-0">
           {onNavigateToBacktest && (
             <button
-              onClick={() => onNavigateToBacktest(region === 'INDIA' ? 'NIFTY 50' : 'AAPL')}
+              onClick={() => onNavigateToBacktest(region === 'INDIA' ? 'RELIANCE' : 'AAPL')}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0F172A] text-white font-medium text-xs hover:bg-[#1E293B] transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[15px]">trending_up</span>
@@ -129,7 +161,7 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
             }`}
           >
             <span>🇮🇳</span>
-            <span>Indian Markets (BSE · NSE)</span>
+            <span>Indian Markets (BSE · SENSEX)</span>
           </button>
 
           <button
@@ -141,7 +173,7 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
             }`}
           >
             <span>🇺🇸</span>
-            <span>US Markets (Wall Street)</span>
+            <span>US Markets (S&amp;P 500)</span>
           </button>
         </div>
 
@@ -178,7 +210,7 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
       {/* ── 3. Real-Time Sector Telemetry Bar ── */}
       <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-xs flex items-center gap-3 overflow-x-auto">
         <span className="text-xs font-mono font-bold text-[#0F172A] uppercase shrink-0">
-          {region === 'INDIA' ? 'NSE SECTORS:' : 'US GICS:'}
+          {region === 'INDIA' ? 'NSE/BSE SECTORS:' : 'US GICS:'}
         </span>
 
         <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none py-0.5">
@@ -198,15 +230,9 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
         </div>
       </div>
 
-      {/* ── 4. Main Heatmap Canvas (100% Reliable Direct TradingView iFrame Embed) ── */}
+      {/* ── 4. Main Heatmap Canvas (Official <tv-heatmap> Custom Element + Failover) ── */}
       <div className="w-full bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden flex flex-col h-[650px] lg:h-[720px] relative">
-        <iframe
-          key={`${region}-${blockSize}`}
-          src={iframeSrc}
-          title="TradingView Stock Heatmap"
-          className="w-full h-full border-0"
-          style={{ minHeight: '620px' }}
-        />
+        <div ref={widgetContainerRef} className="w-full h-full min-h-[620px]" />
       </div>
     </div>
   );

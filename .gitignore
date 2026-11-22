@@ -5,3 +5,5 @@ dist
 .env
 .env.*
 !.env.example
+.vscode/
+src/Untitled-1.html

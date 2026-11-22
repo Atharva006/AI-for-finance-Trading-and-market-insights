@@ -1023,14 +1023,6 @@ export const BacktestStudio: React.FC<BacktestStudioProps> = ({ onStrategyUpdate
             </button>
           </div>
 
-          {/* Natural Language Prompt-to-Strategy Engine */}
-          <div className="space-y-1 pb-1">
-            <NaturalLanguagePromptBar
-              onApplyParsedStrategy={handleApplyParsedPrompt}
-              placeholder='Describe strategy: e.g. "INFY PSAR swing with 1% RPT and 100 SMA"...'
-            />
-          </div>
-
           {/* Strategy Engine Dropdown Menu (No more static boxes) */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">

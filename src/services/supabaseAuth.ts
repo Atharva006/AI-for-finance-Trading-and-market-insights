@@ -75,8 +75,7 @@ export function initSupabaseAuthListener(
   const isOAuthReturn =
     typeof window !== 'undefined' &&
     (window.location.hash.includes('access_token=') ||
-      window.location.search.includes('code=') ||
-      window.location.pathname === '/market-overview');
+      window.location.search.includes('code='));
 
   // 1. Immediately read existing active session on boot
   supabase.auth.getSession().then(({ data: { session }, error }) => {
@@ -96,7 +95,8 @@ export function initSupabaseAuthListener(
     if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED')) {
       const profile = sessionUserToProfile(session.user);
       setStoredLocalUser(profile);
-      onUserChange(profile, true);
+      const isActualOAuthSignIn = event === 'SIGNED_IN' && isOAuthReturn;
+      onUserChange(profile, isActualOAuthSignIn);
     } else if (event === 'SIGNED_OUT') {
       setStoredLocalUser(null);
       onUserChange(null, false);

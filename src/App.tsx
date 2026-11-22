@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ALL_CANONICAL_STRATEGIES } from './services/canonicalStrategies';
 import { QuantTerminalHeader } from './components/QuantTerminalHeader';
 import { DhanNavbar, AppView } from './components/DhanNavbar';
@@ -124,6 +125,9 @@ function getPathForView(view: AppView, strategy?: AlgoStrategy | null): string {
 }
 
 export function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [strategies, setStrategies] = useState<AlgoStrategy[]>(() => {
     return getStoredStrategies();
   });
@@ -131,39 +135,28 @@ export function App() {
   const [currentUser, setCurrentUser] = useState<AuthUserProfile | null>(() => getStoredLocalUser());
   const isAdmin = currentUser?.role === 'admin';
 
-  const [activeView, setActiveView] = useState<AppView>(() => {
-    const user = getStoredLocalUser();
-    const initial = getViewFromPath(window.location.pathname, getStoredStrategies());
-    const isOAuthCallback =
-      typeof window !== 'undefined' &&
-      (window.location.hash.includes('access_token=') ||
-        window.location.search.includes('code=') ||
-        window.location.pathname === '/market-overview');
-
-    // Strict Gatekeeper: Without signing up, the user shall never go to the next page!
-    if (!user && !isOAuthCallback && initial.view !== 'landing' && initial.view !== 'auth') {
-      return 'auth';
-    }
-    if (user && initial.view === 'auth') {
-      return 'overview';
-    }
-    if (isOAuthCallback) {
-      return 'overview';
-    }
-    return initial.view;
-  });
+  // Always compute activeView & matched strategy directly from React Router location
+  const { view: activeView, strategy: matchedStrategy } = useMemo(() => {
+    return getViewFromPath(location.pathname, strategies);
+  }, [location.pathname, strategies]);
 
   const [selectedStrategy, setSelectedStrategy] = useState<AlgoStrategy | null>(() => {
     const stored = getStoredStrategies();
-    const initial = getViewFromPath(window.location.pathname, stored);
+    const initial = getViewFromPath(typeof window !== 'undefined' ? window.location.pathname : '/', stored);
     return initial.strategy || stored[0] || null;
   });
+
+  useEffect(() => {
+    if (matchedStrategy) {
+      setSelectedStrategy(matchedStrategy);
+    }
+  }, [matchedStrategy]);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedInstrument, setSelectedInstrument] = useState<string>('NIFTY 50');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
-  // Supabase OAuth session listener & automatic dashboard redirection
+  // Supabase OAuth session listener & automatic dashboard redirection on successful login
   useEffect(() => {
     const unsubscribe = initSupabaseAuthListener((user, isOAuthRedirect) => {
       if (user) {
@@ -173,17 +166,12 @@ export function App() {
           (window.location.hash.includes('access_token=') ||
             window.location.search.includes('code='));
 
-        if (
-          isOAuthRedirect ||
-          hasOAuthHash ||
-          window.location.pathname === '/auth' ||
-          activeView === 'auth' ||
-          window.location.pathname === '/market-overview'
-        ) {
+        // Only auto-redirect if an actual OAuth callback completed or if currently stuck on /auth
+        if (isOAuthRedirect || hasOAuthHash || location.pathname === '/auth') {
           if (hasOAuthHash) {
             window.history.replaceState({ view: 'overview' }, '', '/market-overview');
           }
-          navigateTo(user.role === 'admin' ? 'admin' : 'overview', undefined, true);
+          navigate(user.role === 'admin' ? '/admin' : '/market-overview', { replace: true });
         }
       } else {
         setCurrentUser(null);
@@ -193,91 +181,65 @@ export function App() {
     return () => {
       unsubscribe();
     };
-  }, [activeView]);
+  }, [location.pathname, navigate]);
 
   useEffect(() => {
     const handleAuthChange = () => {
       const user = getStoredLocalUser();
       setCurrentUser(user);
       if (!user && activeView !== 'landing' && activeView !== 'auth') {
-        setActiveView('auth');
-        window.history.replaceState({ view: 'auth' }, '', '/auth');
+        navigate('/auth', { replace: true });
       }
     };
     window.addEventListener('storage', handleAuthChange);
     return () => window.removeEventListener('storage', handleAuthChange);
-  }, [activeView]);
+  }, [activeView, navigate]);
 
-  // Immediate mount check to guarantee zero unauthenticated bypass (ignoring OAuth in-flight)
+  // Immediate mount check to guarantee unauthenticated users are directed to /auth
   useEffect(() => {
     const isOAuthCallback =
       typeof window !== 'undefined' &&
       (window.location.hash.includes('access_token=') || window.location.search.includes('code='));
     if (isOAuthCallback) return;
 
-    const user = getStoredLocalUser();
-    const match = getViewFromPath(window.location.pathname, strategies);
-    if (!user && match.view !== 'landing' && match.view !== 'auth') {
-      setActiveView('auth');
-      window.history.replaceState({ view: 'auth' }, '', '/auth');
+    const user = getStoredLocalUser() || currentUser;
+    if (!user && activeView !== 'landing' && activeView !== 'auth') {
+      navigate('/auth', { replace: true });
     }
-  }, [strategies]);
+  }, [activeView, currentUser, navigate]);
+
+  // If authenticated user visits /auth directly, redirect to overview
+  useEffect(() => {
+    const user = getStoredLocalUser() || currentUser;
+    if (user && activeView === 'auth') {
+      navigate(user.role === 'admin' ? '/admin' : '/market-overview', { replace: true });
+    }
+  }, [activeView, currentUser, navigate]);
 
   const handleSignOut = async () => {
     await signOutUser();
     setCurrentUser(null);
-    navigateTo('landing');
+    navigate('/', { replace: true });
   };
 
-  // Synchronize browser history and popstate events
-  useEffect(() => {
-    const handlePopState = () => {
-      const match = getViewFromPath(window.location.pathname, strategies);
-      const user = getStoredLocalUser();
-      // Strict Gatekeeper: Without signing up, the user shall never go to the next page!
-      if (!user && match.view !== 'landing' && match.view !== 'auth') {
-        setActiveView('auth');
-        return;
-      }
-      setActiveView(match.view);
-      if (match.strategy) {
-        setSelectedStrategy(match.strategy);
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [strategies]);
-
-  // Master navigation handler with browser history pushState
+  // Master navigation handler with standard React Router navigation
   const navigateTo = (view: AppView, strategyOverride?: AlgoStrategy | null, replace = false) => {
-    // Strict Gatekeeper: Without signing up, the user shall never go to the next page!
-    if (!currentUser && view !== 'landing' && view !== 'auth') {
-      setActiveView('auth');
-      const targetPath = '/auth';
-      if (window.location.pathname !== targetPath) {
-        if (replace) {
-          window.history.replaceState({ view: 'auth' }, '', targetPath);
-        } else {
-          window.history.pushState({ view: 'auth' }, '', targetPath);
-        }
-      }
+    const user = getStoredLocalUser() || currentUser;
+    // Strict Gatekeeper: Unauthenticated users are sent to /auth
+    if (!user && view !== 'landing' && view !== 'auth') {
+      navigate('/auth', { replace });
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
+
     const targetStrategy = strategyOverride !== undefined ? strategyOverride : selectedStrategy;
     if (strategyOverride !== undefined) {
       setSelectedStrategy(strategyOverride);
     }
-    setActiveView(view);
     const targetPath = getPathForView(view, targetStrategy);
 
-    if (window.location.pathname !== targetPath) {
-      if (replace) {
-        window.history.replaceState({ view, strategyId: targetStrategy?.id }, '', targetPath);
-      } else {
-        window.history.pushState({ view, strategyId: targetStrategy?.id }, '', targetPath);
-      }
+    if (location.pathname !== targetPath) {
+      navigate(targetPath, { replace });
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
