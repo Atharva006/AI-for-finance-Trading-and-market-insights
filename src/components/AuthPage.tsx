@@ -51,6 +51,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigateHome, onAuthSucces
       const res = await signInWithGoogle();
       if (res?.user) {
         onAuthSuccess?.(res.user);
+        // Direct fallback navigation to ensure instant transition out of /auth
+        setTimeout(() => {
+          if (window.location.pathname === '/auth') {
+            window.location.href = '/market-overview';
+          }
+        }, 100);
       }
     } catch (err: any) {
       console.error('Google sign-in error:', err);

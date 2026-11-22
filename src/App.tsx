@@ -144,6 +144,9 @@ export function App() {
     if (!user && !isOAuthCallback && initial.view !== 'landing' && initial.view !== 'auth') {
       return 'auth';
     }
+    if (user && initial.view === 'auth') {
+      return 'overview';
+    }
     if (isOAuthCallback) {
       return 'overview';
     }
