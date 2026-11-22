@@ -39,7 +39,8 @@ export const ALL_NIFTY_50_STOCKS: Nifty50Constituent[] = [
   { symbol: 'COALINDIA', name: 'Coal India Ltd.', sector: 'Energy & Petrochemicals', weight: 1.1, instrument_key: 'NSE_EQ|INE522F01014', yahoo_symbol: 'COALINDIA.NS' },
 
   // ── Automobiles & Auto Components ──
-  { symbol: 'TATAMOTORS', name: 'Tata Motors Ltd.', sector: 'Automobile', weight: 1.9, instrument_key: 'NSE_EQ|INE155A01022', yahoo_symbol: 'TATAMOTORS.NS' },
+  { symbol: 'TATAMOTORS', name: 'Tata Motors Ltd. (TMPV / TMCV)', sector: 'Automobile', weight: 1.9, instrument_key: 'NSE_EQ|INE155A01022', yahoo_symbol: 'TMPV.NS' },
+  { symbol: 'TMCV', name: 'Tata Motors Commercial Vehicles Ltd.', sector: 'Automobile', weight: 0.8, instrument_key: 'NSE_EQ|TMCV', yahoo_symbol: 'TMCV.NS' },
   { symbol: 'MARUTI', name: 'Maruti Suzuki India Ltd.', sector: 'Automobile', weight: 1.7, instrument_key: 'NSE_EQ|INE585B01010', yahoo_symbol: 'MARUTI.NS' },
   { symbol: 'M&M', name: 'Mahindra & Mahindra Ltd.', sector: 'Automobile', weight: 2.4, instrument_key: 'NSE_EQ|INE101A01026', yahoo_symbol: 'M&M.NS' },
   { symbol: 'BAJAJ-AUTO', name: 'Bajaj Auto Ltd.', sector: 'Automobile', weight: 1.2, instrument_key: 'NSE_EQ|INE917I01012', yahoo_symbol: 'BAJAJ-AUTO.NS' },
@@ -109,71 +110,76 @@ export const NIFTY_50_SECTORS = [
 const nifty50QuoteCache = new Map<string, { lastPrice: number; change: number; pChange: number; timestamp: number }>();
 
 /**
- * Fetches authentic live quote details for NIFTY 50 constituents from Yahoo Finance
+ * Fetches authentic live quote details for NIFTY 50 constituents from Yahoo Finance v8 chart API
  */
 export async function fetchNifty50LiveQuotes(): Promise<Nifty50Constituent[]> {
-  const symbols = ALL_NIFTY_50_STOCKS.map((s) => s.yahoo_symbol).join(',');
-  const encoded = encodeURIComponent(symbols);
-
-  const urls = [
-    `/yahoo-api/v7/finance/quote?symbols=${encoded}`,
-    `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encoded}`,
-    `https://query2.finance.yahoo.com/v7/finance/quote?symbols=${encoded}`,
-  ];
-
-  for (const url of urls) {
-    try {
-      const res = await fetch(url, {
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-          Accept: 'application/json, text/plain, */*',
-        },
-      });
-
-      if (res.ok) {
-        const json = await res.json();
-        const results = json.quoteResponse?.result || [];
-        const resultMap = new Map<string, any>();
-        results.forEach((r: any) => resultMap.set(r.symbol, r));
-
-        return ALL_NIFTY_50_STOCKS.map((stock) => {
-          const q = resultMap.get(stock.yahoo_symbol);
-          if (q) {
-            const lastPrice = q.regularMarketPrice || q.price || stock.lastPrice || 0;
-            const change = q.regularMarketChange || 0;
-            const pChange = q.regularMarketChangePercent || 0;
-            nifty50QuoteCache.set(stock.symbol, {
-              lastPrice,
-              change,
-              pChange,
-              timestamp: Date.now(),
-            });
-            return {
-              ...stock,
-              lastPrice: Number(lastPrice.toFixed(2)),
-              change: Number(change.toFixed(2)),
-              pChange: Number(pChange.toFixed(2)),
-              marketCapCr: q.marketCap ? Math.round(q.marketCap / 10000000) : undefined,
-            };
-          }
-          return stock;
-        });
+  const stockQuotes = await Promise.all(
+    ALL_NIFTY_50_STOCKS.map(async (stock) => {
+      const sym = stock.yahoo_symbol;
+      const cached = nifty50QuoteCache.get(stock.symbol);
+      if (cached && Date.now() - cached.timestamp < 60000) {
+        return {
+          ...stock,
+          lastPrice: cached.lastPrice,
+          change: cached.change,
+          pChange: cached.pChange,
+        };
       }
-    } catch (_) {}
-  }
 
-  // Fallback to cache or base list
-  return ALL_NIFTY_50_STOCKS.map((stock) => {
-    const cached = nifty50QuoteCache.get(stock.symbol);
-    if (cached) {
-      return {
-        ...stock,
-        lastPrice: cached.lastPrice,
-        change: cached.change,
-        pChange: cached.pChange,
-      };
-    }
-    return stock;
-  });
+      const encoded = encodeURIComponent(sym);
+      const urls = [
+        `/yahoo-api/v8/finance/chart/${encoded}?interval=1d&range=1d`,
+        `https://query1.finance.yahoo.com/v8/finance/chart/${encoded}?interval=1d&range=1d`,
+        `https://query2.finance.yahoo.com/v8/finance/chart/${encoded}?interval=1d&range=1d`,
+      ];
+
+      for (const url of urls) {
+        try {
+          const res = await fetch(url, {
+            headers: {
+              'User-Agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+              Accept: 'application/json, text/plain, */*',
+            },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const meta = data?.chart?.result?.[0]?.meta;
+            if (meta && meta.regularMarketPrice != null) {
+              const lastPrice = meta.regularMarketPrice;
+              const prevClose = meta.chartPreviousClose || meta.previousClose || lastPrice;
+              const change = lastPrice - prevClose;
+              const pChange = prevClose > 0 ? (change / prevClose) * 100 : 0;
+
+              nifty50QuoteCache.set(stock.symbol, {
+                lastPrice: Number(lastPrice.toFixed(2)),
+                change: Number(change.toFixed(2)),
+                pChange: Number(pChange.toFixed(2)),
+                timestamp: Date.now(),
+              });
+
+              return {
+                ...stock,
+                lastPrice: Number(lastPrice.toFixed(2)),
+                change: Number(change.toFixed(2)),
+                pChange: Number(pChange.toFixed(2)),
+              };
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (cached) {
+        return {
+          ...stock,
+          lastPrice: cached.lastPrice,
+          change: cached.change,
+          pChange: cached.pChange,
+        };
+      }
+      return stock;
+    })
+  );
+
+  return stockQuotes;
 }

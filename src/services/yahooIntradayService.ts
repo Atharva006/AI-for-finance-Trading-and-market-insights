@@ -33,6 +33,17 @@ export const REPLAY_TICKER_PRESETS: ReplayTickerPreset[] = [
   { label: 'Bitcoin (BTC-USD)', symbol: 'BTC-USD', category: 'Crypto' },
 ];
 
+export const SYMBOL_ALIASES: Record<string, string[]> = {
+  'TATAMOTORS.NS': ['TMPV.NS', 'TMCV.NS'],
+  'TATAMOTORS': ['TMPV.NS', 'TMCV.NS', 'TATAMOTORS.NS'],
+  'TMPV': ['TMPV.NS'],
+  'TMCV': ['TMCV.NS'],
+  'M&M': ['M&M.NS', 'MM.NS'],
+  'M&M.NS': ['M&M.NS', 'MM.NS'],
+  'BAJAJ-AUTO': ['BAJAJ-AUTO.NS'],
+  'BAJAJ-AUTO.NS': ['BAJAJ-AUTO.NS', 'BAJAJ_AUTO.NS'],
+};
+
 export const intradayCache = new Map<string, Candle[]>();
 
 export function clearIntradayCache(): void {
@@ -69,7 +80,8 @@ export async function fetchIntradayCandles(
   const period2 = Math.floor(Date.now() / 1000);
   const period1 = period2 - Math.floor(effectiveLookbackDays * 86400);
 
-  const cacheKey = `${symbol}_${interval}_${period1}_${period2}`;
+  const cleanSymbol = symbol.trim();
+  const cacheKey = `${cleanSymbol}_${interval}_${period1}_${period2}`;
 
   // Check exact cache key first
   if (intradayCache.has(cacheKey)) {
@@ -87,7 +99,7 @@ export async function fetchIntradayCandles(
       const kPeriod1 = Number(key.slice(secondLastUnderscore + 1, lastUnderscore));
       const kPeriod2 = Number(key.slice(lastUnderscore + 1));
       if (
-        kSymbol === symbol &&
+        (kSymbol === cleanSymbol || (SYMBOL_ALIASES[cleanSymbol] && SYMBOL_ALIASES[cleanSymbol].includes(kSymbol))) &&
         kInterval === interval &&
         Math.abs(kPeriod2 - period2) <= 60 &&
         Math.abs((kPeriod2 - kPeriod1) - (period2 - period1)) <= 60
@@ -97,19 +109,26 @@ export async function fetchIntradayCandles(
     }
   }
 
-  const encodedSymbol = encodeURIComponent(symbol);
-  const queryParams = `interval=${interval}&period1=${period1}&period2=${period2}&includePrePost=false`;
-  const rangeQueryParams = `interval=${interval}&range=${rangeParam}&includePrePost=false`;
-
-  // Tries proxy URL first, falls back to direct query1 and query2, with period and range failovers
-  const urls: string[] = [
-    `/yahoo-api/v8/finance/chart/${encodedSymbol}?${queryParams}`,
-    `/yahoo-api/v8/finance/chart/${encodedSymbol}?${rangeQueryParams}`,
-    `https://query1.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?${queryParams}`,
-    `https://query1.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?${rangeQueryParams}`,
-    `https://query2.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?${queryParams}`,
-    `https://query2.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?${rangeQueryParams}`,
-  ];
+  // Build candidate symbols list (e.g. TATAMOTORS.NS -> [TMPV.NS, TMCV.NS, TATAMOTORS.NS])
+  const candidateSymbols: string[] = [];
+  if (SYMBOL_ALIASES[cleanSymbol]) {
+    candidateSymbols.push(...SYMBOL_ALIASES[cleanSymbol]);
+  }
+  if (!candidateSymbols.includes(cleanSymbol)) {
+    candidateSymbols.push(cleanSymbol);
+  }
+  // Auto-append .NS for equity symbols without exchange/asset suffixes
+  if (
+    !cleanSymbol.startsWith('^') &&
+    !cleanSymbol.includes('.') &&
+    !cleanSymbol.includes('=') &&
+    !cleanSymbol.includes('/')
+  ) {
+    const nsSym = `${cleanSymbol}.NS`;
+    if (!candidateSymbols.includes(nsSym)) {
+      candidateSymbols.push(nsSym);
+    }
+  }
 
   const headers: Record<string, string> = {
     'User-Agent':
@@ -117,85 +136,103 @@ export async function fetchIntradayCandles(
     Accept: 'application/json, text/plain, */*',
   };
 
-  for (const url of urls) {
-    try {
-      const res = await fetch(url, { headers });
-      if (!res.ok) {
-        continue;
-      }
+  // Try candidate symbols in sequence
+  for (const candidate of candidateSymbols) {
+    const encodedSymbol = encodeURIComponent(candidate);
+    const queryParams = `interval=${interval}&period1=${period1}&period2=${period2}&includePrePost=false`;
+    const rangeQueryParams = `interval=${interval}&range=${rangeParam}&includePrePost=false`;
 
-      const json = await res.json();
-      const result = json?.chart?.result?.[0];
-      if (!result) {
-        continue;
-      }
+    // Tries proxy URL first, falls back to direct query1 and query2, with period and range failovers
+    const urls: string[] = [
+      `/yahoo-api/v8/finance/chart/${encodedSymbol}?${queryParams}`,
+      `/yahoo-api/v8/finance/chart/${encodedSymbol}?${rangeQueryParams}`,
+      `https://query1.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?${queryParams}`,
+      `https://query1.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?${rangeQueryParams}`,
+      `https://query2.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?${queryParams}`,
+      `https://query2.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?${rangeQueryParams}`,
+    ];
 
-      const timestamps: number[] = result.timestamp || [];
-      const quote = result.indicators?.quote?.[0] || {};
-      const opens: (number | null)[] = quote.open || [];
-      const highs: (number | null)[] = quote.high || [];
-      const lows: (number | null)[] = quote.low || [];
-      const closes: (number | null)[] = quote.close || [];
-      const volumes: (number | null)[] = quote.volume || [];
-
-      const candles: Candle[] = [];
-
-      for (let i = 0; i < timestamps.length; i++) {
-        const ts = timestamps[i];
-        const o = opens[i];
-        const h = highs[i];
-        const l = lows[i];
-        const c = closes[i];
-        const v = volumes[i];
-
-        // Filter out null/NaN bars
-        if (
-          ts == null ||
-          o == null ||
-          h == null ||
-          l == null ||
-          c == null ||
-          isNaN(ts) ||
-          isNaN(o) ||
-          isNaN(h) ||
-          isNaN(l) ||
-          isNaN(c)
-        ) {
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, { headers });
+        if (!res.ok) {
           continue;
         }
 
-        const tsMs = ts * 1000;
-        const d = new Date(tsMs);
+        const json = await res.json();
+        const result = json?.chart?.result?.[0];
+        if (!result) {
+          continue;
+        }
 
-        const timeStr =
-          interval === '1d'
-            ? d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })
-            : d.toLocaleDateString('en-IN', {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              });
+        const timestamps: number[] = result.timestamp || [];
+        const quote = result.indicators?.quote?.[0] || {};
+        const opens: (number | null)[] = quote.open || [];
+        const highs: (number | null)[] = quote.high || [];
+        const lows: (number | null)[] = quote.low || [];
+        const closes: (number | null)[] = quote.close || [];
+        const volumes: (number | null)[] = quote.volume || [];
 
-        candles.push({
-          time: timeStr,
-          timestamp: tsMs,
-          isoString: d.toISOString(),
-          open: Number(Number(o).toFixed(2)),
-          high: Number(Number(h).toFixed(2)),
-          low: Number(Number(l).toFixed(2)),
-          close: Number(Number(c).toFixed(2)),
-          volume: v != null && !isNaN(v) ? Math.round(Number(v)) : 0,
-        });
+        const candles: Candle[] = [];
+
+        for (let i = 0; i < timestamps.length; i++) {
+          const ts = timestamps[i];
+          const o = opens[i];
+          const h = highs[i];
+          const l = lows[i];
+          const c = closes[i];
+          const v = volumes[i];
+
+          // Filter out null/NaN bars
+          if (
+            ts == null ||
+            o == null ||
+            h == null ||
+            l == null ||
+            c == null ||
+            isNaN(ts) ||
+            isNaN(o) ||
+            isNaN(h) ||
+            isNaN(l) ||
+            isNaN(c)
+          ) {
+            continue;
+          }
+
+          const tsMs = ts * 1000;
+          const d = new Date(tsMs);
+
+          const timeStr =
+            interval === '1d'
+              ? d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })
+              : d.toLocaleDateString('en-IN', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+
+          candles.push({
+            time: timeStr,
+            timestamp: tsMs,
+            isoString: d.toISOString(),
+            open: Number(Number(o).toFixed(2)),
+            high: Number(Number(h).toFixed(2)),
+            low: Number(Number(l).toFixed(2)),
+            close: Number(Number(c).toFixed(2)),
+            volume: v != null && !isNaN(v) ? Math.round(Number(v)) : 0,
+          });
+        }
+
+        if (candles.length > 0) {
+          candles.sort((a, b) => a.timestamp - b.timestamp);
+          intradayCache.set(cacheKey, candles);
+          intradayCache.set(`${candidate}_${interval}_${period1}_${period2}`, candles);
+          return candles;
+        }
+      } catch (_) {
+        // Continue to next endpoint on failure
       }
-
-      if (candles.length > 0) {
-        candles.sort((a, b) => a.timestamp - b.timestamp);
-        intradayCache.set(cacheKey, candles);
-        return candles;
-      }
-    } catch (_) {
-      // Continue to next endpoint on failure
     }
   }
 
