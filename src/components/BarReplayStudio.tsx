@@ -19,15 +19,21 @@ import {
   TrendingDown,
   Download,
   Sliders,
-  DollarSign,
   Activity,
   Layers,
   ChevronDown,
   ChevronUp,
-  XCircle,
   Clock,
   Shield,
   Search,
+  PenTool,
+  Square,
+  Minus,
+  Sparkles,
+  Trash2,
+  Undo2,
+  MousePointer,
+  Grid,
 } from 'lucide-react';
 import { Candle } from '../types/backtest';
 import {
@@ -46,6 +52,23 @@ import {
   computeMetrics,
   exportTradesToCSV,
 } from '../services/replayEngine';
+import {
+  ALL_NIFTY_50_STOCKS,
+  NIFTY_50_SECTORS,
+  Nifty50Constituent,
+  fetchNifty50LiveQuotes,
+} from '../services/nifty50Data';
+import {
+  DrawingToolType,
+  ChartDrawing,
+  TrendlineDrawing,
+  RectangleDrawing,
+  HorizontalRayDrawing,
+  FibonacciDrawing,
+  DRAWING_COLOR_PALETTE,
+  autoDetectTrendlines,
+  autoDetectZonesAndRectangles,
+} from '../services/chartDrawingTools';
 
 export interface BarReplayStudioProps {}
 
@@ -58,6 +81,12 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
   const [isLoadingData, setIsLoadingData] = useState<boolean>(false);
   const [dataError, setDataError] = useState<string | null>(null);
 
+  // ── NIFTY 50 Constituent Selector State ──
+  const [isNifty50ModalOpen, setIsNifty50ModalOpen] = useState<boolean>(false);
+  const [nifty50Search, setNifty50Search] = useState<string>('');
+  const [selectedSector, setSelectedSector] = useState<string>('All Sectors');
+  const [nifty50List, setNifty50List] = useState<Nifty50Constituent[]>(ALL_NIFTY_50_STOCKS);
+
   // ── Replay Engine State ──
   const [replayState, setReplayState] = useState<ReplayState | null>(null);
   const [playSpeed, setPlaySpeed] = useState<number>(1); // candles / sec
@@ -68,31 +97,54 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
   const [orderSl, setOrderSl] = useState<string>('');
   const [orderTp, setOrderTp] = useState<string>('');
 
+  // ── Interactive Drawing Tools State ──
+  const [activeTool, setActiveTool] = useState<DrawingToolType>('cursor');
+  const [activeColorHex, setActiveColorHex] = useState<string>('#536CF0');
+  const [drawings, setDrawings] = useState<ChartDrawing[]>([]);
+  const [autoTrendlinesEnabled, setAutoTrendlinesEnabled] = useState<boolean>(true);
+  const [autoZonesEnabled, setAutoZonesEnabled] = useState<boolean>(true);
+  const [drawingStartPoint, setDrawingStartPoint] = useState<{ time: number; price: number; x: number; y: number } | null>(null);
+  const [currentMousePos, setCurrentMousePos] = useState<{ x: number; y: number } | null>(null);
+
   // ── Collapsible Trade Log ──
   const [isTradeLogOpen, setIsTradeLogOpen] = useState<boolean>(true);
 
   // ── Lightweight Charts DOM & Series Refs ──
   const chartContainerRef = useRef<HTMLDivElement | null>(null);
+  const drawingCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
   const priceLinesRef = useRef<{ entry?: IPriceLine; sl?: IPriceLine; tp?: IPriceLine }>({});
 
+  // ── Fetch NIFTY 50 live quotes in background ──
+  useEffect(() => {
+    fetchNifty50LiveQuotes().then((quotes) => {
+      if (quotes && quotes.length > 0) {
+        setNifty50List(quotes);
+      }
+    });
+  }, []);
+
   // ── 1. Fetch & Initialize Candles ──
-  const handleLoadData = useCallback(async () => {
+  const handleLoadData = useCallback(async (targetSymbolOverride?: string) => {
     setIsLoadingData(true);
     setDataError(null);
     try {
-      const targetSymbol = customSymbol.trim() ? customSymbol.trim() : symbol;
-      const candles = await fetchIntradayCandles(targetSymbol, selectedInterval);
+      const target = targetSymbolOverride || (customSymbol.trim() ? customSymbol.trim() : symbol);
+      const candles = await fetchIntradayCandles(target, selectedInterval);
       if (!candles || candles.length === 0) {
-        throw new Error(`No intraday data returned for ${targetSymbol} on ${selectedInterval} interval.`);
+        throw new Error(`No intraday data returned for ${target} on ${selectedInterval} interval.`);
       }
-      // Start replay at candle 30 or 20% into dataset to give immediate context
-      const startIndex = Math.min(30, Math.floor(candles.length * 0.1));
+      // Start replay at candle 35 or 15% into dataset to give immediate context
+      const startIndex = Math.min(35, Math.floor(candles.length * 0.15));
       const initial = createInitialReplayState(candles, startIndex, initialBalance);
       initial.playSpeed = playSpeed;
       setReplayState(initial);
+      if (targetSymbolOverride) {
+        setSymbol(targetSymbolOverride);
+        setCustomSymbol('');
+      }
     } catch (err: any) {
       console.error('[BarReplayStudio] Data fetch error:', err);
       setDataError(err.message || 'Failed to load historical data from Yahoo Finance.');
@@ -110,7 +162,6 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
-    // Clean up existing chart
     if (chartRef.current) {
       chartRef.current.remove();
       chartRef.current = null;
@@ -174,16 +225,25 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
     // Resize observer
     const handleResize = () => {
       if (chartContainerRef.current && chartRef.current) {
-        chartRef.current.applyOptions({
-          width: chartContainerRef.current.clientWidth,
-          height: chartContainerRef.current.clientHeight,
-        });
+        const w = chartContainerRef.current.clientWidth;
+        const h = chartContainerRef.current.clientHeight;
+        chartRef.current.applyOptions({ width: w, height: h });
+        if (drawingCanvasRef.current) {
+          drawingCanvasRef.current.width = w;
+          drawingCanvasRef.current.height = h;
+          renderDrawingsCanvas();
+        }
       }
     };
 
     window.addEventListener('resize', handleResize);
     const observer = new ResizeObserver(handleResize);
     observer.observe(container);
+
+    // Subscribe to chart movements to keep drawings synchronized
+    chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
+      renderDrawingsCanvas();
+    });
 
     return () => {
       window.removeEventListener('resize', handleResize);
@@ -199,10 +259,8 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
   useEffect(() => {
     if (!replayState || !candleSeriesRef.current || !volumeSeriesRef.current) return;
 
-    // Slice strict candle-by-candle: only candles up to currentIndex
     const visibleCandles = replayState.allCandles.slice(0, replayState.currentIndex + 1);
 
-    // Format for Lightweight Charts
     const formattedBars = visibleCandles.map((c) => ({
       time: Math.floor(c.timestamp / 1000) as UTCTimestamp,
       open: c.open,
@@ -268,9 +326,373 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
         });
       }
     }
+
+    renderDrawingsCanvas();
   }, [replayState?.currentIndex, replayState?.activePosition]);
 
-  // ── 4. Transport & Stepping Controls ──
+  // ── 4. Drawing Canvas Coordinate Converters & Render Engine ──
+  const timeToX = useCallback((timeSec: number): number | null => {
+    if (!chartRef.current) return null;
+    return chartRef.current.timeScale().timeToCoordinate(timeSec as UTCTimestamp);
+  }, []);
+
+  const priceToY = useCallback((price: number): number | null => {
+    if (!candleSeriesRef.current) return null;
+    return candleSeriesRef.current.priceToCoordinate(price);
+  }, []);
+
+  const xToTime = useCallback((x: number): number | null => {
+    if (!chartRef.current) return null;
+    const t = chartRef.current.timeScale().coordinateToTime(x);
+    return typeof t === 'number' ? t : null;
+  }, []);
+
+  const yToPrice = useCallback((y: number): number | null => {
+    if (!candleSeriesRef.current) return null;
+    return candleSeriesRef.current.coordinateToPrice(y);
+  }, []);
+
+  const renderDrawingsCanvas = useCallback(() => {
+    const canvas = drawingCanvasRef.current;
+    if (!canvas || !chartRef.current || !candleSeriesRef.current) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const visibleCandles = replayState
+      ? replayState.allCandles.slice(0, replayState.currentIndex + 1)
+      : [];
+
+    // ── 4a. Auto-Detected Fair Value Gaps & Zones ──
+    if (autoZonesEnabled && visibleCandles.length > 5) {
+      const autoBoxes = autoDetectZonesAndRectangles(visibleCandles);
+      for (const box of autoBoxes) {
+        const x1 = timeToX(box.time1);
+        const y1 = priceToY(box.price1);
+        const x2 = timeToX(box.time2) || canvas.width - 60;
+        const y2 = priceToY(box.price2);
+
+        if (x1 !== null && y1 !== null && y2 !== null) {
+          const rx = Math.min(x1, x2);
+          const ry = Math.min(y1, y2);
+          const rw = Math.max(20, Math.abs(x2 - x1));
+          const rh = Math.max(4, Math.abs(y2 - y1));
+
+          ctx.fillStyle = box.fillColor || 'rgba(5, 150, 105, 0.12)';
+          ctx.fillRect(rx, ry, rw, rh);
+          ctx.strokeStyle = box.color;
+          ctx.lineWidth = 1;
+          ctx.setLineDash([3, 3]);
+          ctx.strokeRect(rx, ry, rw, rh);
+          ctx.setLineDash([]);
+
+          // Zone label
+          if (box.label) {
+            ctx.fillStyle = box.color;
+            ctx.font = '9px "JetBrains Mono", monospace';
+            ctx.fillText(box.label, rx + 4, ry + 11);
+          }
+        }
+      }
+    }
+
+    // ── 4b. Auto-Detected Dynamic Resistance & Support Trendlines ──
+    if (autoTrendlinesEnabled && visibleCandles.length > 15) {
+      const autoLines = autoDetectTrendlines(visibleCandles);
+      for (const line of autoLines) {
+        const x1 = timeToX(line.time1);
+        const y1 = priceToY(line.price1);
+        const x2 = timeToX(line.time2);
+        const y2 = priceToY(line.price2);
+
+        if (x1 !== null && y1 !== null && x2 !== null && y2 !== null) {
+          ctx.beginPath();
+          ctx.strokeStyle = line.color;
+          ctx.lineWidth = line.lineWidth || 2;
+          ctx.setLineDash([4, 4]);
+
+          // Extend trendline across visible chart if requested
+          if (line.extendRight && x2 !== x1) {
+            const slope = (y2 - y1) / (x2 - x1);
+            const targetX = canvas.width - 40;
+            const targetY = y1 + slope * (targetX - x1);
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(targetX, targetY);
+          } else {
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+          }
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Pivot nodes
+          ctx.fillStyle = line.color;
+          ctx.beginPath();
+          ctx.arc(x1, y1, 3, 0, Math.PI * 2);
+          ctx.arc(x2, y2, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    // ── 4c. User-Created Persistent Drawings ──
+    for (const d of drawings) {
+      if (d.type === 'trendline') {
+        const tl = d as TrendlineDrawing;
+        const x1 = timeToX(tl.time1);
+        const y1 = priceToY(tl.price1);
+        const x2 = timeToX(tl.time2);
+        const y2 = priceToY(tl.price2);
+
+        if (x1 !== null && y1 !== null && x2 !== null && y2 !== null) {
+          ctx.beginPath();
+          ctx.strokeStyle = tl.color;
+          ctx.lineWidth = tl.lineWidth || 2;
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+
+          // End handles
+          ctx.fillStyle = '#FFFFFF';
+          ctx.strokeStyle = tl.color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x1, y1, 4, 0, Math.PI * 2);
+          ctx.arc(x2, y2, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          // Delta point label
+          const midX = (x1 + x2) / 2;
+          const midY = (y1 + y2) / 2;
+          const deltaPrice = tl.price2 - tl.price1;
+          const pct = ((deltaPrice / tl.price1) * 100).toFixed(2);
+          ctx.fillStyle = tl.color;
+          ctx.font = '10px "JetBrains Mono", monospace';
+          ctx.fillText(`${deltaPrice >= 0 ? '+' : ''}${deltaPrice.toFixed(1)} (${pct}%)`, midX + 6, midY - 6);
+        }
+      } else if (d.type === 'rectangle') {
+        const rect = d as RectangleDrawing;
+        const x1 = timeToX(rect.time1);
+        const y1 = priceToY(rect.price1);
+        const x2 = timeToX(rect.time2);
+        const y2 = priceToY(rect.price2);
+
+        if (x1 !== null && y1 !== null && x2 !== null && y2 !== null) {
+          const rx = Math.min(x1, x2);
+          const ry = Math.min(y1, y2);
+          const rw = Math.abs(x2 - x1);
+          const rh = Math.abs(y2 - y1);
+
+          ctx.fillStyle = rect.fillColor || 'rgba(83, 108, 240, 0.15)';
+          ctx.fillRect(rx, ry, rw, rh);
+          ctx.strokeStyle = rect.color;
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(rx, ry, rw, rh);
+
+          // Corner price bounds
+          ctx.fillStyle = rect.color;
+          ctx.font = '10px "JetBrains Mono", monospace';
+          const maxP = Math.max(rect.price1, rect.price2).toFixed(2);
+          const minP = Math.min(rect.price1, rect.price2).toFixed(2);
+          ctx.fillText(`Top: ${maxP}`, rx + rw + 4, ry + 10);
+          ctx.fillText(`Btm: ${minP}`, rx + rw + 4, ry + rh);
+        }
+      } else if (d.type === 'ray') {
+        const ray = d as HorizontalRayDrawing;
+        const y = priceToY(ray.price);
+        if (y !== null) {
+          ctx.beginPath();
+          ctx.strokeStyle = ray.color;
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([5, 3]);
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = ray.color;
+          ctx.font = '10px "JetBrains Mono", monospace';
+          ctx.fillText(`Level: ${ray.price.toFixed(2)}`, canvas.width - 100, y - 4);
+        }
+      } else if (d.type === 'fibonacci') {
+        const fib = d as FibonacciDrawing;
+        const x1 = timeToX(fib.time1);
+        const x2 = timeToX(fib.time2) || canvas.width - 20;
+        const y1 = priceToY(fib.price1);
+        const y2 = priceToY(fib.price2);
+
+        if (x1 !== null && y1 !== null && y2 !== null) {
+          const fibLevels = [
+            { r: 0.0, label: '0.0%' },
+            { r: 0.236, label: '23.6%' },
+            { r: 0.382, label: '38.2%' },
+            { r: 0.5, label: '50.0%' },
+            { r: 0.618, label: '61.8% (Golden)' },
+            { r: 0.786, label: '78.6%' },
+            { r: 1.0, label: '100.0%' },
+          ];
+
+          const startX = Math.min(x1, x2 || canvas.width);
+          const endX = Math.max(x1, x2 || canvas.width);
+
+          for (const lvl of fibLevels) {
+            const p = fib.price1 + (fib.price2 - fib.price1) * lvl.r;
+            const ly = priceToY(p);
+            if (ly !== null) {
+              ctx.beginPath();
+              ctx.strokeStyle = lvl.r === 0.618 ? '#D97706' : fib.color;
+              ctx.lineWidth = lvl.r === 0.618 || lvl.r === 0.5 ? 1.5 : 1;
+              ctx.setLineDash([3, 3]);
+              ctx.moveTo(startX, ly);
+              ctx.lineTo(endX, ly);
+              ctx.stroke();
+              ctx.setLineDash([]);
+
+              ctx.fillStyle = lvl.r === 0.618 ? '#D97706' : fib.color;
+              ctx.font = '9px "JetBrains Mono", monospace';
+              ctx.fillText(`${lvl.label} · ${p.toFixed(2)}`, startX + 6, ly - 3);
+            }
+          }
+        }
+      }
+    }
+
+    // ── 4d. Active In-Progress Drawing Preview ──
+    if (drawingStartPoint && currentMousePos) {
+      ctx.beginPath();
+      ctx.strokeStyle = activeColorHex;
+      ctx.lineWidth = 2;
+
+      if (activeTool === 'trendline') {
+        ctx.moveTo(drawingStartPoint.x, drawingStartPoint.y);
+        ctx.lineTo(currentMousePos.x, currentMousePos.y);
+        ctx.stroke();
+      } else if (activeTool === 'rectangle') {
+        const rx = Math.min(drawingStartPoint.x, currentMousePos.x);
+        const ry = Math.min(drawingStartPoint.y, currentMousePos.y);
+        const rw = Math.abs(currentMousePos.x - drawingStartPoint.x);
+        const rh = Math.abs(currentMousePos.y - drawingStartPoint.y);
+
+        ctx.fillStyle = 'rgba(83, 108, 240, 0.15)';
+        ctx.fillRect(rx, ry, rw, rh);
+        ctx.strokeRect(rx, ry, rw, rh);
+      } else if (activeTool === 'fibonacci') {
+        ctx.setLineDash([2, 2]);
+        ctx.moveTo(drawingStartPoint.x, drawingStartPoint.y);
+        ctx.lineTo(currentMousePos.x, currentMousePos.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+  }, [
+    drawings,
+    autoZonesEnabled,
+    autoTrendlinesEnabled,
+    drawingStartPoint,
+    currentMousePos,
+    activeTool,
+    activeColorHex,
+    replayState?.currentIndex,
+    timeToX,
+    priceToY,
+  ]);
+
+  // Keep canvas rendered whenever state or drawings change
+  useEffect(() => {
+    renderDrawingsCanvas();
+  }, [renderDrawingsCanvas]);
+
+  // ── 5. Canvas Mouse Click & Drag Interactions ──
+  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (activeTool === 'cursor') return;
+
+    const canvas = drawingCanvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const time = xToTime(x);
+    const price = yToPrice(y);
+    if (!time || !price) return;
+
+    // Single click tools
+    if (activeTool === 'ray') {
+      const newRay: HorizontalRayDrawing = {
+        id: `ray-${Date.now()}`,
+        type: 'ray',
+        time,
+        price,
+        color: activeColorHex,
+      };
+      setDrawings((prev) => [...prev, newRay]);
+      setActiveTool('cursor');
+      return;
+    }
+
+    // Two-click tools
+    if (!drawingStartPoint) {
+      setDrawingStartPoint({ time, price, x, y });
+    } else {
+      // Finish drawing
+      if (activeTool === 'trendline') {
+        const newTl: TrendlineDrawing = {
+          id: `tl-${Date.now()}`,
+          type: 'trendline',
+          time1: drawingStartPoint.time,
+          price1: drawingStartPoint.price,
+          time2: time,
+          price2: price,
+          color: activeColorHex,
+          lineWidth: 2,
+        };
+        setDrawings((prev) => [...prev, newTl]);
+      } else if (activeTool === 'rectangle') {
+        const newRect: RectangleDrawing = {
+          id: `rect-${Date.now()}`,
+          type: 'rectangle',
+          time1: drawingStartPoint.time,
+          price1: drawingStartPoint.price,
+          time2: time,
+          price2: price,
+          color: activeColorHex,
+          fillColor: `${activeColorHex}26`, // 15% opacity hex
+        };
+        setDrawings((prev) => [...prev, newRect]);
+      } else if (activeTool === 'fibonacci') {
+        const newFib: FibonacciDrawing = {
+          id: `fib-${Date.now()}`,
+          type: 'fibonacci',
+          time1: drawingStartPoint.time,
+          price1: drawingStartPoint.price,
+          time2: time,
+          price2: price,
+          color: activeColorHex,
+        };
+        setDrawings((prev) => [...prev, newFib]);
+      }
+
+      setDrawingStartPoint(null);
+      setCurrentMousePos(null);
+      setActiveTool('cursor');
+    }
+  };
+
+  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (activeTool === 'cursor' && !drawingStartPoint) return;
+    const canvas = drawingCanvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    setCurrentMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+    renderDrawingsCanvas();
+  };
+
+  // ── 6. Transport & Stepping Controls ──
   const handleStepForward = useCallback(() => {
     setReplayState((prev) => (prev ? stepForward(prev) : null));
   }, []);
@@ -297,12 +719,12 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
     setReplayState(initial);
   }, [replayState, initialBalance, playSpeed]);
 
-  // ── 5. Auto-Play Interval Timer ──
+  // ── 7. Auto-Play Interval Timer ──
   useEffect(() => {
     if (!replayState?.isPlaying) return;
 
     const intervalMs = Math.max(100, Math.floor(1000 / playSpeed));
-    const timer = setInterval(() => {
+    const timer = window.setInterval(() => {
       setReplayState((prev) => {
         if (!prev) return null;
         if (prev.currentIndex >= prev.allCandles.length - 1) {
@@ -312,13 +734,12 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
       });
     }, intervalMs);
 
-    return () => clearInterval(timer);
+    return () => window.clearInterval(timer);
   }, [replayState?.isPlaying, playSpeed]);
 
-  // ── 6. Keyboard Shortcuts Listener ──
+  // ── 8. Keyboard Shortcuts Listener ──
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger when typing in inputs
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
         return;
       }
@@ -334,6 +755,8 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
         handleStepBackward();
       } else if (e.code === 'Escape') {
         setReplayState((prev) => (prev ? { ...prev, isPlaying: false } : null));
+        setDrawingStartPoint(null);
+        setActiveTool('cursor');
       }
     };
 
@@ -341,7 +764,7 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleTogglePlay, handleStepForward, handleStepBackward]);
 
-  // ── 7. Order Execution Handlers ──
+  // ── 9. Order Execution Handlers ──
   const handlePlaceOrder = () => {
     if (!replayState || replayState.activePosition) return;
     const sl = orderSl.trim() ? parseFloat(orderSl) : null;
@@ -366,11 +789,18 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
     URL.revokeObjectURL(url);
   };
 
+  // ── Filtered NIFTY 50 Constituents ──
+  const filteredNifty50 = nifty50List.filter((s) => {
+    const matchesSector = selectedSector === 'All Sectors' || s.sector === selectedSector;
+    const q = nifty50Search.trim().toUpperCase();
+    const matchesQuery = !q || s.symbol.toUpperCase().includes(q) || s.name.toUpperCase().includes(q);
+    return matchesSector && matchesQuery;
+  });
+
   // ── Metrics Calculation ──
   const metrics = replayState ? computeMetrics(replayState) : null;
   const currentCandle = replayState ? replayState.allCandles[replayState.currentIndex] : null;
 
-  // Auto-calculated R:R display
   const currentPrice = currentCandle ? currentCandle.close : 0;
   const parsedSl = parseFloat(orderSl);
   const parsedTp = parseFloat(orderTp);
@@ -385,23 +815,34 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
 
   return (
     <div className="w-full flex-1 flex flex-col min-h-screen bg-background font-body-md text-on-background select-none">
-      {/* ── A. TOP TOOLBAR (Compact, High-Contrast) ── */}
-      <div className="w-full bg-surface-card border-b border-border-subtle px-margin py-2.5 flex flex-wrap items-center justify-between gap-y-2 gap-x-4">
-        {/* Left: Ticker & Timeframe */}
+      {/* ── A. TOP TOOLBAR: NIFTY 50 Constituent Hub & Data Controls ── */}
+      <div className="w-full bg-surface-card border-b border-border-subtle px-margin py-2 flex flex-wrap items-center justify-between gap-y-2 gap-x-4">
+        {/* Left: Ticker & NIFTY 50 Constituents Button */}
         <div className="flex flex-wrap items-center gap-space-sm">
-          {/* Preset Selector */}
+          {/* NIFTY 50 Constituents Modal Trigger */}
+          <button
+            onClick={() => setIsNifty50ModalOpen(true)}
+            className="h-8 px-3 rounded-lg bg-primary text-on-primary hover:bg-primary-container font-label-md text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs active:scale-95"
+            title="Browse all 50 NIFTY 50 constituent stocks"
+          >
+            <Grid className="w-3.5 h-3.5 text-bullish" />
+            <span>NIFTY 50 Stocks ({ALL_NIFTY_50_STOCKS.length})</span>
+          </button>
+
+          {/* Quick Preset Selector */}
           <div className="relative">
             <select
               value={symbol}
               onChange={(e) => {
                 setSymbol(e.target.value);
                 setCustomSymbol('');
+                handleLoadData(e.target.value);
               }}
-              className="h-8 px-space-sm bg-surface-container-low border border-border-subtle rounded-lg text-xs font-mono-sm text-on-surface focus:outline-none focus:border-secondary cursor-pointer"
+              className="h-8 px-space-sm bg-surface-container-low border border-border-subtle rounded-lg text-xs font-mono-sm text-on-surface focus:outline-none focus:border-secondary cursor-pointer max-w-[200px]"
             >
               {REPLAY_TICKER_PRESETS.map((p) => (
                 <option key={p.symbol} value={p.symbol}>
-                  {p.label} ({p.symbol})
+                  {p.label}
                 </option>
               ))}
             </select>
@@ -411,7 +852,7 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
           <div className="relative flex items-center">
             <input
               type="text"
-              placeholder="Or custom ticker (e.g. MSFT)..."
+              placeholder="Or custom (e.g. RELIANCE.NS)..."
               value={customSymbol}
               onChange={(e) => setCustomSymbol(e.target.value.toUpperCase())}
               className="h-8 w-44 px-space-sm bg-surface-container-low border border-border-subtle rounded-lg text-xs font-mono-sm text-on-surface placeholder:text-text-muted focus:outline-none focus:border-secondary"
@@ -437,27 +878,20 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
 
           {/* Load Data Button */}
           <button
-            onClick={handleLoadData}
+            onClick={() => handleLoadData()}
             disabled={isLoadingData}
-            className="h-8 px-3.5 bg-primary text-on-primary hover:bg-primary-container rounded-lg text-xs font-label-md flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60 shadow-xs"
+            className="h-8 px-3.5 bg-secondary text-white hover:bg-secondary/90 rounded-lg text-xs font-label-md flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60 shadow-xs"
           >
             {isLoadingData ? (
               <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <Activity className="w-3.5 h-3.5" />
             )}
-            <span>{isLoadingData ? 'Loading 60D Bars...' : 'Fetch Yahoo 15m'}</span>
+            <span>{isLoadingData ? 'Pulling Bars...' : 'Fetch Yahoo 15m'}</span>
           </button>
-
-          {/* Candle Count Badge */}
-          {replayState && (
-            <span className="px-2 py-1 rounded bg-surface-container-low border border-border-subtle font-mono-sm text-[11px] text-text-muted">
-              {replayState.allCandles.length.toLocaleString()} Bars (Zero-Lookahead)
-            </span>
-          )}
         </div>
 
-        {/* Right: Initial Balance & Replay Transport Summary */}
+        {/* Right: Initial Balance & Reset */}
         <div className="flex items-center gap-space-sm">
           <div className="flex items-center gap-1.5 px-space-sm py-1 bg-surface-container-low border border-border-subtle rounded-lg">
             <span className="text-[11px] font-mono-sm text-text-muted uppercase">Base Equity:</span>
@@ -477,8 +911,173 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
         </div>
       </div>
 
-      {/* ── B. TRANSPORT REPLAY CONTROL BAR ── */}
-      <div className="w-full bg-surface-card/90 border-b border-border-subtle px-margin py-1.5 flex flex-wrap items-center justify-between gap-2">
+      {/* ── B. DRAWING & ANNOTATION TOOLBAR (Trendlines, Rectangles, Fibonacci, Auto Levels) ── */}
+      <div className="w-full bg-surface-card/95 border-b border-border-subtle px-margin py-1.5 flex flex-wrap items-center justify-between gap-y-1 gap-x-4 select-none">
+        {/* Drawing Tools Group */}
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+          <span className="text-[10px] font-mono-sm text-text-muted uppercase font-semibold mr-1">
+            DRAW:
+          </span>
+
+          {/* Cursor / Select */}
+          <button
+            onClick={() => {
+              setActiveTool('cursor');
+              setDrawingStartPoint(null);
+            }}
+            className={`h-7 px-2.5 rounded text-xs font-label-md flex items-center gap-1 transition-all cursor-pointer ${
+              activeTool === 'cursor'
+                ? 'bg-primary text-on-primary font-semibold'
+                : 'bg-surface-container-low text-text-secondary hover:text-on-surface'
+            }`}
+            title="Normal Cursor"
+          >
+            <MousePointer className="w-3 h-3" />
+            <span>Cursor</span>
+          </button>
+
+          {/* Trendline Tool */}
+          <button
+            onClick={() => {
+              setActiveTool('trendline');
+              setDrawingStartPoint(null);
+            }}
+            className={`h-7 px-2.5 rounded text-xs font-label-md flex items-center gap-1 transition-all cursor-pointer ${
+              activeTool === 'trendline'
+                ? 'bg-secondary text-white font-semibold shadow-xs'
+                : 'bg-surface-container-low text-text-secondary hover:text-on-surface'
+            }`}
+            title="Trendline (Click 2 Points on Chart)"
+          >
+            <PenTool className="w-3 h-3" />
+            <span>Trendline</span>
+          </button>
+
+          {/* Rectangle / Zone Tool */}
+          <button
+            onClick={() => {
+              setActiveTool('rectangle');
+              setDrawingStartPoint(null);
+            }}
+            className={`h-7 px-2.5 rounded text-xs font-label-md flex items-center gap-1 transition-all cursor-pointer ${
+              activeTool === 'rectangle'
+                ? 'bg-secondary text-white font-semibold shadow-xs'
+                : 'bg-surface-container-low text-text-secondary hover:text-on-surface'
+            }`}
+            title="Rectangle (Box / Supply-Demand Zone / Order Block)"
+          >
+            <Square className="w-3 h-3" />
+            <span>Rectangle</span>
+          </button>
+
+          {/* Horizontal Level / Ray */}
+          <button
+            onClick={() => {
+              setActiveTool('ray');
+              setDrawingStartPoint(null);
+            }}
+            className={`h-7 px-2.5 rounded text-xs font-label-md flex items-center gap-1 transition-all cursor-pointer ${
+              activeTool === 'ray'
+                ? 'bg-secondary text-white font-semibold shadow-xs'
+                : 'bg-surface-container-low text-text-secondary hover:text-on-surface'
+            }`}
+            title="Horizontal Support / Resistance Ray"
+          >
+            <Minus className="w-3 h-3" />
+            <span>Horizontal Ray</span>
+          </button>
+
+          {/* Fibonacci Retracement */}
+          <button
+            onClick={() => {
+              setActiveTool('fibonacci');
+              setDrawingStartPoint(null);
+            }}
+            className={`h-7 px-2.5 rounded text-xs font-label-md flex items-center gap-1 transition-all cursor-pointer ${
+              activeTool === 'fibonacci'
+                ? 'bg-secondary text-white font-semibold shadow-xs'
+                : 'bg-surface-container-low text-text-secondary hover:text-on-surface'
+            }`}
+            title="Fibonacci Retracement (Swing High to Swing Low)"
+          >
+            <span className="font-mono text-xs font-bold">Fib</span>
+            <span>Retrace</span>
+          </button>
+
+          {/* Color Palette Selector */}
+          <div className="flex items-center gap-1 pl-2 border-l border-border-subtle">
+            {DRAWING_COLOR_PALETTE.map((c) => (
+              <button
+                key={c.hex}
+                onClick={() => setActiveColorHex(c.hex)}
+                className={`w-4 h-4 rounded-full transition-transform cursor-pointer ${
+                  activeColorHex === c.hex ? 'scale-125 ring-2 ring-primary ring-offset-1' : 'opacity-80 hover:opacity-100'
+                }`}
+                style={{ backgroundColor: c.hex }}
+                title={c.name}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Automated Intelligence Overlays & Actions */}
+        <div className="flex items-center gap-2">
+          {/* Auto Trendlines Toggle */}
+          <button
+            onClick={() => setAutoTrendlinesEnabled((prev) => !prev)}
+            className={`h-7 px-2 rounded text-xs font-mono-sm flex items-center gap-1 transition-all cursor-pointer ${
+              autoTrendlinesEnabled
+                ? 'bg-bullish-tint text-bullish border border-bullish font-semibold'
+                : 'bg-surface-container-low text-text-muted hover:text-on-surface'
+            }`}
+            title="Toggle Automated Swing-High/Low Resistance & Support Trendlines"
+          >
+            <Sparkles className="w-3 h-3" />
+            <span>Auto Trendlines</span>
+          </button>
+
+          {/* Auto Zones / FVG Toggle */}
+          <button
+            onClick={() => setAutoZonesEnabled((prev) => !prev)}
+            className={`h-7 px-2 rounded text-xs font-mono-sm flex items-center gap-1 transition-all cursor-pointer ${
+              autoZonesEnabled
+                ? 'bg-secondary/10 text-secondary border border-secondary font-semibold'
+                : 'bg-surface-container-low text-text-muted hover:text-on-surface'
+            }`}
+            title="Toggle Automated Fair Value Gaps & Order Blocks"
+          >
+            <Square className="w-3 h-3" />
+            <span>Auto FVG / Zones</span>
+          </button>
+
+          {/* Undo Last Drawing */}
+          {drawings.length > 0 && (
+            <button
+              onClick={() => setDrawings((prev) => prev.slice(0, -1))}
+              className="h-7 px-2 rounded bg-surface-container-low text-text-secondary hover:text-on-surface text-xs font-mono-sm flex items-center gap-1 cursor-pointer"
+              title="Undo Last Drawing"
+            >
+              <Undo2 className="w-3 h-3" />
+              <span>Undo</span>
+            </button>
+          )}
+
+          {/* Clear All Drawings */}
+          {drawings.length > 0 && (
+            <button
+              onClick={() => setDrawings([])}
+              className="h-7 px-2 rounded bg-bearish-tint text-bearish text-xs font-mono-sm flex items-center gap-1 cursor-pointer"
+              title="Clear All Custom Drawings"
+            >
+              <Trash2 className="w-3 h-3" />
+              <span>Clear ({drawings.length})</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── C. TRANSPORT REPLAY CONTROL BAR ── */}
+      <div className="w-full bg-surface-card border-b border-border-subtle px-margin py-1.5 flex flex-wrap items-center justify-between gap-2">
         {/* Progress & Current Timestamp */}
         <div className="flex items-center gap-3 font-mono-sm text-xs">
           <span className="text-text-muted">
@@ -502,7 +1101,7 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
               <span>
                 CLOSE:{' '}
                 <strong className="text-bullish font-bold tabular-nums">
-                  {currentCandle.close.toFixed(2)}
+                  {currentPrice.toFixed(2)}
                 </strong>
               </span>
             </>
@@ -511,7 +1110,6 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
 
         {/* Transport Controls (Center) */}
         <div className="flex items-center gap-1.5">
-          {/* Step Backward (-1) */}
           <button
             onClick={handleStepBackward}
             disabled={!replayState || replayState.currentIndex <= replayState.startIndex}
@@ -521,7 +1119,6 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          {/* Play / Pause */}
           <button
             onClick={handleTogglePlay}
             disabled={!replayState}
@@ -545,7 +1142,6 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
             )}
           </button>
 
-          {/* Step Forward (+1) */}
           <button
             onClick={handleStepForward}
             disabled={!replayState || replayState.currentIndex >= replayState.allCandles.length - 1}
@@ -575,26 +1171,51 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
         </div>
       </div>
 
-      {/* ── C. MAIN WORKSPACE (Chart Area + Order Panel) ── */}
+      {/* ── D. MAIN WORKSPACE (Lightweight Chart + Interactive Overlay + Order Panel) ── */}
       <div className="flex-1 flex flex-col lg:flex-row w-full min-h-[500px]">
-        {/* C1. TradingView Lightweight Chart Container */}
-        <div className="flex-1 relative bg-white border-b lg:border-b-0 lg:border-r border-border-subtle min-h-[460px] flex flex-col">
+        {/* D1. TradingView Lightweight Chart & HTML5 Canvas Overlay */}
+        <div className="flex-1 relative bg-white border-b lg:border-b-0 lg:border-r border-border-subtle min-h-[460px] flex flex-col overflow-hidden">
           {dataError && (
-            <div className="absolute top-4 left-4 z-10 p-3 rounded-lg bg-bearish-tint border border-bearish text-bearish text-xs max-w-md">
+            <div className="absolute top-4 left-4 z-20 p-3 rounded-lg bg-bearish-tint border border-bearish text-bearish text-xs max-w-md shadow-sm">
               {dataError}
             </div>
           )}
 
+          {/* Lightweight Charts Engine Container */}
           <div ref={chartContainerRef} className="w-full flex-1" />
 
-          {/* Chart Overlay Helper Badge */}
-          <div className="absolute bottom-2 left-3 pointer-events-none z-10 flex items-center gap-2 text-[10px] font-mono text-text-muted bg-white/80 backdrop-blur-xs px-2 py-1 rounded border border-border-subtle">
+          {/* HTML5 Interactive Drawing Overlay Canvas */}
+          <canvas
+            ref={drawingCanvasRef}
+            onMouseDown={handleCanvasMouseDown}
+            onMouseMove={handleCanvasMouseMove}
+            className={`absolute inset-0 z-10 ${
+              activeTool !== 'cursor' ? 'cursor-crosshair pointer-events-auto' : 'pointer-events-none'
+            }`}
+          />
+
+          {/* Drawing Tool Helper Banner (when tool is active) */}
+          {activeTool !== 'cursor' && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-3 py-1.5 rounded-full bg-primary/95 text-white text-xs font-mono shadow-md flex items-center gap-2 border border-secondary pointer-events-none">
+              <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
+              <span>
+                {activeTool === 'trendline' && (drawingStartPoint ? 'Click Point 2 to complete Trendline' : 'Click Point 1 on Chart to start Trendline')}
+                {activeTool === 'rectangle' && (drawingStartPoint ? 'Click Opposite Corner to complete Rectangle' : 'Click Corner 1 to start Rectangle')}
+                {activeTool === 'ray' && 'Click anywhere on chart to drop Horizontal Price Ray'}
+                {activeTool === 'fibonacci' && (drawingStartPoint ? 'Click Swing Low to complete Fibonacci' : 'Click Swing High to start Fibonacci')}
+              </span>
+              <span className="text-[10px] text-text-muted">(ESC to cancel)</span>
+            </div>
+          )}
+
+          {/* Bottom Telemetry Legend */}
+          <div className="absolute bottom-2 left-3 pointer-events-none z-10 flex items-center gap-2 text-[10px] font-mono text-text-muted bg-white/85 backdrop-blur-xs px-2 py-1 rounded border border-border-subtle">
             <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
-            <span>Yahoo Finance Intraday 15m · Zero Tick Simulation (Real Closed Bars Only)</span>
+            <span>NIFTY 50 Intraday 15m · Trendlines &amp; Rectangles Active · Zero Lookahead</span>
           </div>
         </div>
 
-        {/* C2. Simulated Order Execution & Risk Engine Panel */}
+        {/* D2. Simulated Order Execution & Risk Engine Panel */}
         <div className="w-full lg:w-72 bg-surface-card p-4 flex flex-col gap-4 shrink-0">
           <div className="flex items-center justify-between border-b border-border-subtle pb-2">
             <div className="flex items-center gap-1.5 font-title-md text-sm text-on-surface font-semibold">
@@ -649,7 +1270,7 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
                 onClick={handleManualClose}
                 className="w-full mt-1 py-1.5 rounded-lg bg-bearish text-white font-label-md text-xs hover:bg-bearish/90 transition-colors cursor-pointer active:scale-95 shadow-xs"
               >
-                Close Position @ Current Bar Close
+                Close Position @ Bar Close
               </button>
             </div>
           ) : (
@@ -780,16 +1401,14 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
           {/* Conservative Fill Rule Notice */}
           <div className="mt-auto p-2.5 rounded-lg bg-surface-container-low border border-border-subtle text-[10px] text-text-muted leading-relaxed">
             <strong className="text-on-surface">Conservative Fill Engine:</strong> If both SL and TP
-            fall inside the same 15m candle's High–Low range, SL is always assumed hit first to avoid
-            overstated results.
+            fall inside the same candle's range, SL is assumed hit first to prevent inflated performance.
           </div>
         </div>
       </div>
 
-      {/* ── D. LIVE STATS METRICS BAR ── */}
+      {/* ── E. LIVE STATS METRICS BAR ── */}
       {metrics && (
         <div className="w-full bg-surface-card border-t border-border-subtle px-margin py-2.5 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-space-sm">
-          {/* 1. Balance */}
           <div className="flex flex-col">
             <span className="font-label-sm text-[10px] text-text-muted uppercase">Account Balance</span>
             <span className="font-mono-md text-sm font-bold text-on-surface tabular-nums">
@@ -797,7 +1416,6 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
             </span>
           </div>
 
-          {/* 2. Realized PnL */}
           <div className="flex flex-col">
             <span className="font-label-sm text-[10px] text-text-muted uppercase">Realized P&amp;L</span>
             <span
@@ -809,7 +1427,6 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
             </span>
           </div>
 
-          {/* 3. Unrealized PnL */}
           <div className="flex flex-col">
             <span className="font-label-sm text-[10px] text-text-muted uppercase">Unrealized P&amp;L</span>
             <span
@@ -821,7 +1438,6 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
             </span>
           </div>
 
-          {/* 4. Win Rate */}
           <div className="flex flex-col">
             <span className="font-label-sm text-[10px] text-text-muted uppercase">Win Rate</span>
             <span className="font-mono-md text-sm font-bold text-on-surface tabular-nums">
@@ -829,7 +1445,6 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
             </span>
           </div>
 
-          {/* 5. Profit Factor */}
           <div className="flex flex-col">
             <span className="font-label-sm text-[10px] text-text-muted uppercase">Profit Factor</span>
             <span className="font-mono-md text-sm font-bold text-on-surface tabular-nums">
@@ -837,7 +1452,6 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
             </span>
           </div>
 
-          {/* 6. Total Trades */}
           <div className="flex flex-col">
             <span className="font-label-sm text-[10px] text-text-muted uppercase">Total Trades</span>
             <span className="font-mono-md text-sm font-bold text-on-surface tabular-nums">
@@ -845,7 +1459,6 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
             </span>
           </div>
 
-          {/* 7. Max Drawdown */}
           <div className="flex flex-col">
             <span className="font-label-sm text-[10px] text-text-muted uppercase">Max Drawdown</span>
             <span className="font-mono-md text-sm font-bold text-bearish tabular-nums">
@@ -855,9 +1468,8 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
         </div>
       )}
 
-      {/* ── E. COLLAPSIBLE TRADE JOURNAL TABLE & CSV EXPORT ── */}
+      {/* ── F. COLLAPSIBLE TRADE JOURNAL TABLE & CSV EXPORT ── */}
       <div className="w-full bg-surface-card border-t border-border-subtle">
-        {/* Toggle Header */}
         <div
           onClick={() => setIsTradeLogOpen((prev) => !prev)}
           className="w-full px-margin py-2 flex items-center justify-between cursor-pointer hover:bg-surface-container-low transition-colors select-none"
@@ -894,9 +1506,8 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
           </div>
         </div>
 
-        {/* Scrollable Table */}
         {isTradeLogOpen && (
-          <div className="w-full max-h-56 overflow-y-auto no-scrollbar border-t border-border-subtle">
+          <div className="w-full max-h-52 overflow-y-auto no-scrollbar border-t border-border-subtle">
             {replayState && replayState.closedTrades.length > 0 ? (
               <table className="w-full text-left font-mono-sm text-xs border-collapse">
                 <thead className="sticky top-0 bg-surface-container-low text-text-muted text-[10px] uppercase border-b border-border-subtle">
@@ -966,6 +1577,108 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
           </div>
         )}
       </div>
+
+      {/* ── G. NIFTY 50 ALL STOCKS MODAL / HUB ── */}
+      {isNifty50ModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-surface-card rounded-2xl border border-border-subtle shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="p-4 border-b border-border-subtle flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-sm">
+                  N50
+                </div>
+                <div>
+                  <h3 className="font-headline-sm text-sm font-bold text-on-surface">
+                    NIFTY 50 Benchmark Constituents
+                  </h3>
+                  <p className="text-xs text-text-muted font-mono">
+                    Official 50 NSE Index Equities · Live Yahoo Finance Feed
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsNifty50ModalOpen(false)}
+                className="w-8 h-8 rounded-lg bg-surface-container-low hover:bg-surface-container-high flex items-center justify-center text-on-surface cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Filter & Search Bar */}
+            <div className="p-4 bg-surface-container-low border-b border-border-subtle flex flex-wrap items-center justify-between gap-3">
+              <div className="relative flex-1 min-w-[240px]">
+                <Search className="w-4 h-4 text-text-muted absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Search NIFTY 50 by symbol or company name (e.g. Reliance, HDFC)..."
+                  value={nifty50Search}
+                  onChange={(e) => setNifty50Search(e.target.value)}
+                  className="w-full h-9 pl-9 pr-3 bg-white border border-border-subtle rounded-lg text-xs font-mono-sm text-on-surface focus:outline-none focus:border-secondary"
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full">
+                {NIFTY_50_SECTORS.slice(0, 7).map((sector) => (
+                  <button
+                    key={sector}
+                    onClick={() => setSelectedSector(sector)}
+                    className={`px-2.5 py-1 rounded-md text-[11px] font-mono-sm transition-colors whitespace-nowrap cursor-pointer ${
+                      selectedSector === sector
+                        ? 'bg-primary text-white font-semibold'
+                        : 'bg-white text-text-secondary hover:text-on-surface border border-border-subtle'
+                    }`}
+                  >
+                    {sector}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 50 Stocks Grid */}
+            <div className="p-4 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {filteredNifty50.map((stock) => (
+                <div
+                  key={stock.symbol}
+                  onClick={() => {
+                    handleLoadData(stock.yahoo_symbol);
+                    setIsNifty50ModalOpen(false);
+                  }}
+                  className={`p-3 rounded-xl border transition-all cursor-pointer hover:shadow-md flex flex-col justify-between gap-2 ${
+                    symbol === stock.yahoo_symbol
+                      ? 'bg-secondary/10 border-secondary'
+                      : 'bg-white border-border-subtle hover:border-secondary/50'
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="font-mono-md text-xs font-bold text-on-surface">
+                        {stock.symbol}
+                      </div>
+                      <div className="text-[11px] text-text-muted truncate max-w-[170px]">
+                        {stock.name}
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-container-low text-text-secondary">
+                      {stock.weight}% Wt
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs font-mono pt-1 border-t border-border-subtle">
+                    <span className="text-[10px] text-text-muted truncate max-w-[120px]">
+                      {stock.sector}
+                    </span>
+                    <span className="font-bold text-on-surface tabular-nums">
+                      {stock.lastPrice ? `₹${stock.lastPrice.toFixed(2)}` : 'Select Bar Replay'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

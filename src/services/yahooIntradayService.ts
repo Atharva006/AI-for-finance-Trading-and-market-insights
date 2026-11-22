@@ -1,27 +1,36 @@
 import { Candle } from '../types/backtest';
+import { ALL_NIFTY_50_STOCKS } from './nifty50Data';
 
 export type IntradayInterval = '5m' | '15m' | '30m' | '1h';
 
 export interface ReplayTickerPreset {
   label: string;
   symbol: string;
+  category?: string;
 }
 
 export const REPLAY_TICKER_PRESETS: ReplayTickerPreset[] = [
-  { label: 'NIFTY 50', symbol: '^NSEI' },
-  { label: 'BANK NIFTY', symbol: '^NSEBANK' },
-  { label: 'RELIANCE', symbol: 'RELIANCE.NS' },
-  { label: 'TCS', symbol: 'TCS.NS' },
-  { label: 'HDFC BANK', symbol: 'HDFCBANK.NS' },
-  { label: 'INFOSYS', symbol: 'INFY.NS' },
-  { label: 'TATA MOTORS', symbol: 'TATAMOTORS.NS' },
-  { label: 'ICICI BANK', symbol: 'ICICIBANK.NS' },
-  { label: 'S&P 500', symbol: '^GSPC' },
-  { label: 'AAPL', symbol: 'AAPL' },
-  { label: 'EURUSD', symbol: 'EURUSD=X' },
-  { label: 'Gold', symbol: 'GC=F' },
-  { label: 'Crude Oil', symbol: 'CL=F' },
-  { label: 'BTC-USD', symbol: 'BTC-USD' },
+  // ── Benchmarks & Indices ──
+  { label: 'NIFTY 50 (Index)', symbol: '^NSEI', category: 'Indices' },
+  { label: 'BANK NIFTY (Index)', symbol: '^NSEBANK', category: 'Indices' },
+  { label: 'FIN NIFTY (Index)', symbol: 'NIFTY_FIN_SERVICE.NS', category: 'Indices' },
+  { label: 'NIFTY IT (Index)', symbol: '^CNXIT', category: 'Indices' },
+  { label: 'NIFTY AUTO (Index)', symbol: '^CNXAUTO', category: 'Indices' },
+
+  // ── All 50 NIFTY 50 Constituent Stocks ──
+  ...ALL_NIFTY_50_STOCKS.map((s) => ({
+    label: `${s.symbol} · ${s.name}`,
+    symbol: s.yahoo_symbol,
+    category: `NIFTY 50: ${s.sector}`,
+  })),
+
+  // ── Macro & Global Assets ──
+  { label: 'S&P 500', symbol: '^GSPC', category: 'Global' },
+  { label: 'Apple Inc. (AAPL)', symbol: 'AAPL', category: 'Global' },
+  { label: 'EUR / USD Forex', symbol: 'EURUSD=X', category: 'Global' },
+  { label: 'Gold Spot (GC=F)', symbol: 'GC=F', category: 'Commodities' },
+  { label: 'Crude Oil WTI', symbol: 'CL=F', category: 'Commodities' },
+  { label: 'Bitcoin (BTC-USD)', symbol: 'BTC-USD', category: 'Crypto' },
 ];
 
 export const intradayCache = new Map<string, Candle[]>();
