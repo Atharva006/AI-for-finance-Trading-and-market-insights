@@ -128,15 +128,43 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigateTo }) => {
 
   return (
     <div className="w-full max-w-4xl mx-auto py-10 px-4 sm:px-6 font-sans space-y-12 animate-fade-in select-none text-[#0F172A]">
-      {/* ── Minimal Header ── */}
-      <header className="space-y-4 border-b border-[#E2E8F0] pb-8">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0F172A] p-2 flex items-center justify-center shrink-0">
-            <img src="/alltra-logo.png" alt="Alltra" className="w-full h-full object-contain" />
+      {/* ── Minimal Header with Profile & LinkedIn ── */}
+      <header className="space-y-6 border-b border-[#E2E8F0] pb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <div className="flex items-center gap-4">
+            <div className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden bg-[#F1F5F9] border border-[#E2E8F0] shrink-0 shadow-xs">
+              <img
+                src="/atharva-profile.png"
+                alt="Atharva Bhosale"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/alltra-logo.png';
+                }}
+              />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold tracking-tight">Atharva Bhosale</h1>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A]" title="Active Trader" />
+              </div>
+              <p className="text-xs text-[#64748B] font-mono mt-0.5">Quantitative Trading &amp; Systematic Systems</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">Atharva Bhosale</h1>
-            <p className="text-xs text-[#64748B] font-mono">Quantitative Trading &amp; Systematic Systems</p>
+
+          {/* LinkedIn Connect Button */}
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <a
+              href="https://www.linkedin.com/in/atharva--bhosale/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#0A66C2] hover:bg-[#004182] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer active:scale-95"
+            >
+              <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9h2.79v8.37H6.46v-8.37M7.86 6.88a1.63 1.63 0 1 0 0 3.26 1.63 1.63 0 0 0 0-3.26Z" />
+              </svg>
+              <span>Connect on LinkedIn</span>
+              <ArrowUpRight className="w-3.5 h-3.5 opacity-80" />
+            </a>
           </div>
         </div>
 
