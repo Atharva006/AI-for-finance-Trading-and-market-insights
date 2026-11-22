@@ -7,6 +7,7 @@ import {
   ChevronDown,
   PanelLeftClose,
   PanelLeft,
+  Sparkles,
 } from 'lucide-react';
 import { AppView } from './DhanNavbar';
 
@@ -46,6 +47,7 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     market_trading: true,
     quant_algos: true,
+    ai_intelligence: true,
     institutional_governance: true,
   });
 
@@ -58,6 +60,15 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
 
   // Exactly 1 canonical entry per view - zero duplicate names or alias redirects
   const sections: NavSection[] = [
+    {
+      id: 'ai_intelligence',
+      title: 'Conversational AI',
+      icon: Sparkles,
+      defaultOpen: true,
+      items: [
+        { id: 'intelligence', label: 'Intelligence', view: 'intelligence', badge: '120B AI' },
+      ],
+    },
     {
       id: 'market_trading',
       title: 'Market & Trading',

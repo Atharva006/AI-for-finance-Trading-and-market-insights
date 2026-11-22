@@ -17,6 +17,8 @@ import { ArthatixSidebar } from './components/ArthatixSidebar';
 import { ArthatixTopHeader } from './components/ArthatixTopHeader';
 import { ArthatixOverviewDashboard } from './components/ArthatixOverviewDashboard';
 import { BarReplayStudio } from './components/BarReplayStudio';
+import { IntelligenceView } from './components/IntelligenceView';
+import { IntelligenceSlideDrawer } from './components/IntelligenceSlideDrawer';
 import { AlgoStrategy } from './types/algoMarketplace';
 import { getStoredLocalUser, AuthUserProfile, signOutUser } from './services/supabaseAuth';
 import {
@@ -68,6 +70,9 @@ function getViewFromPath(pathname: string, strategies: AlgoStrategy[]): { view: 
   if (cleanPath === '/bar-replay' || cleanPath === '/bar-replay-studio') {
     return { view: 'barreplay', strategy: null };
   }
+  if (cleanPath === '/intelligence' || cleanPath === '/ai-intelligence') {
+    return { view: 'intelligence', strategy: null };
+  }
   
   return { view: 'landing', strategy: null };
 }
@@ -100,6 +105,8 @@ function getPathForView(view: AppView, strategy?: AlgoStrategy | null): string {
       return '/auth';
     case 'barreplay':
       return '/bar-replay';
+    case 'intelligence':
+      return '/intelligence';
     default:
       return '/';
   }
@@ -110,8 +117,17 @@ export function App() {
     return getStoredStrategies();
   });
 
+  const [currentUser, setCurrentUser] = useState<AuthUserProfile | null>(() => getStoredLocalUser());
+  const isAdmin = currentUser?.role === 'admin';
+  const [isIntelligenceDrawerOpen, setIsIntelligenceDrawerOpen] = useState(false);
+
   const [activeView, setActiveView] = useState<AppView>(() => {
+    const user = getStoredLocalUser();
     const initial = getViewFromPath(window.location.pathname, getStoredStrategies());
+    // Strict Gatekeeper: Without signing up, the user shall never go to the next page!
+    if (!user && initial.view !== 'landing' && initial.view !== 'auth') {
+      return 'auth';
+    }
     return initial.view;
   });
 
@@ -124,8 +140,6 @@ export function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedInstrument, setSelectedInstrument] = useState<string>('NIFTY 50');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [currentUser, setCurrentUser] = useState<AuthUserProfile | null>(() => getStoredLocalUser());
-  const isAdmin = currentUser?.role === 'admin';
 
   useEffect(() => {
     const handleAuthChange = () => {
@@ -145,6 +159,12 @@ export function App() {
   useEffect(() => {
     const handlePopState = () => {
       const match = getViewFromPath(window.location.pathname, strategies);
+      const user = getStoredLocalUser();
+      // Strict Gatekeeper: Without signing up, the user shall never go to the next page!
+      if (!user && match.view !== 'landing' && match.view !== 'auth') {
+        setActiveView('auth');
+        return;
+      }
       setActiveView(match.view);
       if (match.strategy) {
         setSelectedStrategy(match.strategy);
@@ -157,6 +177,20 @@ export function App() {
 
   // Master navigation handler with browser history pushState
   const navigateTo = (view: AppView, strategyOverride?: AlgoStrategy | null, replace = false) => {
+    // Strict Gatekeeper: Without signing up, the user shall never go to the next page!
+    if (!currentUser && view !== 'landing' && view !== 'auth') {
+      setActiveView('auth');
+      const targetPath = '/auth';
+      if (window.location.pathname !== targetPath) {
+        if (replace) {
+          window.history.replaceState({ view: 'auth' }, '', targetPath);
+        } else {
+          window.history.pushState({ view: 'auth' }, '', targetPath);
+        }
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     const targetStrategy = strategyOverride !== undefined ? strategyOverride : selectedStrategy;
     if (strategyOverride !== undefined) {
       setSelectedStrategy(strategyOverride);
@@ -391,6 +425,10 @@ export function App() {
                 onBackToMain={() => navigateTo('marketplace')}
               />
             )}
+
+            {activeView === 'intelligence' && (
+              <IntelligenceView />
+            )}
           </div>
         </main>
 
@@ -409,6 +447,14 @@ export function App() {
           </div>
         </footer>
       </div>
+
+      {/* ── CONVERSATIONAL INTELLIGENCE SLIDE-IN DRAWER ── */}
+      {!isPublicView && (
+        <IntelligenceSlideDrawer
+          isOpen={isIntelligenceDrawerOpen}
+          onToggle={() => setIsIntelligenceDrawerOpen((prev) => !prev)}
+        />
+      )}
 
       {/* Upstox API Settings & Key Manager Modal */}
       <UpstoxSettingsModal

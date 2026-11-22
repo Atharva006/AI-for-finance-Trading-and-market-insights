@@ -30,7 +30,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const featuredStrat =
     activeStrategies.find((s) => s.id === 'algo-nifty-trend-pullback-chandelier') || activeStrategies[0];
 
+  const handleProtectedNavigate = (view: AppView, strategy?: AlgoStrategy) => {
+    if (!currentUser) {
+      onNavigateToView('auth');
+      return;
+    }
+    onNavigateToView(view, strategy);
+  };
+
   const handleOpenStrategy = (targetIdOrCategory: string) => {
+    if (!currentUser) {
+      onNavigateToView('auth');
+      return;
+    }
     const match =
       activeStrategies.find(
         (s) =>
@@ -73,7 +85,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <div className="flex items-center gap-space-md shrink-0">
             <button
-              onClick={() => onNavigateToView('forex')}
+              onClick={() => handleProtectedNavigate('forex')}
               className="inline-flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-forex-tint border border-secondary text-secondary font-mono-sm text-mono-sm hover:bg-secondary hover:text-on-secondary transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[14px]">public</span>
@@ -110,44 +122,44 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Public Navigation Links */}
           <nav className="hidden xl:flex items-center gap-space-xs">
             <button
-              onClick={() => onNavigateToView('overview')}
+              onClick={() => handleProtectedNavigate('overview')}
               className="px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer"
             >
               Overview
             </button>
             <button
-              onClick={() => onNavigateToView('barreplay')}
+              onClick={() => handleProtectedNavigate('barreplay')}
               className="px-space-sm py-1.5 font-label-md text-label-md text-secondary font-semibold hover:text-secondary hover:bg-forex-tint rounded-lg transition-colors cursor-pointer flex items-center gap-1"
             >
               <span className="material-symbols-outlined text-[16px]">history_toggle_off</span>
               Bar Replay [15m Replay]
             </button>
             <button
-              onClick={() => onNavigateToView('marketplace')}
+              onClick={() => handleProtectedNavigate('marketplace')}
               className="px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer"
             >
               Trading Algos [{activeStrategies.length} Active]
             </button>
             <button
-              onClick={() => onNavigateToView('backtest', featuredStrat)}
+              onClick={() => handleProtectedNavigate('backtest', featuredStrat)}
               className="px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer"
             >
               Backtest Studio
             </button>
             <button
-              onClick={() => onNavigateToView('insights')}
+              onClick={() => handleProtectedNavigate('insights')}
               className="px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer"
             >
               Market Insights
             </button>
             <button
-              onClick={() => onNavigateToView('forex')}
+              onClick={() => handleProtectedNavigate('forex')}
               className="px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer"
             >
               NRI Forex Desk
             </button>
             <button
-              onClick={() => onNavigateToView('admin')}
+              onClick={() => handleProtectedNavigate('admin')}
               className="px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer"
             >
               Admin Portal
@@ -157,20 +169,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Action CTAs */}
           <div className="flex items-center gap-space-sm shrink-0">
             <button
-              onClick={() => onNavigateToView('barreplay')}
+              onClick={() => handleProtectedNavigate('barreplay')}
               className="hidden sm:inline-flex items-center gap-1 px-space-sm py-1.5 rounded-lg bg-forex-tint border border-secondary text-secondary font-label-md text-label-md hover:bg-secondary hover:text-on-secondary transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px]">play_circle</span>
               Bar Replay
             </button>
             <button
-              onClick={() => onNavigateToView('marketplace')}
+              onClick={() => handleProtectedNavigate('marketplace')}
               className="hidden md:inline-flex items-center px-space-sm py-1.5 rounded-lg bg-surface-card border border-border-subtle text-on-surface font-label-md text-label-md hover:bg-surface-container-low hover:text-on-surface transition-colors cursor-pointer"
             >
               Algorithms
             </button>
             <button
-              onClick={() => onNavigateToView('overview')}
+              onClick={() => handleProtectedNavigate('overview')}
               className="inline-flex items-center gap-space-xs px-space-md py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors cursor-pointer shadow-xs active:scale-95"
             >
               <span className="material-symbols-outlined text-[16px]">desktop_windows</span>
@@ -229,7 +241,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 {/* Primary CTA Buttons */}
                 <div className="flex flex-wrap items-center gap-space-md">
                   <button
-                    onClick={() => onNavigateToView('overview')}
+                    onClick={() => handleProtectedNavigate('overview')}
                     className="inline-flex items-center gap-space-sm px-space-lg py-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors shadow-sm cursor-pointer active:scale-95"
                   >
                     <span>Open Alltra Workstation</span>
@@ -237,7 +249,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </button>
 
                   <button
-                    onClick={() => onNavigateToView('barreplay')}
+                    onClick={() => handleProtectedNavigate('barreplay')}
                     className="inline-flex items-center gap-space-sm px-space-lg py-3 rounded-lg bg-forex-tint text-secondary border border-secondary font-label-md text-label-md hover:bg-secondary hover:text-white transition-colors shadow-sm cursor-pointer active:scale-95"
                   >
                     <span className="material-symbols-outlined text-[18px]">candlestick_chart</span>
@@ -358,7 +370,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                   {/* CTA */}
                   <button
-                    onClick={() => onNavigateToView('backtest', featuredStrat)}
+                    onClick={() => handleProtectedNavigate('backtest', featuredStrat)}
                     className="w-full inline-flex items-center justify-center gap-space-sm px-space-md py-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors cursor-pointer active:scale-95"
                   >
                     <span>View in Strategy Studio</span>
@@ -425,7 +437,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() => onNavigateToView('barreplay')}
+                      onClick={() => handleProtectedNavigate('barreplay')}
                       className="px-4 py-2.5 rounded-xl bg-white/10 text-white font-mono text-xs font-bold hover:bg-white/20 backdrop-blur-md border border-white/20 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
                     >
                       <span className="material-symbols-outlined text-[16px]">play_circle</span>
@@ -433,7 +445,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     </button>
 
                     <button
-                      onClick={() => onNavigateToView('overview')}
+                      onClick={() => handleProtectedNavigate('overview')}
                       className="px-5 py-2.5 rounded-xl bg-[#10B981] text-[#021810] font-mono text-xs font-bold hover:bg-[#34D399] transition-all shadow-lg shadow-[#10B981]/30 flex items-center gap-2 cursor-pointer active:scale-95"
                     >
                       <span>ENTER WORKSTATION</span>
@@ -544,7 +556,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                 <div className="pt-2">
                   <button
-                    onClick={() => onNavigateToView('backtest', featuredStrat)}
+                    onClick={() => handleProtectedNavigate('backtest', featuredStrat)}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-mono text-xs font-semibold hover:bg-primary-container transition-colors shadow-xs"
                   >
                     <span>LAUNCH BACKTEST SUITE</span>
@@ -599,7 +611,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                 <div className="pt-2">
                   <button
-                    onClick={() => onNavigateToView('barreplay')}
+                    onClick={() => handleProtectedNavigate('barreplay')}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-secondary text-white font-mono text-xs font-semibold hover:bg-secondary/90 transition-colors shadow-xs"
                   >
                     <span>OPEN BAR REPLAY STUDIO</span>
@@ -703,7 +715,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                 <div className="pt-2">
                   <button
-                    onClick={() => onNavigateToView('forex')}
+                    onClick={() => handleProtectedNavigate('forex')}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-mono text-xs font-semibold hover:bg-primary-container transition-colors shadow-xs"
                   >
                     <span>EXPLORE NRI FOREX PORTAL</span>
