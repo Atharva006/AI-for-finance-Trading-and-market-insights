@@ -3,6 +3,7 @@ import { ALL_CANONICAL_STRATEGIES } from '../services/canonicalStrategies';
 import { AlgoStrategy } from '../types/algoMarketplace';
 import { AppView } from './DhanNavbar';
 import { AuthUserProfile } from '../services/supabaseAuth';
+import { ArrowRight, ChevronDown, ExternalLink, ShieldCheck, HelpCircle, FileText, Mail, Linkedin } from 'lucide-react';
 
 interface LandingPageProps {
   onNavigateToView: (view: AppView, strategy?: AlgoStrategy) => void;
@@ -20,1278 +21,378 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onSignOut,
 }) => {
   const activeStrategies = strategies && strategies.length > 0 ? strategies : ALL_CANONICAL_STRATEGIES;
-  const [algoTab, setAlgoTab] = useState<'trading' | 'wealth'>('trading');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const toggleFaq = (index: number) => {
     setOpenFaq((prev) => (prev === index ? null : index));
   };
 
-  const featuredStrat =
-    activeStrategies.find((s) => s.id === 'algo-nifty-trend-pullback-chandelier') || activeStrategies[0];
-
-  const handleProtectedNavigate = (view: AppView, strategy?: AlgoStrategy) => {
+  const handleProtectedAction = (action?: () => void) => {
     if (!currentUser) {
       onNavigateToView('auth');
       return;
     }
-    onNavigateToView(view, strategy);
-  };
-
-  const handleOpenStrategy = (targetIdOrCategory: string) => {
-    if (!currentUser) {
-      onNavigateToView('auth');
-      return;
-    }
-    const match =
-      activeStrategies.find(
-        (s) =>
-          s.id.toLowerCase().includes(targetIdOrCategory.toLowerCase()) ||
-          s.name.toLowerCase().includes(targetIdOrCategory.toLowerCase()) ||
-          s.category.toLowerCase().includes(targetIdOrCategory.toLowerCase())
-      ) || activeStrategies[0];
-
-    if (onSelectStrategy) {
-      onSelectStrategy(match);
+    if (action) {
+      action();
     } else {
-      onNavigateToView('backtest', match);
+      onNavigateToView('overview');
     }
   };
+
+  const faqs = [
+    {
+      q: 'How does the Bar Replay engine prevent lookahead bias?',
+      a: 'Alltra maintains the historical dataset in memory and enforces a strict pointer `allCandles.slice(0, currentIndex + 1)`. When stepping candle-by-candle through 5m, 15m, 30m, 1h, or daily bars, future bars remain completely concealed from chart rendering and simulated risk engines.',
+    },
+    {
+      q: 'How does paper execution operate before deploying live capital?',
+      a: 'Paper execution streams real-time market quotes with configurable position sizing and automated Stop Loss / Take Profit rules. Fills and PnL updates operate with zero slippage in default simulation to allow objective edge discovery.',
+    },
+    {
+      q: 'Which markets and asset classes are supported?',
+      a: 'Alltra supports all NIFTY 50 constituent stocks, Indian sectoral indices, major US equities (e.g. AAPL, NVDA), and global currency pairs (EUR/USD, GBP/USD).',
+    },
+    {
+      q: 'What risk controls and drawdown safeguards are built into the platform?',
+      a: 'The platform integrates automated fixed-fractional risk calculation, ATR-based volatility stop-loss levels, and max drawdown circuit breakers to prevent over-leveraging and emotional discretion.',
+    },
+  ];
 
   return (
-    <div className="w-full min-h-screen bg-background font-body-md text-on-background flex flex-col selection:bg-secondary selection:text-white">
-      {/* ── 0. FIXED INSTITUTIONAL TELEMETRY & NAVBAR ── */}
-      <header className="fixed top-0 w-full z-50">
-        {/* Live Telemetry Ticker Ribbon */}
-        <div className="h-8 w-full bg-surface-card border-b border-border-subtle px-margin flex items-center justify-between overflow-x-auto whitespace-nowrap gap-space-lg font-mono-sm text-mono-sm text-on-surface-variant no-scrollbar">
-          <div className="flex items-center gap-space-lg">
-            <span className="inline-flex items-center gap-space-sm text-on-surface">
-              <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
-              NSE CASH &amp; NFO: LIVE STREAM
-            </span>
-            <span>LATENCY: 12ms (Direct Exchange Co-Lo)</span>
-            <span>
-              NIFTY 50-EMA: <span className="text-bullish font-semibold">72% Above</span>
-            </span>
-            <span>
-              FII/DII FLOW: <span className="text-bullish font-semibold">+₹2,827 Cr</span>
-            </span>
-            <span>G-SEC (Rf): 6.50%</span>
-            <span>GROQ LPU: 120B Quant</span>
-            <span>
-              BAR REPLAY: <span className="text-secondary font-semibold">5m / 15m / 30m / 1h / 1d Active</span>
-            </span>
-          </div>
-
-          <div className="flex items-center gap-space-md shrink-0">
-            <button
-              onClick={() => handleProtectedNavigate('forex')}
-              className="inline-flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-forex-tint border border-secondary text-secondary font-mono-sm text-mono-sm hover:bg-secondary hover:text-on-secondary transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[14px]">public</span>
-              NRI / FOREX DESK (EUR·GBP)
-            </button>
-            <span className="inline-flex items-center gap-space-xs text-on-surface font-medium">
-              <span className="material-symbols-outlined text-[14px] text-bullish">verified_user</span>
-              SEBI &amp; FEMA COMPLIANT
-            </span>
-          </div>
-        </div>
-
-        {/* Main Public Institutional Header */}
-        <div className="h-16 w-full bg-surface-card/95 backdrop-blur-md border-b border-border-subtle px-margin flex items-center justify-between gap-gutter">
-          {/* Logo & Brand Identity */}
+    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col font-sans select-none antialiased">
+      {/* ── 1. Minimal Public Header (Zero Tickers, Zero Rockets) ── */}
+      <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-[#E2E8F0]">
+        <div className="max-w-7xl mx-auto h-16 px-4 sm:px-6 flex items-center justify-between">
+          {/* Logo */}
           <div
             onClick={() => onNavigateToView('landing')}
-            className="flex items-center gap-2.5 shrink-0 cursor-pointer select-none group"
-            title="Alltra Quantitative Platform"
+            className="flex items-center gap-2.5 cursor-pointer"
           >
-            <div className="w-9 h-9 rounded-xl bg-[#021810] border border-[#10B981]/40 flex items-center justify-center p-1 shadow-xs overflow-hidden group-hover:border-[#10B981] transition-colors">
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#0F172A] flex items-center justify-center shadow-xs">
               <img src="/alltra-logo.png" alt="Alltra" className="w-full h-full object-cover" />
             </div>
-            <div className="flex flex-col">
-              <span className="font-mono font-extrabold text-[16px] text-[#0F172A] tracking-wider uppercase leading-none">
-                ALLTRA
-              </span>
-              <span className="text-[9px] text-[#059669] font-mono tracking-widest font-semibold uppercase mt-0.5">
-                QUANT LABS
-              </span>
-            </div>
+            <span className="font-extrabold text-[16px] text-[#0F172A] tracking-wider font-mono uppercase">
+              ALLTRA
+            </span>
           </div>
 
-          {/* Public Navigation Links */}
-          <nav className="hidden xl:flex items-center gap-space-xs">
-            <button
-              onClick={() => handleProtectedNavigate('overview')}
-              className="px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer"
-            >
-              Overview
-            </button>
-            <button
-              onClick={() => handleProtectedNavigate('barreplay')}
-              className="px-space-sm py-1.5 font-label-md text-label-md text-secondary font-semibold hover:text-secondary hover:bg-forex-tint rounded-lg transition-colors cursor-pointer flex items-center gap-1"
-            >
-              <span className="material-symbols-outlined text-[16px]">history_toggle_off</span>
-              Bar Replay [15m Replay]
-            </button>
-            <button
-              onClick={() => handleProtectedNavigate('marketplace')}
-              className="px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer"
-            >
-              Trading Algos [{activeStrategies.length} Active]
-            </button>
-            <button
-              onClick={() => handleProtectedNavigate('backtest', featuredStrat)}
-              className="px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer"
-            >
-              Backtest Studio
-            </button>
-            <button
-              onClick={() => handleProtectedNavigate('insights')}
-              className="px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer"
-            >
-              Market Insights
-            </button>
-            <button
-              onClick={() => handleProtectedNavigate('forex')}
-              className="px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer"
-            >
-              NRI Forex Desk
-            </button>
-            <button
-              onClick={() => handleProtectedNavigate('admin')}
-              className="px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer"
-            >
-              Admin Portal
-            </button>
+          {/* Minimal Navigation */}
+          <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-[#64748B]">
+            <a href="#about" className="hover:text-[#0F172A] transition-colors">
+              About
+            </a>
+            <a href="#features" className="hover:text-[#0F172A] transition-colors">
+              Features
+            </a>
+            <a href="#faq" className="hover:text-[#0F172A] transition-colors">
+              FAQ
+            </a>
+            <a href="#contact" className="hover:text-[#0F172A] transition-colors">
+              Contact
+            </a>
           </nav>
 
-          {/* Action CTAs */}
-          <div className="flex items-center gap-space-sm shrink-0">
-            <button
-              onClick={() => handleProtectedNavigate('barreplay')}
-              className="hidden sm:inline-flex items-center gap-1 px-space-sm py-1.5 rounded-lg bg-forex-tint border border-secondary text-secondary font-label-md text-label-md hover:bg-secondary hover:text-on-secondary transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[16px]">play_circle</span>
-              Bar Replay
-            </button>
-            <button
-              onClick={() => handleProtectedNavigate('marketplace')}
-              className="hidden md:inline-flex items-center px-space-sm py-1.5 rounded-lg bg-surface-card border border-border-subtle text-on-surface font-label-md text-label-md hover:bg-surface-container-low hover:text-on-surface transition-colors cursor-pointer"
-            >
-              Algorithms
-            </button>
-            <button
-              onClick={() => handleProtectedNavigate('overview')}
-              className="inline-flex items-center gap-space-xs px-space-md py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors cursor-pointer shadow-xs active:scale-95"
-            >
-              <span className="material-symbols-outlined text-[16px]">desktop_windows</span>
-              Launch Terminal
-            </button>
-
-            {/* User / Sign In Button */}
-            <div className="flex items-center gap-space-sm pl-space-sm border-l border-border-subtle">
-              {currentUser ? (
+          {/* Clean Auth Button */}
+          <div className="flex items-center gap-3">
+            {currentUser ? (
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => onNavigateToView('overview')}
-                  className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs uppercase cursor-pointer"
-                  title={`${currentUser.name} (${currentUser.role})`}
+                  className="px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer"
                 >
-                  {currentUser.name ? currentUser.name.charAt(0) : 'U'}
+                  Go to Platform
                 </button>
-              ) : (
-                <button
-                  onClick={() => onNavigateToView('auth')}
-                  className="w-8 h-8 rounded-full bg-primary flex items-center justify-center cursor-pointer hover:bg-primary-container transition-colors"
-                  title="Sign In"
-                >
-                  <span className="material-symbols-outlined text-on-primary text-[18px]">person</span>
-                </button>
-              )}
-            </div>
+                {onSignOut && (
+                  <button
+                    onClick={onSignOut}
+                    className="px-3 py-2 rounded-xl bg-white border border-[#CBD5E1] text-[#64748B] hover:text-[#0F172A] text-xs font-medium transition-colors cursor-pointer"
+                  >
+                    Sign Out
+                  </button>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => onNavigateToView('auth')}
+                className="px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-[#1E293B] text-white text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer"
+              >
+                Sign In
+              </button>
+            )}
           </div>
         </div>
       </header>
 
-      {/* ── 1. MAIN CONTENT (Offset for fixed header) ── */}
-      <main className="w-full pt-28 px-margin bg-background flex-1">
-        <div className="flex flex-col w-full max-w-7xl mx-auto gap-space-xl">
-          {/* ── HERO SECTION (12-Column Grid) ── */}
-          <section className="w-full pt-4">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
-              {/* Left Column (7 cols): Value Proposition */}
-              <div className="lg:col-span-7 flex flex-col justify-between gap-space-lg py-space-sm">
-                <div className="flex flex-col gap-space-md">
-                  <div className="inline-flex items-center gap-space-sm self-start px-space-sm py-1 rounded-full bg-surface-container-low border border-border-subtle">
-                    <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
-                    <span className="font-mono-sm text-mono-sm text-on-surface-variant uppercase font-semibold">
-                      ALLTRA QUANTITATIVE PLATFORM // SYSTEMATIC DESK
-                    </span>
-                  </div>
+      {/* ── 2. Hero Section ── */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex flex-col gap-16">
+        <section className="text-center max-w-3xl mx-auto flex flex-col items-center gap-5">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold">
+            <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+            <span>Quantitative Research &amp; Execution Platform</span>
+          </div>
 
-                  <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">
-                    Results you can actually follow.
-                  </h1>
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-[#0F172A] tracking-tight leading-tight">
+            Institutional Quantitative Trading &amp; Market Intelligence
+          </h1>
 
-                  <p className="font-body-md text-body-md text-text-secondary max-w-2xl leading-relaxed">
-                    Performance analytics, candle-by-candle bar replay, and systematic algorithm execution for NSE equities, index derivatives, and global macro desks. Zero emotional guesswork. Pure mathematical edge verified across historical market regimes.
-                  </p>
-                </div>
+          <p className="text-sm sm:text-base text-[#64748B] leading-relaxed max-w-2xl">
+            Vectorized historical backtesting, strict candle-by-candle bar replay, and automated risk enforcement for Indian equities, index derivatives, and global macro assets.
+          </p>
 
-                {/* Primary CTA Buttons */}
-                <div className="flex flex-wrap items-center gap-space-md">
-                  <button
-                    onClick={() => handleProtectedNavigate('overview')}
-                    className="inline-flex items-center gap-space-sm px-space-lg py-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors shadow-sm cursor-pointer active:scale-95"
-                  >
-                    <span>Open Alltra Workstation</span>
-                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-                  </button>
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <button
+              onClick={() => handleProtectedAction()}
+              className="px-6 py-3 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
+            >
+              <span>{currentUser ? 'Open Platform' : 'Get Started'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
 
-                  <button
-                    onClick={() => handleProtectedNavigate('barreplay')}
-                    className="inline-flex items-center gap-space-sm px-space-lg py-3 rounded-lg bg-forex-tint text-secondary border border-secondary font-label-md text-label-md hover:bg-secondary hover:text-white transition-colors shadow-sm cursor-pointer active:scale-95"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">candlestick_chart</span>
-                    <span>Bar Replay Studio</span>
-                  </button>
+            <a
+              href="#features"
+              className="px-6 py-3 rounded-xl bg-white hover:bg-[#F1F5F9] border border-[#CBD5E1] text-[#0F172A] text-xs sm:text-sm font-medium transition-colors shadow-xs"
+            >
+              Explore Features
+            </a>
+          </div>
+        </section>
 
-                  <a
-                    href="#algorithms-section"
-                    className="inline-flex items-center gap-space-sm px-space-lg py-3 rounded-lg bg-surface-card text-on-surface font-label-md text-label-md hover:bg-surface-container-low border border-border-subtle transition-colors shadow-sm cursor-pointer"
-                  >
-                    <span>Explore Strategies</span>
-                  </a>
-                </div>
-
-                {/* Mono Benchmark Ribbon */}
-                <div className="w-full bg-surface-card rounded-xl p-space-md shadow-sm border border-border-subtle flex flex-wrap items-center gap-x-space-lg gap-y-space-sm font-mono-sm text-mono-sm text-on-surface-variant">
-                  <span className="inline-flex items-center gap-space-xs">
-                    <span className="text-text-muted">BENCHMARK:</span>
-                    <span className="text-on-surface font-semibold">NIFTY 50</span>
-                  </span>
-                  <span className="text-outline-variant">|</span>
-                  <span className="inline-flex items-center gap-space-xs">
-                    <span className="text-text-muted">DATA:</span>
-                    <span className="text-on-surface font-semibold">7+ Years NSE Tick Archive</span>
-                  </span>
-                  <span className="text-outline-variant">|</span>
-                  <span className="inline-flex items-center gap-space-xs">
-                    <span className="text-text-muted">EXECUTION:</span>
-                    <span className="text-on-surface font-semibold">Deterministic DMA</span>
-                  </span>
-                </div>
+        {/* ── 3. High-Resolution Workstation Preview ── */}
+        <section id="features" className="w-full">
+          <div className="rounded-2xl overflow-hidden border border-[#E2E8F0] shadow-lg bg-white">
+            <div className="px-5 py-3.5 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-center justify-between text-xs text-[#64748B]">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-[#EF4444]" />
+                <span className="w-3 h-3 rounded-full bg-[#F59E0B]" />
+                <span className="w-3 h-3 rounded-full bg-[#10B981]" />
+                <span className="font-mono font-semibold text-[#0F172A] ml-2">ALLTRA Workstation</span>
               </div>
-
-              {/* Right Column (5 cols): Featured Audited Card */}
-              <div className="lg:col-span-5">
-                <div className="w-full bg-surface-card rounded-xl p-space-lg shadow-md border border-border-subtle flex flex-col gap-space-lg">
-                  {/* Card Header */}
-                  <div className="flex items-center justify-between gap-space-sm">
-                    <div className="flex items-center gap-space-sm">
-                      <span className="w-2.5 h-2.5 rounded-full bg-bullish animate-pulse" />
-                      <span className="font-mono-md text-mono-md text-on-surface font-semibold">
-                        NIFTY_ALPHA_V4
-                      </span>
-                    </div>
-                    <span className="inline-flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-bullish-tint text-bullish font-mono-sm text-mono-sm font-semibold">
-                      <span className="material-symbols-outlined text-[14px]">verified</span>
-                      AUDITED
-                    </span>
-                  </div>
-
-                  {/* 4-Metric Quad-Grid */}
-                  <div className="grid grid-cols-2 gap-gutter">
-                    {/* Metric 1 */}
-                    <div className="bg-bullish-tint rounded-lg p-space-md flex flex-col gap-space-xs">
-                      <span className="font-label-sm text-label-sm text-text-secondary uppercase">
-                        1-Year Return
-                      </span>
-                      <span className="font-mono-lg text-mono-lg text-bullish tabular-nums font-bold">
-                        +114.6%
-                      </span>
-                      <span className="font-mono-sm text-mono-sm text-bullish/80">
-                        Net of slippage
-                      </span>
-                    </div>
-
-                    {/* Metric 2 */}
-                    <div className="bg-surface-container-low rounded-lg p-space-md flex flex-col gap-space-xs">
-                      <span className="font-label-sm text-label-sm text-text-secondary uppercase">
-                        Sharpe Ratio
-                      </span>
-                      <span className="font-mono-lg text-mono-lg text-on-surface tabular-nums font-bold">
-                        2.84
-                      </span>
-                      <span className="font-mono-sm text-mono-sm text-text-muted">
-                        vs 6.50% G-Sec
-                      </span>
-                    </div>
-
-                    {/* Metric 3 */}
-                    <div className="bg-surface-container-low rounded-lg p-space-md flex flex-col gap-space-xs">
-                      <span className="font-label-sm text-label-sm text-text-secondary uppercase">
-                        Win Rate
-                      </span>
-                      <span className="font-mono-lg text-mono-lg text-on-surface tabular-nums font-bold">
-                        72.5%
-                      </span>
-                      <span className="font-mono-sm text-mono-sm text-text-muted">
-                        1,482 trades
-                      </span>
-                    </div>
-
-                    {/* Metric 4 */}
-                    <div className="bg-bearish-tint rounded-lg p-space-md flex flex-col gap-space-xs">
-                      <span className="font-label-sm text-label-sm text-text-secondary uppercase">
-                        Max Drawdown
-                      </span>
-                      <span className="font-mono-lg text-mono-lg text-bearish tabular-nums font-bold">
-                        -3.40%
-                      </span>
-                      <span className="font-mono-sm text-mono-sm text-bearish/80">
-                        recovery 5.2 days
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Interactive SVG Sparkline */}
-                  <div className="w-full h-16 text-bullish">
-                    <svg className="w-full h-full overflow-visible" fill="none" viewBox="0 0 240 60">
-                      <polyline
-                        points="0,52 30,48 60,44 90,46 120,34 150,28 180,22 210,14 240,6"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2.5"
-                      />
-                    </svg>
-                  </div>
-
-                  {/* CTA */}
-                  <button
-                    onClick={() => handleProtectedNavigate('backtest', featuredStrat)}
-                    className="w-full inline-flex items-center justify-center gap-space-sm px-space-md py-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors cursor-pointer active:scale-95"
-                  >
-                    <span>View in Strategy Studio</span>
-                    <span className="material-symbols-outlined text-[18px]">candlestick_chart</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* ── PHOTO SHOWCASE 1: THE ALLTRA TERMINAL WORKSTATION ── */}
-          <section className="w-full">
-            <div className="w-full rounded-2xl overflow-hidden border border-border-subtle shadow-xl bg-[#090D14] flex flex-col group">
-              {/* Terminal Window Header Bar */}
-              <div className="px-5 py-3.5 bg-[#0D1321] border-b border-[#1E293B] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-[#EF4444]" />
-                    <span className="w-3 h-3 rounded-full bg-[#F59E0B]" />
-                    <span className="w-3 h-3 rounded-full bg-[#10B981]" />
-                  </div>
-                  <div className="flex items-center gap-2 text-white font-semibold">
-                    <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
-                    <span>ALLTRA QUANTITATIVE WORKSTATION // MULTI-DESK TERMINAL</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 text-[#94A3B8]">
-                  <span className="hidden sm:inline">NSE LIVE CO-LO: 12ms</span>
-                  <span className="hidden sm:inline">|</span>
-                  <span>GROQ LPU REASONING ACTIVE</span>
-                  <span className="hidden md:inline">|</span>
-                  <span className="text-[#10B981] font-semibold">NIFTY 50 CONSTITUENTS: 100% LIVE</span>
-                </div>
-              </div>
-
-              {/* High-Resolution Terminal Photo Preview */}
-              <div className="relative aspect-[16/9] max-h-[620px] w-full overflow-hidden bg-[#000000]">
-                <img
-                  src="/alltra-terminal-hero.jpg"
-                  alt="Alltra Institutional Quantitative Trading Terminal"
-                  className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.01]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#090D14] via-transparent to-transparent opacity-75" />
-
-                {/* Floating Interactive Badges */}
-                <div className="absolute bottom-6 left-6 right-6 flex flex-wrap items-end justify-between gap-4">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="bg-[#0D1321]/95 backdrop-blur-md border border-[#10B981]/50 rounded-xl px-4 py-2.5 flex items-center gap-3 shadow-xl">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-ping" />
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-[#94A3B8] uppercase font-mono">Execution Speed</span>
-                        <span className="text-xs font-mono font-bold text-white">NSE Direct Market Access (12ms)</span>
-                      </div>
-                    </div>
-
-                    <div className="bg-[#0D1321]/95 backdrop-blur-md border border-[#38BDF8]/50 rounded-xl px-4 py-2.5 flex items-center gap-3 shadow-xl">
-                      <span className="material-symbols-outlined text-[#38BDF8] text-[18px]">candlestick_chart</span>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-[#94A3B8] uppercase font-mono">Candle-by-Candle</span>
-                        <span className="text-xs font-mono font-bold text-white">5m, 15m, 30m, 1h, 1d Bar Replay</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => handleProtectedNavigate('barreplay')}
-                      className="px-4 py-2.5 rounded-xl bg-white/10 text-white font-mono text-xs font-bold hover:bg-white/20 backdrop-blur-md border border-white/20 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">play_circle</span>
-                      <span>OPEN BAR REPLAY</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleProtectedNavigate('overview')}
-                      className="px-5 py-2.5 rounded-xl bg-[#10B981] text-[#021810] font-mono text-xs font-bold hover:bg-[#34D399] transition-all shadow-lg shadow-[#10B981]/30 flex items-center gap-2 cursor-pointer active:scale-95"
-                    >
-                      <span>ENTER WORKSTATION</span>
-                      <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* ── SECTION: 01 // PLATFORM ARCHITECTURE ── */}
-          <section className="w-full py-space-md flex flex-col gap-space-lg">
-            <div className="flex flex-col gap-space-xs">
-              <span className="font-mono-sm text-mono-sm text-text-muted uppercase font-semibold">
-                01 // Platform Architecture
-              </span>
-              <h2 className="font-headline-md text-headline-md text-on-surface">
-                Deterministic execution without discretionary drift.
-              </h2>
+              <span className="font-mono text-[11px]">NIFTY 50 &amp; Global Assets</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
-              {/* Pillar 1 */}
-              <div className="bg-surface-card rounded-xl p-space-lg shadow-sm border border-border-subtle flex flex-col gap-space-md hover:shadow-md transition-shadow">
-                <div className="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-on-surface">
-                  <span className="material-symbols-outlined text-[22px]">terminal</span>
-                </div>
-                <div className="flex flex-col gap-space-sm">
-                  <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
-                    Rules in, orders out
-                  </h3>
-                  <p className="font-body-sm text-body-sm text-text-secondary leading-relaxed">
-                    Every entry, scale-in, and exit is governed by pre-compiled quantitative conditions. Limit orders are routed directly to NSE matching engines with zero manual intervention.
-                  </p>
-                </div>
-                <div className="mt-auto pt-space-sm font-mono-sm text-mono-sm text-text-muted font-medium">
-                  LATENCY: 12ms DIRECT STREAM
-                </div>
-              </div>
-
-              {/* Pillar 2 */}
-              <div className="bg-surface-card rounded-xl p-space-lg shadow-sm border border-border-subtle flex flex-col gap-space-md hover:shadow-md transition-shadow">
-                <div className="w-10 h-10 rounded-lg bg-bearish-tint flex items-center justify-center text-bearish">
-                  <span className="material-symbols-outlined text-[22px]">shield</span>
-                </div>
-                <div className="flex flex-col gap-space-sm">
-                  <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
-                    Drawdown &amp; risk control
-                  </h3>
-                  <p className="font-body-sm text-body-sm text-text-secondary leading-relaxed">
-                    Hard portfolio-level circuit breakers, volatility-adjusted position sizing, and intraday MTM stop-losses protect capital during black-swan liquidity shocks.
-                  </p>
-                </div>
-                <div className="mt-auto pt-space-sm font-mono-sm text-mono-sm text-bearish font-medium">
-                  MAX DD CAP: -5.00% HARD STOP
-                </div>
-              </div>
-
-              {/* Pillar 3 */}
-              <div className="bg-surface-card rounded-xl p-space-lg shadow-sm border border-border-subtle flex flex-col gap-space-md hover:shadow-md transition-shadow">
-                <div className="w-10 h-10 rounded-lg bg-bullish-tint flex items-center justify-center text-bullish">
-                  <span className="material-symbols-outlined text-[22px]">query_stats</span>
-                </div>
-                <div className="flex flex-col gap-space-sm">
-                  <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
-                    Numbers that hold up
-                  </h3>
-                  <p className="font-body-sm text-body-sm text-text-secondary leading-relaxed">
-                    Bar-by-bar vectorized backtesting over 7+ years of NSE tick data, accounting for STT, exchange transaction charges, GST, stamp duty, and realistic bid-ask slippage.
-                  </p>
-                </div>
-                <div className="mt-auto pt-space-sm font-mono-sm text-mono-sm text-bullish font-medium">
-                  WALK-FORWARD VERIFIED
-                </div>
-              </div>
+            <div className="w-full aspect-[16/9] max-h-[580px] bg-[#0A0D14] overflow-hidden">
+              <img
+                src="/alltra-terminal-hero.jpg"
+                alt="Alltra Quantitative Platform"
+                className="w-full h-full object-cover object-top"
+              />
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* ── PHOTO SHOWCASE 2: DEEP QUANTITATIVE ANALYTICS ── */}
-          <section className="w-full py-space-sm">
-            <div className="bg-surface-card rounded-2xl border border-border-subtle p-6 lg:p-8 shadow-sm flex flex-col lg:flex-row items-center gap-8">
-              {/* Left Column: Visual description */}
-              <div className="lg:w-1/2 flex flex-col gap-4">
-                <div className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-surface-container-low border border-border-subtle font-mono text-xs text-text-secondary">
-                  <span className="w-2 h-2 rounded-full bg-secondary" />
-                  <span>VECTORIZED RESEARCH &amp; MONTE CARLO</span>
-                </div>
-
-                <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-on-surface">
-                  Deep quantitative analytics, drawdown matrices &amp; equity curves.
-                </h2>
-
-                <p className="text-sm text-text-secondary leading-relaxed">
-                  Analyze strategy stress tests across bull runs, bear markets, and volatility spikes. Alltra calculates walk-forward returns, Sharpe/Sortino ratios, underwater drawdowns, and distribution frequencies across millions of simulated ticks.
-                </p>
-
-                <div className="grid grid-cols-2 gap-3 pt-2 font-mono text-xs">
-                  <div className="p-3 rounded-lg bg-surface-container-low border border-border-subtle">
-                    <span className="text-text-muted block text-[10px] uppercase">Transaction Friction</span>
-                    <span className="font-bold text-on-surface">SEBI / STT / Stamp Duty Modeled</span>
-                  </div>
-                  <div className="p-3 rounded-lg bg-surface-container-low border border-border-subtle">
-                    <span className="text-text-muted block text-[10px] uppercase">Walk-Forward Windows</span>
-                    <span className="font-bold text-on-surface">Out-of-Sample Validated</span>
-                  </div>
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    onClick={() => handleProtectedNavigate('backtest', featuredStrat)}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-mono text-xs font-semibold hover:bg-primary-container transition-colors shadow-xs"
-                  >
-                    <span>LAUNCH BACKTEST SUITE</span>
-                    <span className="material-symbols-outlined text-[16px]">trending_up</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Right Column: High-Res Analytics Photo */}
-              <div className="lg:w-1/2 w-full rounded-xl overflow-hidden border border-border-subtle shadow-md group">
-                <img
-                  src="/alltra-quant-analytics.jpg"
-                  alt="Alltra Quantitative Analytics & Strategy Engineering"
-                  className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              </div>
+        {/* ── 4. Core Features Grid ── */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white p-6 sm:p-8 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center font-bold">
+              1
             </div>
-          </section>
+            <h3 className="text-base font-bold text-[#0F172A]">Candle-by-Candle Bar Replay</h3>
+            <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
+              Step forward and backward candle-by-candle with zero lookahead bias across 5m, 15m, 30m, 1h, and daily intervals. Practice trade execution and draw trendlines on historical NIFTY 50 bars.
+            </p>
+          </div>
 
-          {/* ── SECTION: 02 // CANDLE-BY-CANDLE BAR REPLAY ENGINE ── */}
-          <section className="w-full py-space-sm">
-            <div className="bg-surface-card rounded-2xl border border-secondary/20 p-6 lg:p-8 shadow-sm flex flex-col lg:flex-row-reverse items-center gap-8">
-              {/* Right Column: Visual description */}
-              <div className="lg:w-1/2 flex flex-col gap-4">
-                <div className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-forex-tint border border-secondary/40 font-mono text-xs text-secondary font-semibold">
-                  <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-                  <span>ZERO-LOOKAHEAD BAR REPLAY STUDIO</span>
-                </div>
-
-                <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-on-surface">
-                  Step candle-by-candle through real market history.
-                </h2>
-
-                <p className="text-sm text-text-secondary leading-relaxed">
-                  Practice discretionary execution or test systematic order fills with authentic TradingView charts. Rewind time on any of the 50 NIFTY 50 constituent stocks, draw trendlines and order-block zones, and execute simulated Long/Short trades with automated SL/TP risk enforcement.
-                </p>
-
-                <div className="grid grid-cols-3 gap-2 pt-2 font-mono text-xs">
-                  <div className="p-2.5 rounded-lg bg-surface-container-low border border-border-subtle text-center">
-                    <span className="text-[10px] text-text-muted uppercase block">Timeframes</span>
-                    <span className="font-bold text-on-surface">5m · 15m · 30m · 1h · 1d</span>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-surface-container-low border border-border-subtle text-center">
-                    <span className="text-[10px] text-text-muted uppercase block">Draw Tools</span>
-                    <span className="font-bold text-on-surface">Ray · Zone · Trend</span>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-surface-container-low border border-border-subtle text-center">
-                    <span className="text-[10px] text-text-muted uppercase block">Constituents</span>
-                    <span className="font-bold text-on-surface">All 50 NIFTY Stocks</span>
-                  </div>
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    onClick={() => handleProtectedNavigate('barreplay')}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-secondary text-white font-mono text-xs font-semibold hover:bg-secondary/90 transition-colors shadow-xs"
-                  >
-                    <span>OPEN BAR REPLAY STUDIO</span>
-                    <span className="material-symbols-outlined text-[16px]">play_arrow</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Left Column: Visual Showcase Photo / Interactive Mockup */}
-              <div className="lg:w-1/2 w-full rounded-xl overflow-hidden border border-border-subtle shadow-md bg-[#0F172A] p-4 text-white font-mono text-xs flex flex-col gap-3">
-                <div className="flex items-center justify-between border-b border-[#334155] pb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-[#38BDF8]">RELIANCE.NS</span>
-                    <span className="px-1.5 py-0.5 rounded bg-[#1E293B] text-[10px] text-[#94A3B8]">15m CANDLE</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-[11px] text-[#94A3B8]">
-                    <span>REPLAY: BAR 84/375</span>
-                    <span className="text-[#10B981] font-bold">PNL: +₹14,250.00</span>
-                  </div>
-                </div>
-
-                {/* Simulated Chart Viewport with Candlesticks */}
-                <div className="h-44 w-full bg-[#0B0F17] rounded-lg p-2 flex flex-col justify-between relative overflow-hidden">
-                  <div className="absolute inset-x-0 top-1/2 h-[1px] border-b border-dashed border-[#1E293B]" />
-                  <div className="absolute inset-x-0 top-1/4 h-[1px] border-b border-dashed border-[#10B981]/30">
-                    <span className="text-[9px] text-[#10B981] bg-[#0B0F17] px-1 float-right">TP: ₹2,980.00</span>
-                  </div>
-                  <div className="absolute inset-x-0 bottom-1/4 h-[1px] border-b border-dashed border-[#EF4444]/30">
-                    <span className="text-[9px] text-[#EF4444] bg-[#0B0F17] px-1 float-right">SL: ₹2,910.00</span>
-                  </div>
-
-                  {/* Trendline Canvas Overlay Simulation */}
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                    <line x1="20" y1="120" x2="340" y2="40" stroke="#38BDF8" strokeWidth="2" strokeDasharray="3 3" />
-                    <rect x="140" y="55" width="120" height="25" fill="#10B981" fillOpacity="0.12" stroke="#10B981" strokeWidth="1" strokeDasharray="2 2" />
-                  </svg>
-
-                  <div className="flex items-end justify-between h-full pt-4 pb-2 z-10 px-2">
-                    {[
-                      { h: 40, c: '#10B981' }, { h: 55, c: '#10B981' }, { h: 48, c: '#EF4444' }, { h: 65, c: '#10B981' },
-                      { h: 72, c: '#10B981' }, { h: 60, c: '#EF4444' }, { h: 80, c: '#10B981' }, { h: 90, c: '#10B981' },
-                      { h: 82, c: '#EF4444' }, { h: 105, c: '#10B981' }, { h: 110, c: '#10B981' }, { h: 98, c: '#EF4444' },
-                    ].map((bar, i) => (
-                      <div key={i} className="flex flex-col items-center">
-                        <div className="w-[1px] h-3 bg-white/40" />
-                        <div
-                          style={{ height: `${bar.h}px`, backgroundColor: bar.c }}
-                          className="w-3 rounded-xs shadow-xs"
-                        />
-                        <div className="w-[1px] h-2 bg-white/40" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Replay Controls Toolbar */}
-                <div className="flex items-center justify-between pt-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-2 py-1 rounded bg-[#1E293B] text-[10px] text-white font-semibold">0.5x</span>
-                    <span className="px-2 py-1 rounded bg-[#10B981] text-[10px] text-[#021810] font-bold">1x</span>
-                    <span className="px-2 py-1 rounded bg-[#1E293B] text-[10px] text-white font-semibold">2x</span>
-                    <span className="px-2 py-1 rounded bg-[#1E293B] text-[10px] text-white font-semibold">5x</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-[#94A3B8]">STEP FORWARD [➔]</span>
-                    <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
-                  </div>
-                </div>
-              </div>
+          <div className="bg-white p-6 sm:p-8 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+              2
             </div>
-          </section>
+            <h3 className="text-base font-bold text-[#0F172A]">Paper Trading &amp; Risk Engine</h3>
+            <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
+              Simulate live orders with 0 bps slippage against real-time market data. Enforce automatic stop loss and take profit targets with strict account margin constraints.
+            </p>
+          </div>
 
-          {/* ── PHOTO SHOWCASE 3: MULTI-ASSET & GLOBAL FOREX DESK ── */}
-          <section className="w-full py-space-sm">
-            <div className="bg-surface-card rounded-2xl border border-border-subtle p-6 lg:p-8 shadow-sm flex flex-col lg:flex-row items-center gap-8">
-              {/* Left Column: Visual description */}
-              <div className="lg:w-1/2 flex flex-col gap-4">
-                <div className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-forex-tint border border-secondary/30 font-mono text-xs text-secondary font-semibold">
-                  <span className="material-symbols-outlined text-[16px]">public</span>
-                  <span>GLOBAL NRI &amp; MULTI-ASSET ROUTING</span>
-                </div>
-
-                <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-on-surface">
-                  Institutional multi-asset desks: Equities, Derivatives, Forex &amp; MCX.
-                </h2>
-
-                <p className="text-sm text-text-secondary leading-relaxed">
-                  Seamlessly bridge domestic Indian exchanges with international liquidity. Alltra supports non-resident Indian (NRI) account routing, EUR/GBP algorithmic currency pairs, and automated Fair Value Gap (FVG) execution.
-                </p>
-
-                <div className="grid grid-cols-2 gap-3 pt-2 font-mono text-xs">
-                  <div className="p-3 rounded-lg bg-surface-container-low border border-border-subtle">
-                    <span className="text-text-muted block text-[10px] uppercase">Cross-Border Compliance</span>
-                    <span className="font-bold text-on-surface">SEBI / FEMA Regulated Desks</span>
-                  </div>
-                  <div className="p-3 rounded-lg bg-surface-container-low border border-border-subtle">
-                    <span className="text-text-muted block text-[10px] uppercase">Liquidity Model</span>
-                    <span className="font-bold text-on-surface">Fair Value Gap &amp; Order Blocks</span>
-                  </div>
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    onClick={() => handleProtectedNavigate('forex')}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-mono text-xs font-semibold hover:bg-primary-container transition-colors shadow-xs"
-                  >
-                    <span>EXPLORE NRI FOREX PORTAL</span>
-                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Right Column: Multi-Asset High-Res Photo */}
-              <div className="lg:w-1/2 w-full rounded-xl overflow-hidden border border-border-subtle shadow-md group">
-                <img
-                  src="/alltra-multi-asset.jpg"
-                  alt="Alltra Multi-Asset Global Institutional Desk"
-                  className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              </div>
+          <div className="bg-white p-6 sm:p-8 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold">
+              3
             </div>
-          </section>
+            <h3 className="text-base font-bold text-[#0F172A]">Conversational AI Intelligence</h3>
+            <p className="text-xs sm:text-sm text-[#64748B] leading-relaxed">
+              Synthesize macroeconomic context, foreign affairs developments, and historical pattern comparisons with a friendly, epistemic conversational assistant.
+            </p>
+          </div>
+        </section>
 
-          {/* ── SECTION: 03 // ALGORITHMS & BASKETS ── */}
-          <section className="w-full py-space-lg flex flex-col gap-space-lg" id="algorithms-section">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
-              <div className="flex flex-col gap-space-xs">
-                <span className="font-mono-sm text-mono-sm text-text-muted uppercase font-semibold">
-                  03 // Systematic Strategies &amp; Baskets
-                </span>
-                <h2 className="font-headline-md text-headline-md text-on-surface">
-                  Systematic strategies across market regimes.
-                </h2>
-              </div>
-
-              {/* Segmented Control */}
-              <div
-                className="inline-flex p-1 rounded-lg bg-surface-container-low self-start md:self-auto border border-border-subtle"
-                role="tablist"
-              >
-                <button
-                  onClick={() => setAlgoTab('trading')}
-                  className={`px-space-md py-2 rounded-md font-label-md text-label-md transition-all cursor-pointer ${
-                    algoTab === 'trading'
-                      ? 'bg-surface-card text-on-surface shadow-sm font-semibold'
-                      : 'text-text-secondary hover:text-on-surface'
-                  }`}
-                  type="button"
-                >
-                  Trading Algorithms
-                </button>
-                <button
-                  onClick={() => setAlgoTab('wealth')}
-                  className={`px-space-md py-2 rounded-md font-label-md text-label-md transition-all cursor-pointer ${
-                    algoTab === 'wealth'
-                      ? 'bg-surface-card text-on-surface shadow-sm font-semibold'
-                      : 'text-text-secondary hover:text-on-surface'
-                  }`}
-                  type="button"
-                >
-                  Investment &amp; Wealth Algos Below ₹1.1L
-                </button>
-              </div>
+        {/* ── 5. About the Platform & Quantitative Focus ── */}
+        <section id="about" className="bg-white p-6 sm:p-10 rounded-3xl border border-[#E2E8F0] shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+          <div className="space-y-3 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-[#334155] text-xs font-semibold">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#2563EB]" />
+              <span>About the Creator</span>
             </div>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0F172A]">
+              Atharva · Quantitative Finance Practitioner
+            </h2>
+            <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
+              Currently studying and building systematic trading models with a dedicated focus on algorithmic order flow, statistical arbitrage, and disciplined risk containment. Passed 10+ global prop firm evaluations using strict mathematical expectancy and zero emotional discretion.
+            </p>
+          </div>
 
-            {/* Grid 1: Trading Algorithms */}
-            {algoTab === 'trading' && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
-                {/* Card 1 */}
+          <a
+            href="https://www.linkedin.com/in/atharva-shirke"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0A66C2] hover:bg-[#004182] text-white text-xs font-semibold shadow-xs transition-colors shrink-0"
+          >
+            <Linkedin className="w-4 h-4" />
+            <span>Connect on LinkedIn</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </section>
+
+        {/* ── 6. Frequently Asked Questions ── */}
+        <section id="faq" className="space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0F172A]">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-xs text-[#64748B]">
+              Common questions regarding bar replay, execution simulation, and data hygiene.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            {faqs.map((faq, idx) => {
+              const isOpen = openFaq === idx;
+              return (
                 <div
-                  onClick={() => handleOpenStrategy('nifty')}
-                  className="bg-surface-card rounded-xl p-space-lg shadow-sm border border-border-subtle flex flex-col gap-space-md hover:shadow-md transition-all cursor-pointer group"
+                  key={idx}
+                  className="rounded-xl border border-[#E2E8F0] bg-white overflow-hidden transition-all"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono-md text-mono-md text-on-surface font-semibold group-hover:text-secondary transition-colors">
-                      NIFTY_ALPHA_V4
-                    </span>
-                    <span className="px-space-sm py-0.5 rounded-full bg-surface-container-low font-mono-sm text-mono-sm text-on-surface-variant font-medium">
-                      NIFTY 50
-                    </span>
-                  </div>
-
-                  {/* Sparkline */}
-                  <div className="w-full h-16 text-bullish">
-                    <svg className="w-full h-full overflow-visible" fill="none" viewBox="0 0 240 60">
-                      <polyline
-                        points="0,52 30,48 60,44 90,46 120,34 150,28 180,22 210,14 240,6"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  </div>
-
-                  {/* 4-metric row */}
-                  <div className="grid grid-cols-4 gap-space-xs pt-space-sm border-t border-border-subtle">
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">CAGR</span>
-                      <span className="font-mono-sm text-mono-sm text-bullish tabular-nums font-bold">+114.6%</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">SHARPE</span>
-                      <span className="font-mono-sm text-mono-sm text-on-surface tabular-nums font-medium">2.84</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">WIN</span>
-                      <span className="font-mono-sm text-mono-sm text-on-surface tabular-nums font-medium">72.5%</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">MAX DD</span>
-                      <span className="font-mono-sm text-mono-sm text-bearish tabular-nums font-medium">-3.40%</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 2 */}
-                <div
-                  onClick={() => handleOpenStrategy('banknifty')}
-                  className="bg-surface-card rounded-xl p-space-lg shadow-sm border border-border-subtle flex flex-col gap-space-md hover:shadow-md transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono-md text-mono-md text-on-surface font-semibold group-hover:text-secondary transition-colors">
-                      BANKNIFTY_GAMMA
-                    </span>
-                    <span className="px-space-sm py-0.5 rounded-full bg-surface-container-low font-mono-sm text-mono-sm text-on-surface-variant font-medium">
-                      BANKNIFTY
-                    </span>
-                  </div>
-
-                  <div className="w-full h-16 text-bullish">
-                    <svg className="w-full h-full overflow-visible" fill="none" viewBox="0 0 240 60">
-                      <polyline
-                        points="0,50 30,45 60,49 90,38 120,30 150,32 180,20 210,16 240,10"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-space-xs pt-space-sm border-t border-border-subtle">
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">CAGR</span>
-                      <span className="font-mono-sm text-mono-sm text-bullish tabular-nums font-bold">+86.2%</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">SHARPE</span>
-                      <span className="font-mono-sm text-mono-sm text-on-surface tabular-nums font-medium">2.41</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">WIN</span>
-                      <span className="font-mono-sm text-mono-sm text-on-surface tabular-nums font-medium">68.4%</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">MAX DD</span>
-                      <span className="font-mono-sm text-mono-sm text-bearish tabular-nums font-medium">-4.15%</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 3 */}
-                <div
-                  onClick={() => handleOpenStrategy('finnifty')}
-                  className="bg-surface-card rounded-xl p-space-lg shadow-sm border border-border-subtle flex flex-col gap-space-md hover:shadow-md transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono-md text-mono-md text-on-surface font-semibold group-hover:text-secondary transition-colors">
-                      FINNIFTY_MEANREV
-                    </span>
-                    <span className="px-space-sm py-0.5 rounded-full bg-surface-container-low font-mono-sm text-mono-sm text-on-surface-variant font-medium">
-                      FINNIFTY
-                    </span>
-                  </div>
-
-                  <div className="w-full h-16 text-bullish">
-                    <svg className="w-full h-full overflow-visible" fill="none" viewBox="0 0 240 60">
-                      <polyline
-                        points="0,54 30,50 60,42 90,40 120,35 150,26 180,24 210,18 240,12"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-space-xs pt-space-sm border-t border-border-subtle">
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">CAGR</span>
-                      <span className="font-mono-sm text-mono-sm text-bullish tabular-nums font-bold">+64.8%</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">SHARPE</span>
-                      <span className="font-mono-sm text-mono-sm text-on-surface tabular-nums font-medium">2.18</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">WIN</span>
-                      <span className="font-mono-sm text-mono-sm text-on-surface tabular-nums font-medium">74.0%</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">MAX DD</span>
-                      <span className="font-mono-sm text-mono-sm text-bearish tabular-nums font-medium">-2.90%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Grid 2: Investment & Wealth Algos Below ₹1.1L */}
-            {algoTab === 'wealth' && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
-                {/* Wealth Card 1 */}
-                <div
-                  onClick={() => handleOpenStrategy('momentum')}
-                  className="bg-surface-card rounded-xl p-space-lg shadow-sm border border-border-subtle flex flex-col gap-space-md hover:shadow-md transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono-md text-mono-md text-on-surface font-semibold group-hover:text-secondary transition-colors">
-                      MOMENTUM_20_EQ
-                    </span>
-                    <span className="px-space-sm py-0.5 rounded-full bg-forex-tint font-mono-sm text-mono-sm text-secondary font-semibold">
-                      ₹95,000 MIN
-                    </span>
-                  </div>
-
-                  <div className="w-full h-16 text-bullish">
-                    <svg className="w-full h-full overflow-visible" fill="none" viewBox="0 0 240 60">
-                      <polyline
-                        points="0,54 40,48 80,44 120,36 160,28 200,20 240,12"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-space-xs pt-space-sm border-t border-border-subtle">
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">CAGR</span>
-                      <span className="font-mono-sm text-mono-sm text-bullish tabular-nums font-bold">+34.2%</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">SHARPE</span>
-                      <span className="font-mono-sm text-mono-sm text-on-surface tabular-nums font-medium">1.92</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">WIN</span>
-                      <span className="font-mono-sm text-mono-sm text-on-surface tabular-nums font-medium">66.0%</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">MAX DD</span>
-                      <span className="font-mono-sm text-mono-sm text-bearish tabular-nums font-medium">-6.80%</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Wealth Card 2 */}
-                <div
-                  onClick={() => handleOpenStrategy('low vol')}
-                  className="bg-surface-card rounded-xl p-space-lg shadow-sm border border-border-subtle flex flex-col gap-space-md hover:shadow-md transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono-md text-mono-md text-on-surface font-semibold group-hover:text-secondary transition-colors">
-                      LOW_VOL_CORE
-                    </span>
-                    <span className="px-space-sm py-0.5 rounded-full bg-forex-tint font-mono-sm text-mono-sm text-secondary font-semibold">
-                      ₹75,000 MIN
-                    </span>
-                  </div>
-
-                  <div className="w-full h-16 text-bullish">
-                    <svg className="w-full h-full overflow-visible" fill="none" viewBox="0 0 240 60">
-                      <polyline
-                        points="0,52 40,49 80,42 120,38 160,31 200,24 240,16"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-space-xs pt-space-sm border-t border-border-subtle">
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">CAGR</span>
-                      <span className="font-mono-sm text-mono-sm text-bullish tabular-nums font-bold">+26.8%</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">SHARPE</span>
-                      <span className="font-mono-sm text-mono-sm text-on-surface tabular-nums font-medium">2.10</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">WIN</span>
-                      <span className="font-mono-sm text-mono-sm text-on-surface tabular-nums font-medium">71.2%</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">MAX DD</span>
-                      <span className="font-mono-sm text-mono-sm text-bearish tabular-nums font-medium">-4.50%</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Wealth Card 3 */}
-                <div
-                  onClick={() => handleOpenStrategy('etf')}
-                  className="bg-surface-card rounded-xl p-space-lg shadow-sm border border-border-subtle flex flex-col gap-space-md hover:shadow-md transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono-md text-mono-md text-on-surface font-semibold group-hover:text-secondary transition-colors">
-                      ETF_ROTATION_V2
-                    </span>
-                    <span className="px-space-sm py-0.5 rounded-full bg-forex-tint font-mono-sm text-mono-sm text-secondary font-semibold">
-                      ₹50,000 MIN
-                    </span>
-                  </div>
-
-                  <div className="w-full h-16 text-bullish">
-                    <svg className="w-full h-full overflow-visible" fill="none" viewBox="0 0 240 60">
-                      <polyline
-                        points="0,55 40,51 80,46 120,40 160,34 200,26 240,18"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-space-xs pt-space-sm border-t border-border-subtle">
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">CAGR</span>
-                      <span className="font-mono-sm text-mono-sm text-bullish tabular-nums font-bold">+22.4%</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">SHARPE</span>
-                      <span className="font-mono-sm text-mono-sm text-on-surface tabular-nums font-medium">1.85</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">WIN</span>
-                      <span className="font-mono-sm text-mono-sm text-on-surface tabular-nums font-medium">69.5%</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-label-sm text-label-sm text-text-muted">MAX DD</span>
-                      <span className="font-mono-sm text-mono-sm text-bearish tabular-nums font-medium">-3.80%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </section>
-
-          {/* ── PHOTO SHOWCASE 3: MOBILE & CROSS-PLATFORM SYSTEMATIC SUITE ── */}
-          <section className="w-full py-space-md">
-            <div className="bg-surface-card rounded-2xl border border-border-subtle p-6 lg:p-10 shadow-sm flex flex-col gap-8">
-              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div className="flex flex-col gap-2">
-                  <div className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-surface-container-low border border-border-subtle font-mono text-xs text-text-secondary">
-                    <span className="w-2 h-2 rounded-full bg-bullish animate-pulse" />
-                    <span>CROSS-PLATFORM &amp; MOBILE TELEMETRY</span>
-                  </div>
-                  <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-on-surface">
-                    Real-time execution &amp; order-book precision on any screen.
-                  </h2>
-                  <p className="text-sm text-text-secondary max-w-2xl leading-relaxed">
-                    Monitor active algorithm state, view live candlestick telemetry, and manage portfolio risk on the go. Seamless synchronization between desktop multi-monitor setups and mobile execution.
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="px-3 py-1.5 rounded-lg bg-surface-container-low font-mono text-xs font-semibold text-on-surface border border-border-subtle">
-                    iOS &amp; Android PWA
-                  </span>
-                  <span className="px-3 py-1.5 rounded-lg bg-bullish-tint font-mono text-xs font-semibold text-bullish border border-bullish/20">
-                    12ms Low-Latency Sync
-                  </span>
-                </div>
-              </div>
-
-              {/* High-Resolution Mobile Photos Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center justify-items-center pt-2">
-                {/* Mobile Photo 1 */}
-                <div className="flex flex-col items-center gap-4 w-full max-w-md">
-                  <div className="rounded-3xl overflow-hidden border-4 border-[#1E293B] shadow-2xl bg-[#090D14] w-full group transition-transform duration-500 hover:scale-[1.02]">
-                    <div className="h-6 bg-[#0F172A] flex items-center justify-center">
-                      <div className="w-16 h-1 rounded-full bg-[#334155]" />
-                    </div>
-                    <img
-                      src="/mobile-chart-1.png"
-                      alt="Alltra Mobile Real-Time Candlestick Charting"
-                      className="w-full h-auto object-cover max-h-[580px]"
+                  <button
+                    onClick={() => toggleFaq(idx)}
+                    className="w-full p-4 sm:p-5 flex items-center justify-between text-left text-xs sm:text-sm font-semibold text-[#0F172A] hover:bg-[#F8FAFC] transition-colors"
+                  >
+                    <span>{faq.q}</span>
+                    <ChevronDown
+                      className={`w-4 h-4 text-[#64748B] transition-transform duration-200 shrink-0 ${
+                        isOpen ? 'rotate-180 text-[#2563EB]' : ''
+                      }`}
                     />
-                  </div>
-                  <div className="flex flex-col items-center text-center gap-1">
-                    <span className="font-mono text-xs font-bold text-on-surface">
-                      LIVE INTRADAY CANDLESTICKS &amp; FACTOR OVERLAYS
-                    </span>
-                    <span className="text-[11px] text-text-secondary">
-                      Full TradingView Lightweight Charts on mobile with zero lookahead
-                    </span>
-                  </div>
-                </div>
-
-                {/* Mobile Photo 2 */}
-                <div className="flex flex-col items-center gap-4 w-full max-w-md">
-                  <div className="rounded-3xl overflow-hidden border-4 border-[#1E293B] shadow-2xl bg-[#090D14] w-full group transition-transform duration-500 hover:scale-[1.02]">
-                    <div className="h-6 bg-[#0F172A] flex items-center justify-center">
-                      <div className="w-16 h-1 rounded-full bg-[#334155]" />
+                  </button>
+                  {isOpen && (
+                    <div className="px-4 sm:px-5 pb-5 pt-1 text-xs text-[#64748B] leading-relaxed border-t border-[#F1F5F9]">
+                      {faq.a}
                     </div>
-                    <img
-                      src="/mobile-chart-2.png"
-                      alt="Alltra Mobile Order Routing & Portfolio Metrics"
-                      className="w-full h-auto object-cover max-h-[580px]"
-                    />
-                  </div>
-                  <div className="flex flex-col items-center text-center gap-1">
-                    <span className="font-mono text-xs font-bold text-on-surface">
-                      INSTITUTIONAL RISK CONTROL &amp; ORDER FLOW
-                    </span>
-                    <span className="text-[11px] text-text-secondary">
-                      One-tap position management, automated SL/TP fills &amp; live PnL audit
-                    </span>
-                  </div>
+                  )}
                 </div>
-              </div>
-            </div>
-          </section>
+              );
+            })}
+          </div>
+        </section>
 
-          {/* ── SECTION: 04 // OPERATIONAL SPECIFICATIONS (FAQ) ── */}
-          <section className="w-full py-space-md flex flex-col gap-space-lg">
-            <div className="flex flex-col gap-space-xs">
-              <span className="font-mono-sm text-mono-sm text-text-muted uppercase font-semibold">
-                04 // Operational Specifications
-              </span>
-              <h2 className="font-headline-md text-headline-md text-on-surface">
-                Frequently Asked Questions
-              </h2>
-            </div>
-
-            <div className="flex flex-col gap-space-sm">
-              {/* FAQ 1 */}
-              <div className="bg-surface-card rounded-xl shadow-sm border border-border-subtle overflow-hidden">
-                <button
-                  onClick={() => toggleFaq(1)}
-                  className="w-full px-space-lg py-space-md flex items-center justify-between text-left cursor-pointer"
-                  type="button"
-                >
-                  <span className="font-title-md text-title-md text-on-surface font-semibold">
-                    How does the Alltra Bar Replay engine prevent lookahead bias?
-                  </span>
-                  <span
-                    className="material-symbols-outlined text-on-surface-variant transition-transform duration-200"
-                    style={{ transform: openFaq === 1 ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                  >
-                    expand_more
-                  </span>
-                </button>
-                {openFaq === 1 && (
-                  <div className="px-space-lg pb-space-md border-t border-surface-container-low pt-3">
-                    <p className="font-body-sm text-body-sm text-text-secondary leading-relaxed">
-                      Alltra stores the full historical dataset in memory and uses a strict pointer `allCandles.slice(0, currentIndex + 1)`. When stepping candle-by-candle, future bars are completely invisible to both chart rendering and simulated risk evaluation, ensuring zero lookahead bias.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* FAQ 2 */}
-              <div className="bg-surface-card rounded-xl shadow-sm border border-border-subtle overflow-hidden">
-                <button
-                  onClick={() => toggleFaq(2)}
-                  className="w-full px-space-lg py-space-md flex items-center justify-between text-left cursor-pointer"
-                  type="button"
-                >
-                  <span className="font-title-md text-title-md text-on-surface font-semibold">
-                    How does paper execution work before deploying live capital?
-                  </span>
-                  <span
-                    className="material-symbols-outlined text-on-surface-variant transition-transform duration-200"
-                    style={{ transform: openFaq === 2 ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                  >
-                    expand_more
-                  </span>
-                </button>
-                {openFaq === 2 && (
-                  <div className="px-space-lg pb-space-md border-t border-surface-container-low pt-3">
-                    <p className="font-body-sm text-body-sm text-text-secondary leading-relaxed">
-                      Paper execution runs against the live NSE tick stream with simulated limit-order queue positioning. You can validate fill rates, intraday MTM swings, and webhook latency in real time without risking capital.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* FAQ 3 */}
-              <div className="bg-surface-card rounded-xl shadow-sm border border-border-subtle overflow-hidden">
-                <button
-                  onClick={() => toggleFaq(3)}
-                  className="w-full px-space-lg py-space-md flex items-center justify-between text-left cursor-pointer"
-                  type="button"
-                >
-                  <span className="font-title-md text-title-md text-on-surface font-semibold">
-                    Are statutory friction costs (STT, brokerage, stamp duty) included in backtests?
-                  </span>
-                  <span
-                    className="material-symbols-outlined text-on-surface-variant transition-transform duration-200"
-                    style={{ transform: openFaq === 3 ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                  >
-                    expand_more
-                  </span>
-                </button>
-                {openFaq === 3 && (
-                  <div className="px-space-lg pb-space-md border-t border-surface-container-low pt-3">
-                    <p className="font-body-sm text-body-sm text-text-secondary leading-relaxed">
-                      Yes. Every reported CAGR, Sharpe ratio, and equity curve deducts SEBI turnover fees, STT, exchange transaction charges, GST, stamp duty, and a conservative 0.03%–0.05% slippage buffer per leg.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* FAQ 4 */}
-              <div className="bg-surface-card rounded-xl shadow-sm border border-border-subtle overflow-hidden">
-                <button
-                  onClick={() => toggleFaq(4)}
-                  className="w-full px-space-lg py-space-md flex items-center justify-between text-left cursor-pointer"
-                  type="button"
-                >
-                  <span className="font-title-md text-title-md text-on-surface font-semibold">
-                    How is maximum drawdown controlled during high-volatility events?
-                  </span>
-                  <span
-                    className="material-symbols-outlined text-on-surface-variant transition-transform duration-200"
-                    style={{ transform: openFaq === 4 ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                  >
-                    expand_more
-                  </span>
-                </button>
-                {openFaq === 4 && (
-                  <div className="px-space-lg pb-space-md border-t border-surface-container-low pt-3">
-                    <p className="font-body-sm text-body-sm text-text-secondary leading-relaxed">
-                      Each strategy enforces a hard intraday MTM circuit breaker and dynamic ATR-based position sizing. When India VIX spikes above regime thresholds, exposure is automatically scaled down or flattened to cash.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
-
-          {/* ── 5. SEBI & FEMA STATUTORY DISCLAIMER ── */}
-          <section className="w-full pb-space-xl">
-            <div className="bg-surface-container-low rounded-xl p-space-lg flex flex-col gap-space-sm border border-border-subtle">
-              <div className="flex items-center gap-space-xs font-mono-sm text-mono-sm text-on-surface uppercase font-semibold">
-                <span className="material-symbols-outlined text-[16px] text-text-muted">gavel</span>
-                <span>SEBI &amp; FEMA Statutory Disclaimer</span>
-              </div>
-              <p className="font-body-sm text-body-sm text-text-muted leading-relaxed">
-                Investments in securities market are subject to market risks. Read all the related documents carefully before investing. Past performance is not indicative of future returns. Backtested results are hypothetical and based on historical NSE tick archives; live execution may vary due to liquidity and exchange latency. Alltra Quantitative Platform is an institutional quantitative analytics and systematic execution interface.
-              </p>
-            </div>
-          </section>
-        </div>
+        {/* ── 7. Regulatory & Compliance Banner ── */}
+        <section className="p-5 rounded-2xl bg-[#F1F5F9] border border-[#CBD5E1] text-xs text-[#475569] space-y-1 leading-relaxed">
+          <div className="font-bold text-[#0F172A] uppercase tracking-wider text-[11px]">
+            SEBI &amp; FEMA Compliance &amp; Educational Disclosure
+          </div>
+          <p>
+            Investments in financial securities are subject to market risks. All backtested metrics, simulation results, and paper trading ledgers are hypothetical and intended strictly for strategy research and education. Past backtested performance does not guarantee future results.
+          </p>
+        </section>
       </main>
 
-      {/* ── 6. PUBLIC FOOTER ── */}
-      <footer className="w-full bg-surface-card border-t border-border-subtle px-margin py-4 mt-auto">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-space-sm font-mono-sm text-mono-sm text-text-muted">
-          <div className="flex items-center gap-space-sm">
-            <div className="w-5 h-5 rounded-md bg-[#021810] border border-[#10B981]/40 flex items-center justify-center p-0.5 overflow-hidden">
-              <img src="/alltra-logo.png" alt="Alltra" className="w-full h-full object-cover" />
+      {/* ── 8. Complete Public Footer (Documentation, Contact Us, LinkedIn) ── */}
+      <footer id="contact" className="w-full bg-white border-t border-[#E2E8F0] mt-16 py-10 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-xs text-[#64748B]">
+          {/* Col 1: Brand */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-[#0F172A] flex items-center justify-center">
+                <img src="/alltra-logo.png" alt="Alltra" className="w-full h-full object-cover" />
+              </div>
+              <span className="font-mono font-extrabold text-sm text-[#0F172A]">ALLTRA</span>
             </div>
-            <span className="font-mono font-bold text-on-surface">ALLTRA</span>
-            <span className="text-[10px] text-bullish font-semibold">QUANT LABS</span>
-            <span className="text-outline-variant">|</span>
-            <span>Real Bar-by-Bar Vectorized Quantitative Backtesting</span>
+            <p className="leading-relaxed">
+              Institutional quantitative research, candle-by-candle bar replay, and systematic strategy execution.
+            </p>
           </div>
-          <div>
-            Institutional Systematic Strategy Engineering · Multi-Asset Portfolio Allocation
+
+          {/* Col 2: Documentation */}
+          <div className="space-y-2">
+            <div className="font-bold text-[#0F172A] uppercase text-[11px] tracking-wider">
+              Documentation
+            </div>
+            <ul className="space-y-1.5">
+              <li>
+                <button
+                  onClick={() => handleProtectedAction(() => onNavigateToView('barreplay'))}
+                  className="hover:text-[#0F172A] transition-colors"
+                >
+                  Bar Replay Guide
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleProtectedAction(() => onNavigateToView('papertrading'))}
+                  className="hover:text-[#0F172A] transition-colors"
+                >
+                  Paper Trading Specs
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleProtectedAction(() => onNavigateToView('heatmap'))}
+                  className="hover:text-[#0F172A] transition-colors"
+                >
+                  TradingView Heatmap
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleProtectedAction(() => onNavigateToView('intelligence'))}
+                  className="hover:text-[#0F172A] transition-colors"
+                >
+                  AI Intelligence Engine
+                </button>
+              </li>
+            </ul>
           </div>
-          <div>
-            © 2026 ALLTRA QUANT LABS. All Rights Reserved.
+
+          {/* Col 3: Legal & Regulatory */}
+          <div className="space-y-2">
+            <div className="font-bold text-[#0F172A] uppercase text-[11px] tracking-wider">
+              Compliance
+            </div>
+            <ul className="space-y-1.5">
+              <li>FEMA LRS Directives</li>
+              <li>SEBI Research Guidelines</li>
+              <li>Simulated Execution Rules</li>
+              <li>Risk &amp; Drawdown Policies</li>
+            </ul>
           </div>
+
+          {/* Col 4: Contact Us & Social */}
+          <div className="space-y-2">
+            <div className="font-bold text-[#0F172A] uppercase text-[11px] tracking-wider">
+              Contact &amp; Connect
+            </div>
+            <ul className="space-y-2">
+              <li className="flex items-center gap-2">
+                <Linkedin className="w-4 h-4 text-[#0A66C2]" />
+                <a
+                  href="https://www.linkedin.com/in/atharva-shirke"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-[#0F172A] transition-colors font-medium text-[#0A66C2]"
+                >
+                  Atharva on LinkedIn
+                </a>
+              </li>
+              <li className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-[#64748B]" />
+                <span>support@alltra.quant</span>
+              </li>
+              <li className="text-[11px] text-[#94A3B8]">
+                Mumbai, India
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto pt-8 mt-8 border-t border-[#F1F5F9] flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#94A3B8]">
+          <div>© {new Date().getFullYear()} ALLTRA. All rights reserved.</div>
+          <div>Strictly Simulated Quantitative Trading Environment.</div>
         </div>
       </footer>
     </div>

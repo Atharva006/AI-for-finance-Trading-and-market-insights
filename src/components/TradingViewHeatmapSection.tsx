@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useMemo } from 'react';
 
 export type HeatmapRegion = 'INDIA' | 'US';
 
@@ -15,27 +15,9 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
   const [blockSize, setBlockSize] = useState<'market_cap_basic' | 'volume'>('market_cap_basic');
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  // Mount TradingView official Stock Heatmap embed engine
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    // Clear previous widget
-    containerRef.current.innerHTML = '';
-
-    const widgetDiv = document.createElement('div');
-    widgetDiv.className = 'tradingview-widget-container__widget';
-    widgetDiv.style.width = '100%';
-    widgetDiv.style.height = '100%';
-    widgetDiv.style.minHeight = '560px';
-
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js';
-    script.async = true;
-    script.innerHTML = JSON.stringify({
+  // Build direct, rock-solid TradingView Heatmap embed URL
+  const iframeSrc = useMemo(() => {
+    const config = {
       exchanges: [],
       dataSource: region === 'INDIA' ? 'NIFTY50' : 'SPX500',
       grouping: 'sector',
@@ -51,34 +33,9 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
       isMonoSize: false,
       width: '100%',
       height: '100%',
-    });
-
-    containerRef.current.appendChild(widgetDiv);
-    containerRef.current.appendChild(script);
-
-    return () => {
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
-      }
     };
+    return `https://www.tradingview-widget.com/embed-widget/stock-heatmap/?locale=en#${encodeURIComponent(JSON.stringify(config))}`;
   }, [region, blockSize]);
-
-  const toggleFullscreen = () => {
-    if (!sectionRef.current) return;
-    if (!document.fullscreenElement) {
-      sectionRef.current.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
-    } else {
-      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
-    }
-  };
-
-  useEffect(() => {
-    const handleFsChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
-    };
-    document.addEventListener('fullscreenchange', handleFsChange);
-    return () => document.removeEventListener('fullscreenchange', handleFsChange);
-  }, []);
 
   // Indian Sector Telemetry Data (NSE Real-time Benchmarks)
   const indianSectors = [
@@ -104,115 +61,112 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
 
   return (
     <div
-      ref={sectionRef}
-      className={`w-full flex flex-col gap-5 py-6 font-sans ${
+      className={`w-full flex flex-col gap-4 py-4 font-sans ${
         isFullscreen ? 'p-6 bg-[#FCFCFC] h-screen overflow-y-auto' : ''
       }`}
     >
       {/* ── 1. Header Strip ── */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-4 border-b border-gray-200 bg-white p-5 rounded-2xl shadow-xs border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-gray-200 bg-white p-5 rounded-2xl border shadow-xs">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
             <span className="text-[11px] font-mono tracking-wider text-[#16A34A] uppercase font-bold">
-              TradingView Market Heatmap Engine
+              TradingView Market Heatmap
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0F172A] flex items-center gap-2.5">
-            <span className="material-symbols-outlined text-[28px] text-[#0F172A]">grid_view</span>
-            <span>Market Heatmaps (India &amp; US)</span>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
+            Market Heatmaps
           </h1>
-          <p className="text-xs text-[#64748B] mt-1 max-w-2xl leading-relaxed">
-            Real-time sector breadth and percentage dispersion across BSE, NSE, and US markets powered by TradingView.
+          <p className="text-xs text-[#64748B] mt-0.5">
+            Real-time sector breadth and percentage dispersion across BSE, NSE, and US markets.
           </p>
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           {onNavigateToBacktest && (
             <button
               onClick={() => onNavigateToBacktest(region === 'INDIA' ? 'NIFTY 50' : 'AAPL')}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0F172A] text-white font-semibold text-xs shadow-xs hover:bg-[#1E293B] transition-all active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0F172A] text-white font-medium text-xs hover:bg-[#1E293B] transition-colors cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[16px]">trending_up</span>
-              <span>Launch Algo Backtest</span>
+              <span className="material-symbols-outlined text-[15px]">trending_up</span>
+              <span>Backtest</span>
             </button>
           )}
 
           {onNavigateToFVGAlgo && (
             <button
               onClick={onNavigateToFVGAlgo}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#CBD5E1] text-[#0F172A] font-semibold text-xs hover:bg-[#F8FAFC] transition-all active:scale-95 cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1] text-[#0F172A] font-medium text-xs hover:bg-[#F8FAFC] transition-colors cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[16px]">psychology</span>
+              <span className="material-symbols-outlined text-[15px]">psychology</span>
               <span>Forex Desk</span>
             </button>
           )}
 
           <button
-            onClick={toggleFullscreen}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[#CBD5E1] text-[#0F172A] font-medium text-xs hover:bg-[#F8FAFC] transition-all active:scale-95 cursor-pointer shadow-xs"
-            title="Toggle Fullscreen"
+            onClick={() => setIsFullscreen((prev) => !prev)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1] text-[#0F172A] font-medium text-xs hover:bg-[#F8FAFC] transition-colors cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[16px]">
+            <span className="material-symbols-outlined text-[15px]">
               {isFullscreen ? 'fullscreen_exit' : 'fullscreen'}
             </span>
-            <span>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
+            <span>{isFullscreen ? 'Exit' : 'Full'}</span>
           </button>
         </div>
       </div>
 
-      {/* ── 2. Primary Navigation Controls (Two Clean Tabs & Stylish Size Selector) ── */}
-      <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-        {/* Left: Two Clean Tabs (Indian Markets vs US Markets) */}
-        <div className="flex items-center p-1 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] self-start md:self-auto shrink-0">
+      {/* ── 2. Two Clean Tabs (Indian Markets vs US Markets) & Size Selector ── */}
+      <div className="bg-white p-3.5 rounded-2xl border border-gray-200 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        {/* Left: Two Clean Tabs */}
+        <div className="flex items-center p-1 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] self-start sm:self-auto">
           <button
             onClick={() => setRegion('INDIA')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               region === 'INDIA'
                 ? 'bg-white text-[#0F172A] shadow-xs border border-[#E2E8F0]'
                 : 'text-[#64748B] hover:text-[#0F172A]'
             }`}
           >
-            <span className="text-sm">🇮🇳</span>
+            <span>🇮🇳</span>
             <span>Indian Markets (BSE · NSE)</span>
           </button>
 
           <button
             onClick={() => setRegion('US')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               region === 'US'
                 ? 'bg-white text-[#0F172A] shadow-xs border border-[#E2E8F0]'
                 : 'text-[#64748B] hover:text-[#0F172A]'
             }`}
           >
-            <span className="text-sm">🇺🇸</span>
+            <span>🇺🇸</span>
             <span>US Markets (Wall Street)</span>
           </button>
         </div>
 
-        {/* Right: Stylish Sizing Selector with Unique Typography */}
-        <div className="flex items-center gap-2 self-end md:self-auto">
-          <span className="text-[10px] font-mono font-extrabold uppercase tracking-widest text-[#64748B]">
-            SIZE WEIGHTING
+        {/* Right: Modern Sizing Toggle */}
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#64748B]">
+            SIZE BY:
           </span>
-          <div className="flex items-center p-0.5 bg-[#0F172A] rounded-xl border border-[#334155]">
+          <div className="flex items-center p-0.5 bg-[#F1F5F9] rounded-lg border border-[#CBD5E1]">
             <button
               onClick={() => setBlockSize('market_cap_basic')}
-              className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold tracking-wider uppercase transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
                 blockSize === 'market_cap_basic'
-                  ? 'bg-[#10B981] text-[#021810] shadow-sm'
-                  : 'text-slate-300 hover:text-white'
+                  ? 'bg-white text-[#0F172A] shadow-xs font-semibold'
+                  : 'text-[#64748B] hover:text-[#0F172A]'
               }`}
             >
               Market Cap
             </button>
             <button
               onClick={() => setBlockSize('volume')}
-              className={`px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold tracking-wider uppercase transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
                 blockSize === 'volume'
-                  ? 'bg-[#10B981] text-[#021810] shadow-sm'
-                  : 'text-slate-300 hover:text-white'
+                  ? 'bg-white text-[#0F172A] shadow-xs font-semibold'
+                  : 'text-[#64748B] hover:text-[#0F172A]'
               }`}
             >
               Volume
@@ -222,87 +176,37 @@ export const TradingViewHeatmapSection: React.FC<TradingViewHeatmapSectionProps>
       </div>
 
       {/* ── 3. Real-Time Sector Telemetry Bar ── */}
-      <div className="bg-white p-3.5 rounded-xl border border-gray-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 overflow-x-auto">
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="material-symbols-outlined text-[16px] text-[#0F172A]">pie_chart</span>
-          <span className="text-xs font-mono font-bold text-[#0F172A] uppercase">
-            {region === 'INDIA' ? 'NSE & BSE SECTORS' : 'US GICS SECTORS'}
-          </span>
-        </div>
+      <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-xs flex items-center gap-3 overflow-x-auto">
+        <span className="text-xs font-mono font-bold text-[#0F172A] uppercase shrink-0">
+          {region === 'INDIA' ? 'NSE SECTORS:' : 'US GICS:'}
+        </span>
 
         <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none py-0.5">
           {(region === 'INDIA' ? indianSectors : usSectors).map((sec, idx) => (
             <div
               key={idx}
-              className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border text-[11px] ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] ${
                 sec.bullish
-                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800 font-semibold'
-                  : 'bg-rose-50 border-rose-200 text-rose-800 font-semibold'
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800 font-medium'
+                  : 'bg-rose-50 border-rose-200 text-rose-800 font-medium'
               }`}
             >
-              <span className="font-sans font-medium text-[#0F172A] text-[11px]">{sec.name}</span>
-              <span className="font-mono">{sec.change}</span>
-              <span className="text-[9px] text-[#64748B] font-sans font-normal opacity-80">
-                ({sec.weight})
-              </span>
+              <span>{sec.name}</span>
+              <span className="font-mono font-bold">{sec.change}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* ── 4. Main Heatmap Canvas (TradingView Embedded Heatmap Engine) ── */}
-      <div className="w-full bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden flex flex-col h-[680px] lg:h-[750px] relative">
-        {/* Top Info Bar (Without Any Clock) */}
-        <div className="h-10 px-4 bg-[#F8FAFC] border-b border-gray-200 flex items-center justify-between text-xs font-mono text-[#64748B] select-none">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 text-[#0F172A] font-bold">
-              <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
-              <span>TRADINGVIEW HEATMAP ENGINE</span>
-            </span>
-            <span className="text-[#CBD5E1]">|</span>
-            <span>
-              DATA SOURCE: <strong className="text-[#0F172A] font-mono">{region === 'INDIA' ? 'NIFTY 50 & BSE' : 'S&P 500 (WALL STREET)'}</strong>
-            </span>
-            <span className="hidden sm:inline text-[#CBD5E1]">|</span>
-            <span className="hidden sm:inline">
-              WEIGHTING: <strong className="text-[#0F172A] font-mono">{blockSize === 'market_cap_basic' ? 'MARKET CAP' : 'VOLUME'}</strong>
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-[#64748B] font-mono uppercase">Interactive Sector Tree</span>
-          </div>
-        </div>
-
-        {/* Embedded Container for TradingView Heatmap */}
-        <div className="flex-1 w-full h-full relative p-2 bg-[#FCFCFC]" ref={containerRef} />
-      </div>
-
-      {/* ── 5. Bottom Strategy Quick Launch Bar ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-xs flex items-start gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-[#2563EB] shrink-0 font-bold">
-            <span className="material-symbols-outlined text-[18px]">zoom_in</span>
-          </div>
-          <div>
-            <h4 className="font-bold text-[#0F172A] text-sm">Interactive Zoom &amp; Sector Depth</h4>
-            <p className="text-[#64748B] mt-0.5 leading-relaxed">
-              Click on any sector cluster to drill down into sub-industries. Double-click any stock block to inspect its trading parameters.
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-xs flex items-start gap-3">
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-700 shrink-0 font-bold">
-            <span className="material-symbols-outlined text-[18px]">pie_chart</span>
-          </div>
-          <div>
-            <h4 className="font-bold text-[#0F172A] text-sm">Real-time Capital Dispersion</h4>
-            <p className="text-[#64748B] mt-0.5 leading-relaxed">
-              Dynamically visualizes institutional money flow across top capitalization weights in Indian and US financial markets.
-            </p>
-          </div>
-        </div>
+      {/* ── 4. Main Heatmap Canvas (100% Reliable Direct TradingView iFrame Embed) ── */}
+      <div className="w-full bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden flex flex-col h-[650px] lg:h-[720px] relative">
+        <iframe
+          key={`${region}-${blockSize}`}
+          src={iframeSrc}
+          title="TradingView Stock Heatmap"
+          className="w-full h-full border-0"
+          style={{ minHeight: '620px' }}
+        />
       </div>
     </div>
   );

@@ -7,8 +7,6 @@ import {
   PanelLeftClose,
   PanelLeft,
   Sparkles,
-  HelpCircle,
-  Award,
 } from 'lucide-react';
 import { AppView } from './DhanNavbar';
 
@@ -17,7 +15,6 @@ interface ArthatixSidebarProps {
   onNavigate: (view: AppView) => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
-  onOpenSettings: () => void;
   isAdmin?: boolean;
 }
 
@@ -41,15 +38,12 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
   onNavigate,
   isCollapsed,
   onToggleCollapse,
-  onOpenSettings,
   isAdmin = false,
 }) => {
-  // Collapsible section state with stable keys
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     ai_intelligence: true,
     market_trading: true,
     quant_algos: true,
-    knowledge_about: true,
     institutional_governance: true,
   });
 
@@ -60,7 +54,6 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
     }));
   };
 
-  // Exactly 1 canonical entry per view - zero duplicate names or alias redirects
   const sections: NavSection[] = [
     {
       id: 'ai_intelligence',
@@ -68,7 +61,7 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
       icon: Sparkles,
       defaultOpen: true,
       items: [
-        { id: 'intelligence', label: 'Intelligence', view: 'intelligence', badge: '120B AI' },
+        { id: 'intelligence', label: 'Intelligence', view: 'intelligence' },
       ],
     },
     {
@@ -92,24 +85,14 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
         { id: 'marketplace', label: 'Algo Marketplace', view: 'marketplace' },
         { id: 'backtest', label: 'Backtest Studio', view: 'backtest' },
         { id: 'barreplay', label: 'Bar Replay Studio', view: 'barreplay', badge: '15m' },
-        { id: 'forex', label: 'NRI & Global Forex Desk', view: 'forex', badge: 'Forex' },
-      ],
-    },
-    {
-      id: 'knowledge_about',
-      title: 'Research & About',
-      icon: Award,
-      defaultOpen: true,
-      items: [
-        { id: 'about', label: 'About & Prop Record', view: 'about', badge: '10+ Passed' },
-        { id: 'faq', label: 'Platform FAQ', view: 'faq' },
+        { id: 'forex', label: 'NRI Forex Desk', view: 'forex' },
       ],
     },
     ...(isAdmin
       ? [
           {
             id: 'institutional_governance',
-            title: 'Institutional Governance',
+            title: 'Governance',
             icon: Shield,
             defaultOpen: true,
             items: [
@@ -122,44 +105,30 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
 
   return (
     <aside
-      className={`h-screen sticky top-0 bg-[#F4F7FB] border-r border-[#E2E8F0] flex flex-col transition-all duration-200 select-none z-30 shrink-0 font-sans ${
+      className={`h-screen sticky top-0 bg-[#FFFFFF] border-r border-[#E2E8F0] flex flex-col transition-all duration-200 select-none z-30 shrink-0 font-sans ${
         isCollapsed ? 'w-16' : 'w-60 sm:w-64'
       }`}
     >
-      {/* ── Brand Header & Seamless Toggle ── */}
+      {/* ── Brand Header & Toggle ── */}
       <div
-        className={`h-14 flex items-center border-b border-[#E2E8F0] bg-[#F4F7FB] transition-all ${
+        className={`h-14 flex items-center border-b border-[#E2E8F0] bg-[#FFFFFF] ${
           isCollapsed ? 'justify-center px-2' : 'justify-between px-4'
         }`}
       >
         {!isCollapsed && (
-          <div
-            onClick={() => onNavigate('landing')}
-            className="flex items-center gap-2.5 cursor-pointer overflow-hidden min-w-0 group"
-            title="Alltra Quantitative Platform"
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && onNavigate('landing')}
-          >
-            <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#021810] border border-[#10B981]/40 flex items-center justify-center shadow-xs shrink-0">
+          <div className="flex items-center gap-2.5 overflow-hidden min-w-0">
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#0F172A] flex items-center justify-center shrink-0">
               <img src="/alltra-logo.png" alt="Alltra" className="w-full h-full object-cover" />
             </div>
-            <div className="flex flex-col min-w-0">
-              <span className="font-extrabold text-[15px] text-[#0F172A] tracking-wider font-mono uppercase truncate">
-                ALLTRA
-              </span>
-              <span className="text-[9px] text-[#059669] font-mono tracking-widest font-semibold uppercase -mt-0.5">
-                QUANT LABS
-              </span>
-            </div>
+            <span className="font-extrabold text-[15px] text-[#0F172A] tracking-wider font-mono uppercase truncate">
+              ALLTRA
+            </span>
           </div>
         )}
 
         <button
           onClick={onToggleCollapse}
-          className={`p-1.5 rounded-lg text-[#64748B] hover:text-[#0F172A] hover:bg-[#E2E8F0] transition-colors active:scale-95 ${
-            isCollapsed ? 'w-10 h-10 flex items-center justify-center bg-white border border-[#CBD5E1] shadow-xs' : ''
-          }`}
+          className="p-2 rounded-lg text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors active:scale-95"
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
@@ -168,45 +137,59 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
       </div>
 
       {/* ── Navigation Tree ── */}
-      <div className="flex-1 overflow-y-auto py-2.5 px-3 space-y-2 text-xs">
+      <div className="flex-1 overflow-y-auto py-3 px-2 space-y-3 text-xs">
         {sections.map((section) => {
           const isOpen = openSections[section.id] ?? true;
           const IconComponent = section.icon;
+
+          if (isCollapsed) {
+            // Minimal collapsed state: icon triggers or opens active view
+            const firstItem = section.items[0];
+            const hasActive = section.items.some((it) => it.view === activeView);
+
+            return (
+              <div key={section.id} className="flex justify-center">
+                <button
+                  onClick={() => onNavigate(firstItem.view)}
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                    hasActive
+                      ? 'bg-[#EFF6FF] text-[#2563EB] font-bold shadow-xs'
+                      : 'text-[#64748B] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
+                  }`}
+                  title={section.title}
+                  aria-label={section.title}
+                >
+                  <IconComponent className="w-5 h-5" />
+                </button>
+              </div>
+            );
+          }
 
           return (
             <div key={section.id} className="space-y-0.5">
               {/* Section Header */}
               <button
                 onClick={() => toggleSection(section.id)}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left text-[#334155] hover:bg-[#EAEFF5] hover:text-[#0F172A] transition-colors"
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
                 aria-expanded={isOpen}
-                aria-label={`Toggle ${section.title}`}
               >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <IconComponent className="w-4 h-4 text-[#475569] shrink-0" />
-                  {!isCollapsed && (
-                    <span className="font-semibold text-[11.5px] uppercase tracking-wider text-[#64748B]">
-                      {section.title}
-                    </span>
-                  )}
+                <div className="flex items-center gap-2 min-w-0">
+                  <IconComponent className="w-4 h-4 text-[#64748B] shrink-0" />
+                  <span className="font-semibold text-[11px] uppercase tracking-wider text-[#64748B]">
+                    {section.title}
+                  </span>
                 </div>
 
-                {!isCollapsed && (
-                  <ChevronDown
-                    className={`w-3.5 h-3.5 text-[#94A3B8] transition-transform duration-300 ${
-                      isOpen ? 'rotate-0' : '-rotate-90'
-                    }`}
-                  />
-                )}
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-[#94A3B8] transition-transform duration-200 ${
+                    isOpen ? 'rotate-0' : '-rotate-90'
+                  }`}
+                />
               </button>
 
               {/* Sub-Items */}
-              {(isOpen || isCollapsed) && (
-                <div
-                  className={`space-y-0.5 animate-fade-in ${
-                    !isCollapsed ? 'ml-3 pl-3 border-l border-[#CBD5E1] my-0.5' : ''
-                  }`}
-                >
+              {isOpen && (
+                <div className="space-y-0.5 ml-3 pl-3 border-l border-[#E2E8F0] my-0.5">
                   {section.items.map((item) => {
                     const isActive = activeView === item.view;
 
@@ -216,22 +199,19 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
                         onClick={() => onNavigate(item.view)}
                         className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-left transition-all text-[12px] ${
                           isActive
-                            ? 'bg-[#DBEAFE] text-[#1E40AF] font-bold border-l-2 border-[#2563EB]'
-                            : 'text-[#475569] hover:bg-[#EAEFF5] hover:text-[#0F172A] hover:translate-x-0.5 font-medium'
+                            ? 'bg-[#EFF6FF] text-[#2563EB] font-bold'
+                            : 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] font-medium'
                         }`}
                         title={item.label}
-                        aria-label={item.label}
                       >
                         <span className="truncate">{item.label}</span>
 
-                        {!isCollapsed && item.badge && (
+                        {item.badge && (
                           <span
                             className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded ${
                               item.badge === 'Live'
                                 ? 'bg-[#DCFCE7] text-[#166534]'
-                                : item.badge === '10+ Passed'
-                                ? 'bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]'
-                                : 'bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]'
+                                : 'bg-[#EFF6FF] text-[#2563EB]'
                             }`}
                           >
                             {item.badge}
@@ -247,49 +227,17 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
         })}
       </div>
 
-      {/* ── Bottom Configuration & Trader Status ── */}
-      <div className="p-3 border-t border-[#E2E8F0] bg-[#F4F7FB] space-y-2">
-        <button
-          onClick={() => onNavigate('landing')}
-          className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[#64748B] hover:text-[#2563EB] hover:bg-[#E2E8F0] rounded-lg transition-colors text-left text-[11.5px] font-medium active:scale-95"
-          title="Return to Public Landing Page"
-        >
-          <span className="material-symbols-outlined text-[16px] shrink-0">public</span>
-          {!isCollapsed && <span className="truncate">Public Landing Page</span>}
-        </button>
-
-        {/* Authentic Trader Profile & Prop Verification Status Badge */}
+      {/* ── Minimal Bottom Indicator ── */}
+      <div className="p-3 border-t border-[#E2E8F0] bg-[#FFFFFF] flex items-center justify-between text-[11px] text-[#94A3B8] font-mono">
         {!isCollapsed ? (
-          <div
-            onClick={() => onNavigate('about')}
-            className="p-2.5 rounded-xl bg-white border border-[#E2E8F0] hover:border-[#CBD5E1] transition-all cursor-pointer shadow-xs group"
-            title="Click to view Prop Trader track record"
-          >
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-[#0F172A] text-white flex items-center justify-center font-mono font-bold text-[11px] shrink-0 border border-[#10B981]/30">
-                A
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-[11.5px] text-[#0F172A] truncate">Atharva</span>
-                  <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" title="Systematic Engine Active" />
-                </div>
-                <div className="text-[10px] text-[#64748B] truncate">Systematic Prop Trader</div>
-              </div>
-            </div>
-            <div className="mt-2 pt-2 border-t border-[#F1F5F9] flex items-center justify-between text-[9px] font-mono font-semibold text-[#166534] bg-emerald-50/70 px-2 py-1 rounded-md">
-              <span>10+ Global Prop Accounts</span>
-              <span className="text-[#2563EB]">Verified ✓</span>
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
+            <span className="text-[#64748B] font-sans font-medium">Alltra Active</span>
           </div>
         ) : (
-          <button
-            onClick={() => onNavigate('about')}
-            className="w-10 h-10 mx-auto rounded-xl bg-white border border-[#CBD5E1] hover:border-[#2563EB] flex items-center justify-center text-[#0F172A] font-mono font-bold text-xs shadow-xs transition-colors"
-            title="Atharva · Systematic Prop Trader (10+ Prop Challenges Passed)"
-          >
-            A
-          </button>
+          <div className="w-full flex justify-center">
+            <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
+          </div>
         )}
       </div>
     </aside>

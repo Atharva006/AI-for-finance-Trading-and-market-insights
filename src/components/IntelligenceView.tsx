@@ -5,13 +5,18 @@ import {
   INTELLIGENCE_PRESETS,
   IntelligencePreset,
 } from '../services/intelligenceService';
+import { Sparkles, ArrowUp, Plus, RefreshCw, Send, Compass, Shield, TrendingUp, HelpCircle } from 'lucide-react';
+import { getStoredLocalUser } from '../services/supabaseAuth';
 
 export const IntelligenceView: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>(() => intelligenceService.getMessages());
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const chatBottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const currentUser = getStoredLocalUser();
+  const userName = currentUser?.name?.split(' ')[0] || 'Atharva';
 
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -22,6 +27,9 @@ export const IntelligenceView: React.FC = () => {
     if (!text || isLoading) return;
 
     setInputText('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
     setIsLoading(true);
 
     try {
@@ -34,249 +42,197 @@ export const IntelligenceView: React.FC = () => {
     }
   };
 
-  const handleSelectPreset = (preset: IntelligencePreset) => {
-    handleSendMessage(preset.prompt);
+  const handleNewChat = () => {
+    intelligenceService.clearMessages();
+    setMessages([]);
+    setInputText('');
   };
 
-  const handleClearHistory = () => {
-    if (window.confirm('Clear all conversation history with ALLTRA Intelligence?')) {
-      intelligenceService.clearMessages();
-      setMessages([]);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
-  const categories = ['All', 'Geopolitics', 'Stocks & NIFTY', 'Macro & Commodities', 'Portfolio Risk'];
-  const filteredPresets =
-    selectedCategory === 'All'
-      ? INTELLIGENCE_PRESETS
-      : INTELLIGENCE_PRESETS.filter((p) => p.category === selectedCategory);
+  const quickPills = [
+    { label: 'Reasoning', prompt: 'Analyze how current Middle East tensions impact crude oil prices and Indian inflation.' },
+    { label: 'Macro News', prompt: 'What are the key foreign affairs and central bank developments affecting NIFTY 50 this week?' },
+    { label: 'Portfolio Risk', prompt: 'How should an equity portfolio manage drawdown during geopolitical escalation?' },
+    { label: 'Market Regimes', prompt: 'Examine historical correlations between US Dollar index (DXY) and Indian IT/Banking sectors.' },
+  ];
 
   return (
-    <div className="w-full flex-1 flex flex-col bg-background text-on-background font-sans select-none overflow-hidden max-w-7xl mx-auto py-2">
-      {/* ── TOP INTELLIGENCE BANNER & TELEMETRY ── */}
-      <div className="bg-surface-card border border-border-subtle rounded-2xl p-4 sm:p-6 mb-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-start sm:items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#021810] border border-[#10B981]/50 flex items-center justify-center p-2 shadow-sm shadow-[#10B981]/20 shrink-0">
-            <span className="material-symbols-outlined text-[#10B981] text-2xl animate-pulse">
-              psychology
-            </span>
+    <div className="w-full flex-1 flex flex-col bg-[#F8FAFC] text-[#0F172A] font-sans select-none min-h-[calc(100vh-5rem)] max-w-5xl mx-auto px-4 py-3">
+      {/* ── Top Minimal Header Bar ── */}
+      <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0] mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-white border border-[#E2E8F0] flex items-center justify-center shadow-xs">
+            <Sparkles className="w-4 h-4 text-[#2563EB]" />
           </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <h1 className="font-mono text-base sm:text-lg font-extrabold uppercase text-on-surface tracking-wider">
-                ALLTRA INTELLIGENCE
-              </h1>
-              <span className="px-2 py-0.5 rounded-full bg-bullish-tint text-bullish font-mono text-[10px] font-bold border border-bullish/30">
-                120B LPU ACTIVE
-              </span>
-            </div>
-            <p className="text-xs text-text-secondary mt-0.5 max-w-2xl">
-              Conversational Geopolitical, Foreign Affairs &amp; Quantitative Market Intelligence. Analyzes historical patterns, crisis transmission, and probability corridors across NIFTY 50 and global assets.
-            </p>
+          <div>
+            <h1 className="text-sm font-bold text-[#0F172A] leading-none">ALLTRA Intelligence</h1>
+            <span className="text-[11px] text-[#64748B]">Macroeconomic &amp; Market Research</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0 font-mono text-xs">
+        <div className="flex items-center gap-3">
           <button
-            onClick={handleClearHistory}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-text-muted hover:text-on-surface border border-border-subtle transition-colors cursor-pointer"
-            title="Clear context window and conversation history"
+            onClick={handleNewChat}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1] text-[#0F172A] text-xs font-medium hover:bg-[#F1F5F9] transition-colors shadow-xs active:scale-95 cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[15px]">delete_sweep</span>
-            <span>Reset Context</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>New Chat</span>
           </button>
-          <div className="px-3 py-1.5 rounded-lg bg-surface-container-low border border-border-subtle flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-bullish animate-ping" />
-            <span className="text-[11px] font-bold text-on-surface">MEM: ACTIVE</span>
+
+          <div className="w-8 h-8 rounded-full bg-[#0F172A] text-white flex items-center justify-center font-bold text-xs">
+            {userName.charAt(0)}
           </div>
         </div>
       </div>
 
-      {/* ── MAIN INTERACTIVE CHAT VIEWPORT ── */}
-      <div className="flex-1 bg-surface-card border border-border-subtle rounded-2xl shadow-sm flex flex-col overflow-hidden min-h-[560px]">
-        {/* Messages Stream */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 no-scrollbar">
-          {messages.length === 0 ? (
-            <div className="h-full flex flex-col justify-center items-center text-center p-4 max-w-3xl mx-auto space-y-6">
-              <div className="w-16 h-16 rounded-3xl bg-[#021810] border border-[#10B981]/40 flex items-center justify-center p-3 shadow-md shadow-[#10B981]/25">
-                <span className="material-symbols-outlined text-[#10B981] text-3xl">hub</span>
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-lg font-bold font-mono text-on-surface uppercase tracking-wide">
-                  Direct Geopolitical &amp; Market Intelligence Conversation
-                </h2>
-                <p className="text-xs text-text-secondary leading-relaxed max-w-xl mx-auto">
-                  Ask anything about ongoing foreign affairs (e.g. Iran-Israel tensions, Red Sea shipping routes, US tariffs), macroeconomic shifts (crude oil shocks, interest rate cycles, FII/DII liquidity), or Indian stock patterns (ONGC vs Asian Paints, BEL defense capex, NIFTY 50 supports).
-                </p>
-              </div>
-
-              {/* Preset Intelligence Categories */}
-              <div className="w-full pt-2">
-                <div className="flex flex-wrap items-center justify-center gap-1.5 mb-3">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`px-3 py-1 rounded-full text-xs font-mono font-semibold transition-colors cursor-pointer ${
-                        selectedCategory === cat
-                          ? 'bg-primary text-on-primary shadow-xs'
-                          : 'bg-surface-container-low text-text-muted hover:text-on-surface border border-border-subtle'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-left">
-                  {filteredPresets.map((preset) => (
-                    <div
-                      key={preset.id}
-                      onClick={() => handleSelectPreset(preset)}
-                      className="p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container border border-border-subtle hover:border-[#10B981]/40 transition-all cursor-pointer group flex flex-col justify-between gap-2 shadow-2xs"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-[#10B981] text-lg">
-                            {preset.icon}
-                          </span>
-                          <span className="font-mono text-xs font-bold text-on-surface group-hover:text-primary transition-colors">
-                            {preset.title}
-                          </span>
-                        </div>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-card border border-border-subtle text-text-muted">
-                          {preset.tag}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-text-secondary line-clamp-2 leading-relaxed">
-                        {preset.prompt}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+      {/* ── Content Viewport ── */}
+      {messages.length === 0 ? (
+        // Minimalist Welcome State (Matching user reference UI: soft glowing pearl + centered prompt card)
+        <div className="flex-1 flex flex-col items-center justify-center text-center px-4 py-8 max-w-2xl mx-auto w-full">
+          {/* Soft Glowing Pearl / Orb */}
+          <div className="relative mb-6">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#93C5FD] via-[#C4B5FD] to-[#E0E7FF] shadow-lg shadow-blue-200/50 flex items-center justify-center animate-pulse">
+              <div className="w-10 h-10 rounded-full bg-white/60 backdrop-blur-xs" />
             </div>
-          ) : (
-            messages.map((msg) => (
+          </div>
+
+          {/* Clean Greeting */}
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] tracking-tight mb-1">
+            Good Morning, {userName}
+          </h2>
+          <p className="text-lg sm:text-xl font-medium text-[#475569] mb-8">
+            How Can I <span className="text-[#2563EB] font-semibold">Assist You</span> Today?
+          </p>
+
+          {/* Centered Floating Prompt Card */}
+          <div className="w-full bg-white rounded-2xl border border-[#CBD5E1] shadow-md p-4 flex flex-col gap-3 transition-all focus-within:border-[#2563EB] focus-within:ring-2 focus-within:ring-[#2563EB]/10">
+            <textarea
+              ref={textareaRef}
+              rows={2}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Initiate a query or ask about markets, news, or geopolitics..."
+              className="w-full resize-none text-xs sm:text-sm font-sans text-[#0F172A] placeholder:text-[#94A3B8] outline-none bg-transparent"
+            />
+
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#F1F5F9]">
+              {/* Quick Pills */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {quickPills.map((pill, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSendMessage(pill.prompt)}
+                    className="px-2.5 py-1 rounded-lg bg-[#F8FAFC] hover:bg-[#EFF6FF] border border-[#E2E8F0] hover:border-[#BFDBFE] text-[11px] text-[#475569] hover:text-[#1E40AF] transition-colors cursor-pointer"
+                  >
+                    {pill.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Submit Button */}
+              <button
+                onClick={() => handleSendMessage()}
+                disabled={isLoading || !inputText.trim()}
+                className="w-8 h-8 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-[#CBD5E1] text-white flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+              >
+                <ArrowUp className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        // Active Chat Stream
+        <div className="flex-1 flex flex-col justify-between overflow-hidden">
+          <div className="flex-1 overflow-y-auto space-y-4 py-2 px-1">
+            {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex gap-3 max-w-4xl ${
-                  msg.role === 'user' ? 'ml-auto justify-end' : 'mr-auto justify-start'
-                }`}
+                className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.role === 'assistant' && (
-                  <div className="w-8 h-8 rounded-xl bg-[#021810] border border-[#10B981]/50 flex items-center justify-center p-1.5 shrink-0 shadow-xs mt-1">
-                    <span className="material-symbols-outlined text-[#10B981] text-[16px]">
-                      psychology
-                    </span>
+                  <div className="w-8 h-8 rounded-xl bg-white border border-[#E2E8F0] text-[#2563EB] flex items-center justify-center font-bold text-xs shrink-0 shadow-xs mt-1">
+                    <Sparkles className="w-4 h-4" />
                   </div>
                 )}
 
                 <div
-                  className={`rounded-2xl p-4 text-xs leading-relaxed max-w-2xl select-text ${
+                  className={`max-w-2xl rounded-2xl p-4 text-xs sm:text-sm leading-relaxed ${
                     msg.role === 'user'
-                      ? 'bg-primary text-on-primary font-medium rounded-tr-xs shadow-xs'
-                      : 'bg-surface-container-low border border-border-subtle text-on-surface rounded-tl-xs shadow-2xs'
+                      ? 'bg-[#2563EB] text-white font-medium rounded-tr-xs'
+                      : 'bg-white border border-[#E2E8F0] text-[#0F172A] shadow-xs rounded-tl-xs whitespace-pre-line'
                   }`}
                 >
-                  {msg.role === 'assistant' && (
-                    <div className="flex items-center justify-between border-b border-border-subtle/50 pb-2 mb-2 font-mono text-[10px] text-text-muted">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-bullish" />
-                        <span className="font-bold text-[#10B981]">ALLTRA INTELLIGENCE</span>
-                      </div>
-                      <span>
-                        {new Date(msg.timestamp).toLocaleTimeString('en-IN', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="whitespace-pre-wrap font-sans space-y-2">
-                    {msg.content}
-                  </div>
+                  {msg.content}
                 </div>
 
                 {msg.role === 'user' && (
-                  <div className="w-8 h-8 rounded-xl bg-primary text-on-primary flex items-center justify-center font-bold text-xs shrink-0 shadow-xs mt-1 uppercase font-mono">
-                    U
+                  <div className="w-8 h-8 rounded-xl bg-[#0F172A] text-white flex items-center justify-center font-bold text-xs shrink-0 mt-1">
+                    {userName.charAt(0)}
                   </div>
                 )}
               </div>
-            ))
-          )}
+            ))}
 
-          {isLoading && (
-            <div className="flex gap-3 max-w-2xl mr-auto">
-              <div className="w-8 h-8 rounded-xl bg-[#021810] border border-[#10B981]/50 flex items-center justify-center p-1.5 shrink-0 shadow-xs mt-1">
-                <span className="material-symbols-outlined text-[#10B981] text-[16px] animate-spin">
-                  sync
-                </span>
+            {isLoading && (
+              <div className="flex gap-3 justify-start">
+                <div className="w-8 h-8 rounded-xl bg-white border border-[#E2E8F0] text-[#2563EB] flex items-center justify-center shrink-0 shadow-xs mt-1">
+                  <RefreshCw className="w-4 h-4 animate-spin text-[#2563EB]" />
+                </div>
+                <div className="bg-white border border-[#E2E8F0] rounded-2xl p-3 text-xs text-[#64748B] flex items-center gap-2 shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-[#2563EB] animate-pulse" />
+                  <span>Synthesizing market context...</span>
+                </div>
               </div>
-              <div className="rounded-2xl p-4 bg-surface-container-low border border-border-subtle text-on-surface rounded-tl-xs shadow-2xs text-xs font-mono flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-bullish animate-ping" />
-                <span className="text-text-secondary">Synthesizing geopolitical &amp; market intelligence on 120B LPU...</span>
-              </div>
-            </div>
-          )}
+            )}
 
-          <div ref={chatBottomRef} />
-        </div>
+            <div ref={chatBottomRef} />
+          </div>
 
-        {/* Preset Prompt Pills */}
-        <div className="px-4 py-2 border-t border-border-subtle bg-surface-container-low flex items-center gap-2 overflow-x-auto no-scrollbar font-mono text-[11px]">
-          <span className="text-text-muted shrink-0 text-[10px] uppercase font-bold">Quick Prompts:</span>
-          {INTELLIGENCE_PRESETS.slice(0, 4).map((preset) => (
-            <button
-              key={preset.id}
-              onClick={() => handleSelectPreset(preset)}
-              className="px-2.5 py-1 rounded-full bg-surface-card hover:bg-surface-container text-text-secondary hover:text-on-surface border border-border-subtle whitespace-nowrap transition-colors cursor-pointer shrink-0"
-            >
-              {preset.title}
-            </button>
-          ))}
-        </div>
-
-        {/* Chat Input Bar */}
-        <div className="p-3 sm:p-4 bg-surface-card border-t border-border-subtle">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSendMessage();
-            }}
-            className="flex items-center gap-2 sm:gap-3"
-          >
-            <div className="flex-1 relative flex items-center">
-              <input
-                type="text"
+          {/* Bottom Floating Input Card */}
+          <div className="pt-3">
+            <div className="bg-white rounded-2xl border border-[#CBD5E1] shadow-sm p-3 flex flex-col gap-2 focus-within:border-[#2563EB] focus-within:ring-2 focus-within:ring-[#2563EB]/10">
+              <textarea
+                ref={textareaRef}
+                rows={1}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Ask about live news, Iran-Israel war impact, crude oil, NIFTY 50 support levels..."
-                disabled={isLoading}
-                className="w-full pl-4 pr-10 py-3 rounded-xl bg-surface-container-low border border-border-subtle focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981] text-xs font-sans text-on-surface placeholder:text-text-muted outline-hidden transition-all"
+                onKeyDown={handleKeyDown}
+                placeholder="Ask about live news, market patterns, crude oil, or NIFTY 50..."
+                className="w-full resize-none text-xs sm:text-sm font-sans text-[#0F172A] placeholder:text-[#94A3B8] outline-none bg-transparent"
               />
-              <span className="absolute right-3 material-symbols-outlined text-text-muted text-[18px]">
-                chat
-              </span>
-            </div>
 
-            <button
-              type="submit"
-              disabled={isLoading || !inputText.trim()}
-              className="px-5 py-3 rounded-xl bg-primary text-on-primary hover:bg-primary-container font-mono text-xs font-bold transition-all shadow-sm flex items-center gap-2 disabled:opacity-40 cursor-pointer active:scale-95 shrink-0"
-            >
-              <span>SEND</span>
-              <span className="material-symbols-outlined text-[16px]">send</span>
-            </button>
-          </form>
-          <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-text-muted">
-            <span>Powered by ALLTRA LPU Reasoning Engine</span>
-            <span>Historical pattern analysis · Zero reckless gambling tips · Epistemic humility</span>
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center gap-1.5 overflow-x-auto">
+                  {quickPills.slice(0, 3).map((pill, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSendMessage(pill.prompt)}
+                      className="px-2 py-0.5 rounded-md bg-[#F8FAFC] hover:bg-[#EFF6FF] border border-[#E2E8F0] text-[10px] text-[#64748B] hover:text-[#1E40AF] transition-colors cursor-pointer shrink-0"
+                    >
+                      {pill.label}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => handleSendMessage()}
+                  disabled={isLoading || !inputText.trim()}
+                  className="w-7 h-7 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-[#CBD5E1] text-white flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+                >
+                  <ArrowUp className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -32,13 +32,6 @@ export const PaperTradingSection: React.FC = () => {
   useEffect(() => {
     let active = true;
 
-    // Direct virtual paper trading session without landing page or login barrier
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('tradeedge_auth_logged_in', 'true');
-      localStorage.setItem('aq_intro_seen', 'true');
-      localStorage.setItem('cnrx_intro_seen', 'true');
-    }
-
     if (!isSupabaseConfigured) {
       init();
       return;

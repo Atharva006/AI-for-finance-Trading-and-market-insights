@@ -354,18 +354,7 @@ export const ArthatixTopHeader: React.FC<ArthatixTopHeaderProps> = ({
           aria-label="FVG Trading Desk"
         >
           <TrendingUp className="w-3.5 h-3.5 text-[#2563EB]" />
-          <span>FVG Trading Desk</span>
-        </button>
-
-        <div className="h-5 w-px bg-[#E2E8F0] mx-0.5" />
-
-        <button
-          onClick={onOpenSettings}
-          className="p-1.5 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-lg transition-colors active:scale-95"
-          title="Upstox API Gateway"
-          aria-label="Open Upstox API Gateway settings"
-        >
-          <Settings className="w-4 h-4" />
+          <span>NRI Forex Desk</span>
         </button>
 
         {/* User Avatar Chip & Working Dropdown */}
@@ -439,17 +428,6 @@ export const ArthatixTopHeader: React.FC<ArthatixTopHeaderProps> = ({
               >
                 <Layers className="w-4 h-4 text-[#2563EB]" />
                 <span>Algo Marketplace</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setIsAvatarOpen(false);
-                  onOpenSettings();
-                }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-[#334155] hover:bg-[#EFF6FF] hover:text-[#1E40AF] transition-colors"
-              >
-                <Settings className="w-4 h-4 text-[#64748B]" />
-                <span>Upstox API Settings</span>
               </button>
 
               <div className="h-px bg-[#F1F5F9] my-1" />

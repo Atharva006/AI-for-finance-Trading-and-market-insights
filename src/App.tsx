@@ -18,7 +18,6 @@ import { ArthatixTopHeader } from './components/ArthatixTopHeader';
 import { ArthatixOverviewDashboard } from './components/ArthatixOverviewDashboard';
 import { BarReplayStudio } from './components/BarReplayStudio';
 import { IntelligenceView } from './components/IntelligenceView';
-import { IntelligenceSlideDrawer } from './components/IntelligenceSlideDrawer';
 import { FAQView } from './components/FAQView';
 import { AboutView } from './components/AboutView';
 import { AlgoStrategy } from './types/algoMarketplace';
@@ -131,7 +130,6 @@ export function App() {
 
   const [currentUser, setCurrentUser] = useState<AuthUserProfile | null>(() => getStoredLocalUser());
   const isAdmin = currentUser?.role === 'admin';
-  const [isIntelligenceDrawerOpen, setIsIntelligenceDrawerOpen] = useState(false);
 
   const [activeView, setActiveView] = useState<AppView>(() => {
     const user = getStoredLocalUser();
@@ -155,11 +153,26 @@ export function App() {
 
   useEffect(() => {
     const handleAuthChange = () => {
-      setCurrentUser(getStoredLocalUser());
+      const user = getStoredLocalUser();
+      setCurrentUser(user);
+      if (!user && activeView !== 'landing' && activeView !== 'auth') {
+        setActiveView('auth');
+        window.history.replaceState({ view: 'auth' }, '', '/auth');
+      }
     };
     window.addEventListener('storage', handleAuthChange);
     return () => window.removeEventListener('storage', handleAuthChange);
-  }, []);
+  }, [activeView]);
+
+  // Immediate mount check to guarantee zero unauthenticated bypass
+  useEffect(() => {
+    const user = getStoredLocalUser();
+    const match = getViewFromPath(window.location.pathname, strategies);
+    if (!user && match.view !== 'landing' && match.view !== 'auth') {
+      setActiveView('auth');
+      window.history.replaceState({ view: 'auth' }, '', '/auth');
+    }
+  }, [strategies]);
 
   const handleSignOut = async () => {
     await signOutUser();
@@ -261,7 +274,6 @@ export function App() {
           onNavigate={(view) => navigateTo(view)}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
-          onOpenSettings={() => setIsSettingsOpen(true)}
           isAdmin={isAdmin}
         />
       )}
@@ -467,14 +479,6 @@ export function App() {
           </div>
         </footer>
       </div>
-
-      {/* ── CONVERSATIONAL INTELLIGENCE SLIDE-IN DRAWER ── */}
-      {!isPublicView && (
-        <IntelligenceSlideDrawer
-          isOpen={isIntelligenceDrawerOpen}
-          onToggle={() => setIsIntelligenceDrawerOpen((prev) => !prev)}
-        />
-      )}
 
       {/* Upstox API Settings & Key Manager Modal */}
       <UpstoxSettingsModal
