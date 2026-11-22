@@ -127,11 +127,16 @@ export const ArthatixOverviewDashboard: React.FC<ArthatixOverviewDashboardProps>
   }, [activeChartRange, loadAllRealData]);
 
   // When chart range tab changes, immediately load genuine range candles
-  const handleRangeChange = (range: RangeOption) => {
+  const handleRangeChange = async (range: RangeOption) => {
     setActiveChartRange(range);
-    fetchLiveNiftyChart(range).then((chart) => {
-      setChartData(chart);
-    });
+    try {
+      const chart = await fetchLiveNiftyChart(range);
+      if (chart) {
+        setChartData(chart);
+      }
+    } catch (err) {
+      console.warn('Failed to switch chart range:', err);
+    }
   };
 
   const getGreeting = () => {

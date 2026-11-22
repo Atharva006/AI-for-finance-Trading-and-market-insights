@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   BarChart2,
   TrendingUp,
   Shield,
-  ChevronDown,
   PanelLeftClose,
   PanelLeft,
   Sparkles,
+  Activity,
+  Layers,
+  Compass,
+  Sliders,
+  PlayCircle,
+  Globe,
 } from 'lucide-react';
 import { AppView } from './DhanNavbar';
 
@@ -18,19 +23,12 @@ interface ArthatixSidebarProps {
   isAdmin?: boolean;
 }
 
-interface NavSubItem {
+interface NavItem {
   id: string;
   label: string;
   view: AppView;
-  badge?: string;
-}
-
-interface NavSection {
-  id: string;
-  title: string;
   icon: React.ComponentType<{ className?: string }>;
-  defaultOpen?: boolean;
-  items: NavSubItem[];
+  badge?: string;
 }
 
 export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
@@ -40,65 +38,19 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
   onToggleCollapse,
   isAdmin = false,
 }) => {
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    ai_intelligence: true,
-    market_trading: true,
-    quant_algos: true,
-    institutional_governance: true,
-  });
-
-  const toggleSection = (id: string) => {
-    setOpenSections((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
-
-  const sections: NavSection[] = [
-    {
-      id: 'ai_intelligence',
-      title: 'Conversational AI',
-      icon: Sparkles,
-      defaultOpen: true,
-      items: [
-        { id: 'intelligence', label: 'Intelligence', view: 'intelligence' },
-      ],
-    },
-    {
-      id: 'market_trading',
-      title: 'Market & Trading',
-      icon: BarChart2,
-      defaultOpen: true,
-      items: [
-        { id: 'overview', label: 'Platform Home', view: 'overview' },
-        { id: 'papertrading', label: 'Paper Trading Desk', view: 'papertrading', badge: 'Live' },
-        { id: 'heatmap', label: 'Market Heatmaps', view: 'heatmap' },
-        { id: 'insights', label: 'Market Insights', view: 'insights' },
-      ],
-    },
-    {
-      id: 'quant_algos',
-      title: 'Quant & Algos',
-      icon: TrendingUp,
-      defaultOpen: true,
-      items: [
-        { id: 'marketplace', label: 'Algo Marketplace', view: 'marketplace' },
-        { id: 'backtest', label: 'Backtest Studio', view: 'backtest' },
-        { id: 'barreplay', label: 'Bar Replay Studio', view: 'barreplay', badge: '15m' },
-        { id: 'forex', label: 'NRI Forex Desk', view: 'forex' },
-      ],
-    },
+  const navItems: NavItem[] = [
+    { id: 'intelligence', label: 'AI Intelligence', view: 'intelligence', icon: Sparkles, badge: '4o' },
+    { id: 'overview', label: 'Platform Home', view: 'overview', icon: BarChart2 },
+    { id: 'papertrading', label: 'Paper Trading Desk', view: 'papertrading', icon: Activity, badge: 'Live' },
+    { id: 'heatmap', label: 'Market Heatmaps', view: 'heatmap', icon: Layers },
+    { id: 'insights', label: 'Market Insights', view: 'insights', icon: Compass },
+    { id: 'marketplace', label: 'Algo Marketplace', view: 'marketplace', icon: TrendingUp },
+    { id: 'backtest', label: 'Backtest Studio', view: 'backtest', icon: Sliders },
+    { id: 'barreplay', label: 'Bar Replay Studio', view: 'barreplay', icon: PlayCircle, badge: '15m' },
+    { id: 'forex', label: 'NRI Forex Desk', view: 'forex', icon: Globe },
     ...(isAdmin
       ? [
-          {
-            id: 'institutional_governance',
-            title: 'Governance',
-            icon: Shield,
-            defaultOpen: true,
-            items: [
-              { id: 'admin', label: 'Strategy Compiler', view: 'admin' as AppView },
-            ],
-          },
+          { id: 'admin', label: 'Strategy Compiler', view: 'admin' as AppView, icon: Shield, badge: 'Admin' },
         ]
       : []),
   ];
@@ -116,7 +68,10 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
         }`}
       >
         {!isCollapsed && (
-          <div className="flex items-center gap-2.5 overflow-hidden min-w-0">
+          <div
+            onClick={() => onNavigate('overview')}
+            className="flex items-center gap-2.5 overflow-hidden min-w-0 cursor-pointer"
+          >
             <div className="w-8 h-8 rounded-lg overflow-hidden bg-[#0F172A] flex items-center justify-center shrink-0">
               <img src="/alltra-logo.png" alt="Alltra" className="w-full h-full object-cover" />
             </div>
@@ -128,7 +83,7 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
 
         <button
           onClick={onToggleCollapse}
-          className="p-2 rounded-lg text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors active:scale-95"
+          className="p-2 rounded-lg text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors active:scale-95 cursor-pointer"
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
@@ -136,28 +91,24 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
         </button>
       </div>
 
-      {/* ── Navigation Tree ── */}
-      <div className="flex-1 overflow-y-auto py-3 px-2 space-y-3 text-xs">
-        {sections.map((section) => {
-          const isOpen = openSections[section.id] ?? true;
-          const IconComponent = section.icon;
+      {/* ── Direct Minimal Navigation List ── */}
+      <div className="flex-1 overflow-y-auto py-3 px-2 space-y-1 text-xs">
+        {navItems.map((item) => {
+          const isActive = activeView === item.view;
+          const IconComponent = item.icon;
 
           if (isCollapsed) {
-            // Minimal collapsed state: icon triggers or opens active view
-            const firstItem = section.items[0];
-            const hasActive = section.items.some((it) => it.view === activeView);
-
             return (
-              <div key={section.id} className="flex justify-center">
+              <div key={item.id} className="flex justify-center my-0.5">
                 <button
-                  onClick={() => onNavigate(firstItem.view)}
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                    hasActive
+                  onClick={() => onNavigate(item.view)}
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                    isActive
                       ? 'bg-[#EFF6FF] text-[#2563EB] font-bold shadow-xs'
                       : 'text-[#64748B] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
                   }`}
-                  title={section.title}
-                  aria-label={section.title}
+                  title={item.label}
+                  aria-label={item.label}
                 >
                   <IconComponent className="w-5 h-5" />
                 </button>
@@ -166,63 +117,39 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
           }
 
           return (
-            <div key={section.id} className="space-y-0.5">
-              {/* Section Header */}
-              <button
-                onClick={() => toggleSection(section.id)}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
-                aria-expanded={isOpen}
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <IconComponent className="w-4 h-4 text-[#64748B] shrink-0" />
-                  <span className="font-semibold text-[11px] uppercase tracking-wider text-[#64748B]">
-                    {section.title}
-                  </span>
-                </div>
-
-                <ChevronDown
-                  className={`w-3.5 h-3.5 text-[#94A3B8] transition-transform duration-200 ${
-                    isOpen ? 'rotate-0' : '-rotate-90'
+            <button
+              key={item.id}
+              onClick={() => onNavigate(item.view)}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all text-[13px] cursor-pointer active:scale-[0.98] ${
+                isActive
+                  ? 'bg-[#EFF6FF] text-[#2563EB] font-bold shadow-2xs'
+                  : 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] font-medium'
+              }`}
+              title={item.label}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <IconComponent
+                  className={`w-4 h-4 shrink-0 transition-colors ${
+                    isActive ? 'text-[#2563EB]' : 'text-[#64748B]'
                   }`}
                 />
-              </button>
+                <span className="truncate">{item.label}</span>
+              </div>
 
-              {/* Sub-Items */}
-              {isOpen && (
-                <div className="space-y-0.5 ml-3 pl-3 border-l border-[#E2E8F0] my-0.5">
-                  {section.items.map((item) => {
-                    const isActive = activeView === item.view;
-
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => onNavigate(item.view)}
-                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-left transition-all text-[12px] ${
-                          isActive
-                            ? 'bg-[#EFF6FF] text-[#2563EB] font-bold'
-                            : 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] font-medium'
-                        }`}
-                        title={item.label}
-                      >
-                        <span className="truncate">{item.label}</span>
-
-                        {item.badge && (
-                          <span
-                            className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded ${
-                              item.badge === 'Live'
-                                ? 'bg-[#DCFCE7] text-[#166534]'
-                                : 'bg-[#EFF6FF] text-[#2563EB]'
-                            }`}
-                          >
-                            {item.badge}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+              {item.badge && (
+                <span
+                  className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                    item.badge === 'Live'
+                      ? 'bg-[#DCFCE7] text-[#166534]'
+                      : item.badge === '4o'
+                      ? 'bg-[#F3E8FF] text-[#7E22CE]'
+                      : 'bg-[#EFF6FF] text-[#2563EB]'
+                  }`}
+                >
+                  {item.badge}
+                </span>
               )}
-            </div>
+            </button>
           );
         })}
       </div>

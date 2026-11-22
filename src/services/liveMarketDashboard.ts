@@ -95,12 +95,12 @@ export function generateSvgPaths(closes: number[], width = 500, height = 100): {
  */
 async function fetchYahooChart(symbol: string, interval: string, range: string): Promise<any> {
   const encSymbol = encodeURIComponent(symbol);
-  const urls: string[] = [];
-  if (typeof window !== 'undefined') {
-    urls.push(`/yahoo-api/v8/finance/chart/${encSymbol}?interval=${interval}&range=${range}`);
-  }
-  urls.push(`https://query1.finance.yahoo.com/v8/finance/chart/${encSymbol}?interval=${interval}&range=${range}`);
-  urls.push(`https://query2.finance.yahoo.com/v8/finance/chart/${encSymbol}?interval=${interval}&range=${range}`);
+  // Prioritize local dev server proxy to eliminate CORS errors in browser
+  const urls: string[] = [
+    `/yahoo-api/v8/finance/chart/${encSymbol}?interval=${interval}&range=${range}`,
+    `https://query1.finance.yahoo.com/v8/finance/chart/${encSymbol}?interval=${interval}&range=${range}`,
+    `https://query2.finance.yahoo.com/v8/finance/chart/${encSymbol}?interval=${interval}&range=${range}`,
+  ];
 
   for (const url of urls) {
     try {
@@ -114,7 +114,7 @@ async function fetchYahooChart(symbol: string, interval: string, range: string):
       if (res.ok) {
         const json = await res.json();
         const result = json.chart?.result?.[0];
-        if (result) return result;
+        if (result && result.indicators?.quote?.[0]?.close?.length > 0) return result;
       }
     } catch (_) {}
   }
