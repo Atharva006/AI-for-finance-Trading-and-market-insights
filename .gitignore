@@ -7,3 +7,4 @@ dist
 !.env.example
 .vscode/
 src/Untitled-1.html
+demo_videos/*.webm

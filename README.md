@@ -76,77 +76,6 @@ cp .env.example .env
 
 ---
 
-## 🗄️ Supabase Telemetry Database Schema
-
-The platform tracks user sessions and transactions via three PostgreSQL tables. You can run this migration in your Supabase SQL Editor:
-
-```sql
--- 1. User Online Sessions & Heartbeat Tracking
-CREATE TABLE IF NOT EXISTS public.user_sessions (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    email TEXT NOT NULL,
-    login_time TIMESTAMPTZ NOT NULL,
-    last_heartbeat TIMESTAMPTZ NOT NULL,
-    logout_time TIMESTAMPTZ,
-    is_online BOOLEAN DEFAULT true,
-    user_agent TEXT,
-    platform TEXT
-);
-
--- 2. User Order Execution Ledger (Buy / Sell Transactions)
-CREATE TABLE IF NOT EXISTS public.user_orders (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    email TEXT NOT NULL,
-    symbol TEXT NOT NULL,
-    side TEXT NOT NULL, -- 'BUY' or 'SELL'
-    order_type TEXT NOT NULL, -- 'MARKET', 'LIMIT', 'SL', 'TP'
-    quantity NUMERIC NOT NULL,
-    price NUMERIC NOT NULL,
-    pnl NUMERIC DEFAULT 0,
-    status TEXT NOT NULL, -- 'OPEN', 'FILLED', 'CANCELLED', 'REJECTED'
-    module TEXT NOT NULL, -- 'PAPER_TRADING', 'BAR_REPLAY', 'ALGO_EXECUTION'
-    created_at TIMESTAMPTZ NOT NULL
-);
-
--- 3. User Backtest Audit Records
-CREATE TABLE IF NOT EXISTS public.user_backtests (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    email TEXT NOT NULL,
-    strategy_id TEXT NOT NULL,
-    strategy_name TEXT NOT NULL,
-    symbol TEXT NOT NULL,
-    timeframe TEXT NOT NULL,
-    initial_balance NUMERIC NOT NULL,
-    final_balance NUMERIC NOT NULL,
-    net_pnl NUMERIC NOT NULL,
-    win_rate NUMERIC NOT NULL,
-    max_drawdown NUMERIC NOT NULL,
-    total_trades INTEGER NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL
-);
-
--- Enable Row Level Security (RLS)
-ALTER TABLE public.user_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.user_orders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.user_backtests ENABLE ROW LEVEL SECURITY;
-
--- Permissive Telemetry Ingestion Policies
-CREATE POLICY "Allow anon and auth insert sessions" ON public.user_sessions FOR INSERT TO public, anon, authenticated WITH CHECK (true);
-CREATE POLICY "Allow anon and auth select sessions" ON public.user_sessions FOR SELECT TO public, anon, authenticated USING (true);
-CREATE POLICY "Allow anon and auth update sessions" ON public.user_sessions FOR UPDATE TO public, anon, authenticated USING (true) WITH CHECK (true);
-
-CREATE POLICY "Allow anon and auth insert orders" ON public.user_orders FOR INSERT TO public, anon, authenticated WITH CHECK (true);
-CREATE POLICY "Allow anon and auth select orders" ON public.user_orders FOR SELECT TO public, anon, authenticated USING (true);
-
-CREATE POLICY "Allow anon and auth insert backtests" ON public.user_backtests FOR INSERT TO public, anon, authenticated WITH CHECK (true);
-CREATE POLICY "Allow anon and auth select backtests" ON public.user_backtests FOR SELECT TO public, anon, authenticated USING (true);
-```
-
----
-
 ## 📦 Getting Started
 
 ### 1. Prerequisites
@@ -197,16 +126,21 @@ When deploying to Vercel:
 
 ---
 
-## 🔒 Authentication & Credentials
+## 🔒 Institutional Access Control
 
-- **Administrator Root Access**:
-  - **Username**: `admin` (or `admin@alltra.trade`)
-  - **Password**: `admin`
-  - Unlocks the **Strategy Compiler** and system administration portal.
-- **Google OAuth**: One-click authentication routed securely through Supabase.
+Access to strategy compilation, risk controls, and administrative audit interfaces is governed by enterprise Role-Based Access Control (RBAC) via Supabase Auth and token authorization. Google OAuth and email logins are routed securely through Supabase identity providers without exposed default credentials.
 
 ---
 
 ## 📄 License & Disclaimer
 
 All backtesting, paper trading, and replay metrics presented within ALLTRA are for educational and quantitative simulation purposes only. Past performance evaluated across historical market regimes does not guarantee future results.
+
+---
+
+## 👨‍💻 Author & Maintainer
+
+- **Atharva Bhosale**
+  - **LinkedIn**: [linkedin.com/in/atharva--bhosale](https://www.linkedin.com/in/atharva--bhosale/)
+  - **GitHub**: [@Atharva006](https://github.com/Atharva006)
+  - Quantitative trader, algorithmic systems developer, and prop-funded practitioner (FundingPips, The 5%ers).

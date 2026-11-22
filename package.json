@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "record-demo": "node scripts/record_demo.mjs"
   },
   "dependencies": {
     "@paper-design/shaders": "^0.0.82",
@@ -35,6 +36,7 @@
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.3.3",
     "autoprefixer": "^10.4.20",
+    "playwright": "^1.65.1",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.15",
     "typescript": "^5.6.3",

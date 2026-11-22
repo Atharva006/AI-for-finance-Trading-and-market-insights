@@ -221,7 +221,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span>About the Creator</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-extrabold text-[#0F172A]">
-              Atharva · Quantitative Finance Practitioner
+              Atharva Bhosale · Quantitative Finance Practitioner
             </h2>
             <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
               Currently studying and building systematic trading models with a dedicated focus on algorithmic order flow, statistical arbitrage, and disciplined risk containment. Passed 10+ global prop firm evaluations using strict mathematical expectancy and zero emotional discretion.
@@ -229,7 +229,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           <a
-            href="https://www.linkedin.com/in/atharva-shirke"
+            href="https://www.linkedin.com/in/atharva--bhosale/"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0A66C2] hover:bg-[#004182] text-white text-xs font-semibold shadow-xs transition-colors shrink-0"
@@ -371,12 +371,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <li className="flex items-center gap-2">
                 <Linkedin className="w-4 h-4 text-[#0A66C2]" />
                 <a
-                  href="https://www.linkedin.com/in/atharva-shirke"
+                  href="https://www.linkedin.com/in/atharva--bhosale/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-[#0F172A] transition-colors font-medium text-[#0A66C2]"
                 >
-                  Atharva on LinkedIn
+                  Atharva Bhosale on LinkedIn
                 </a>
               </li>
               <li className="flex items-center gap-2">
