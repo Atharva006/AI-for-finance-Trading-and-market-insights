@@ -127,14 +127,15 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
   }, []);
 
   // ── 1. Fetch & Initialize Candles ──
-  const handleLoadData = useCallback(async (targetSymbolOverride?: string) => {
+  const handleLoadData = useCallback(async (targetSymbolOverride?: string, intervalOverride?: IntradayInterval) => {
     setIsLoadingData(true);
     setDataError(null);
     try {
       const target = targetSymbolOverride || (customSymbol.trim() ? customSymbol.trim() : symbol);
-      const candles = await fetchIntradayCandles(target, selectedInterval);
+      const activeInterval = intervalOverride || selectedInterval;
+      const candles = await fetchIntradayCandles(target, activeInterval);
       if (!candles || candles.length === 0) {
-        throw new Error(`No intraday data returned for ${target} on ${selectedInterval} interval.`);
+        throw new Error(`No data returned for ${target} on ${activeInterval} interval.`);
       }
       // Start replay at candle 35 or 15% into dataset to give immediate context
       const startIndex = Math.min(35, Math.floor(candles.length * 0.15));
@@ -144,6 +145,9 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
       if (targetSymbolOverride) {
         setSymbol(targetSymbolOverride);
         setCustomSymbol('');
+      }
+      if (intervalOverride) {
+        setSelectedInterval(intervalOverride);
       }
     } catch (err: any) {
       console.error('[BarReplayStudio] Data fetch error:', err);
@@ -861,17 +865,20 @@ export const BarReplayStudio: React.FC<BarReplayStudioProps> = () => {
 
           {/* Interval Toggle Pills */}
           <div className="inline-flex p-0.5 bg-surface-container-low rounded-lg border border-border-subtle">
-            {(['5m', '15m', '30m', '1h'] as IntradayInterval[]).map((tf) => (
+            {(['5m', '15m', '30m', '1h', '1d'] as IntradayInterval[]).map((tf) => (
               <button
                 key={tf}
-                onClick={() => setSelectedInterval(tf)}
+                onClick={() => {
+                  setSelectedInterval(tf);
+                  handleLoadData(undefined, tf);
+                }}
                 className={`px-2.5 py-1 text-xs font-mono-sm rounded-md transition-all cursor-pointer ${
                   selectedInterval === tf
                     ? 'bg-primary text-on-primary font-semibold shadow-2xs'
                     : 'text-text-secondary hover:text-on-surface'
                 }`}
               >
-                {tf}
+                {tf === '1d' ? '1D (Daily)' : tf}
               </button>
             ))}
           </div>

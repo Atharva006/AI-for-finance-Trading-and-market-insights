@@ -1,7 +1,7 @@
 import { Candle } from '../types/backtest';
 import { ALL_NIFTY_50_STOCKS } from './nifty50Data';
 
-export type IntradayInterval = '5m' | '15m' | '30m' | '1h';
+export type IntradayInterval = '5m' | '15m' | '30m' | '1h' | '1d';
 
 export interface ReplayTickerPreset {
   label: string;
@@ -41,12 +41,27 @@ export function clearIntradayCache(): void {
 
 export async function fetchIntradayCandles(
   symbol: string,
-  interval: '5m' | '15m' | '30m' | '1h',
+  interval: IntradayInterval,
   lookbackDays?: number
 ): Promise<Candle[]> {
-  // Respect Yahoo Finance limits: 5m/15m max 60 days, 30m/1h max 730 days
-  const maxDays = interval === '5m' || interval === '15m' ? 60 : 730;
-  const defaultDays = interval === '5m' || interval === '15m' ? 60 : 180;
+  // Yahoo Finance limits:
+  // 5m, 15m, 30m: strict 60 days limit (must be <= 58 days to avoid API boundary errors)
+  // 1h: up to 730 days (default 180 days)
+  // 1d: up to multiple years (default 365 days / 1 year)
+  let maxDays = 58;
+  let defaultDays = 55;
+  let rangeParam = '60d';
+
+  if (interval === '1h') {
+    maxDays = 720;
+    defaultDays = 180;
+    rangeParam = '6mo';
+  } else if (interval === '1d') {
+    maxDays = 1825; // 5 years
+    defaultDays = 365; // 1 year
+    rangeParam = '2y';
+  }
+
   const requestedDays = lookbackDays !== undefined && lookbackDays !== null ? lookbackDays : defaultDays;
   const effectiveLookbackDays = Math.min(requestedDays, maxDays);
 
@@ -84,12 +99,16 @@ export async function fetchIntradayCandles(
 
   const encodedSymbol = encodeURIComponent(symbol);
   const queryParams = `interval=${interval}&period1=${period1}&period2=${period2}&includePrePost=false`;
+  const rangeQueryParams = `interval=${interval}&range=${rangeParam}&includePrePost=false`;
 
-  // Tries proxy URL first, falls back to direct query1 and query2
+  // Tries proxy URL first, falls back to direct query1 and query2, with period and range failovers
   const urls: string[] = [
     `/yahoo-api/v8/finance/chart/${encodedSymbol}?${queryParams}`,
+    `/yahoo-api/v8/finance/chart/${encodedSymbol}?${rangeQueryParams}`,
     `https://query1.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?${queryParams}`,
+    `https://query1.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?${rangeQueryParams}`,
     `https://query2.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?${queryParams}`,
+    `https://query2.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?${rangeQueryParams}`,
   ];
 
   const headers: Record<string, string> = {
@@ -148,14 +167,24 @@ export async function fetchIntradayCandles(
         const tsMs = ts * 1000;
         const d = new Date(tsMs);
 
+        const timeStr =
+          interval === '1d'
+            ? d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })
+            : d.toLocaleDateString('en-IN', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              });
+
         candles.push({
-          time: d.toLocaleString(),
+          time: timeStr,
           timestamp: tsMs,
           isoString: d.toISOString(),
-          open: Number(o),
-          high: Number(h),
-          low: Number(l),
-          close: Number(c),
+          open: Number(Number(o).toFixed(2)),
+          high: Number(Number(h).toFixed(2)),
+          low: Number(Number(l).toFixed(2)),
+          close: Number(Number(c).toFixed(2)),
           volume: v != null && !isNaN(v) ? Math.round(Number(v)) : 0,
         });
       }
