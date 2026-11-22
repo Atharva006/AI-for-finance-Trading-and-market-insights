@@ -28,8 +28,11 @@ import {
 function getViewFromPath(pathname: string, strategies: AlgoStrategy[]): { view: AppView; strategy: AlgoStrategy | null } {
   const cleanPath = pathname.replace(/\/+$/, '') || '/';
   
-  if (cleanPath === '/' || cleanPath === '') {
+  if (cleanPath === '/' || cleanPath === '' || cleanPath === '/landing') {
     return { view: 'landing', strategy: null };
+  }
+  if (cleanPath === '/market-overview' || cleanPath === '/overview') {
+    return { view: 'overview', strategy: null };
   }
   if (cleanPath.startsWith('/dashboard') || cleanPath === '/paper-trading' || cleanPath === '/papertrading') {
     return { view: 'papertrading', strategy: null };
@@ -68,6 +71,8 @@ function getPathForView(view: AppView, strategy?: AlgoStrategy | null): string {
   switch (view) {
     case 'landing':
       return '/';
+    case 'overview':
+      return '/market-overview';
     case 'papertrading':
       return '/dashboard';
     case 'heatmap':
@@ -202,6 +207,20 @@ export function App() {
         <main className={`flex-1 flex flex-col w-full ${activeView === 'papertrading' ? 'p-0' : 'px-4 pt-4 pb-2 sm:px-6 sm:pt-6 sm:pb-3'}`}>
           <div key={activeView} className="animate-view flex-1 flex flex-col w-full">
             {activeView === 'landing' && (
+              <LandingPage
+                onNavigateToView={(view, strat) => navigateTo(view, strat)}
+                onSelectStrategy={(strat) => {
+                  if (strat.id.includes('fvg') || strat.category.toLowerCase().includes('fair value gap')) {
+                    navigateTo('forex', strat);
+                  } else {
+                    navigateTo('backtest', strat);
+                  }
+                }}
+                strategies={strategies}
+              />
+            )}
+
+            {activeView === 'overview' && (
               <ArthatixOverviewDashboard
                 onNavigate={(view) => navigateTo(view)}
                 onSelectInstrument={(symbol) => {

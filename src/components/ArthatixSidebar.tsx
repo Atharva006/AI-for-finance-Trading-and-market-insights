@@ -62,7 +62,8 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
       icon: BarChart2,
       defaultOpen: true,
       items: [
-        { id: 'overview', label: 'Market Overview', view: 'landing' },
+        { id: 'landing', label: 'Platform Home', view: 'landing' },
+        { id: 'overview', label: 'Market Overview', view: 'overview' },
         { id: 'papertrading', label: 'Paper Trading Desk', view: 'papertrading', badge: 'Live' },
         { id: 'heatmap', label: 'Market Heatmaps', view: 'heatmap' },
         { id: 'insights', label: 'Market Insights', view: 'insights' },

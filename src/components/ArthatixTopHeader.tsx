@@ -52,7 +52,8 @@ const SEARCH_INDEX: SearchItem[] = [
   { id: 'inst-usdinr', title: 'USD/INR', subtitle: 'US Dollar / Indian Rupee Currency Pair', category: 'instrument', symbol: 'USD/INR', badge: 'CURRENCY' },
 
   // Destinations (Strictly unified canonical names matching sidebar & views)
-  { id: 'dest-overview', title: 'Market Overview', subtitle: 'NSE real-time telemetry, tick data and market breadth', category: 'destination', view: 'landing', badge: 'Overview' },
+  { id: 'dest-home', title: 'Platform Home', subtitle: 'Institutional quantitative research workstation & strategy hub', category: 'destination', view: 'landing', badge: 'Home' },
+  { id: 'dest-overview', title: 'Market Overview', subtitle: 'NSE real-time telemetry, tick data and market breadth', category: 'destination', view: 'overview', badge: 'Overview' },
   { id: 'dest-paper', title: 'Paper Trading Desk', subtitle: 'Virtual simulated execution desk with real-time L2 orderbook', category: 'destination', view: 'papertrading', badge: 'Desk' },
   { id: 'dest-backtest', title: 'Backtest Studio', subtitle: 'Walk-forward strategy backtesting engine with slippage & commission', category: 'destination', view: 'backtest', badge: 'Studio' },
   { id: 'dest-market', title: 'Algo Marketplace', subtitle: 'Audited quantitative strategies with Sharpe & Drawdown analytics', category: 'destination', view: 'marketplace', badge: 'Market' },
