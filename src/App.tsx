@@ -198,34 +198,40 @@ export function App() {
     }
   };
 
+  const isLandingView = activeView === 'landing';
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex font-sans selection:bg-[#2563EB] selection:text-white antialiased">
-      {/* ── 1. Minimalist Arthatix Left Sidebar ── */}
-      <ArthatixSidebar
-        activeView={activeView}
-        onNavigate={(view) => navigateTo(view)}
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        isAdmin={isAdmin}
-      />
-
-      {/* ── 2. Fluid Right Workspace ── */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen bg-[#F8FAFC]">
-        {/* Top Minimal Header */}
-        <ArthatixTopHeader
+      {/* ── 1. Minimalist Arthatix Left Sidebar (Hidden on public Landing Page; opens when signed in / on platform) ── */}
+      {!isLandingView && (
+        <ArthatixSidebar
           activeView={activeView}
           onNavigate={(view) => navigateTo(view)}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
           onOpenSettings={() => setIsSettingsOpen(true)}
-          selectedInstrument={selectedInstrument}
-          setSelectedInstrument={setSelectedInstrument}
           isAdmin={isAdmin}
-          currentUser={currentUser}
-          onSignOut={handleSignOut}
         />
+      )}
+
+      {/* ── 2. Fluid Right Workspace (Full width on Landing Page) ── */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen bg-[#F8FAFC]">
+        {/* Top Minimal Header (Hidden on public Landing Page; Landing Page has its own institutional header) */}
+        {!isLandingView && (
+          <ArthatixTopHeader
+            activeView={activeView}
+            onNavigate={(view) => navigateTo(view)}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            selectedInstrument={selectedInstrument}
+            setSelectedInstrument={setSelectedInstrument}
+            isAdmin={isAdmin}
+            currentUser={currentUser}
+            onSignOut={handleSignOut}
+          />
+        )}
 
         {/* Main View Router */}
-        <main className={`flex-1 flex flex-col w-full ${activeView === 'papertrading' ? 'p-0' : 'px-4 pt-4 pb-2 sm:px-6 sm:pt-6 sm:pb-3'}`}>
+        <main className={`flex-1 flex flex-col w-full ${isLandingView || activeView === 'papertrading' ? 'p-0' : 'px-4 pt-4 pb-2 sm:px-6 sm:pt-6 sm:pb-3'}`}>
           <div key={activeView} className="animate-view flex-1 flex flex-col w-full">
             {activeView === 'landing' && (
               <LandingPage
@@ -238,6 +244,8 @@ export function App() {
                   }
                 }}
                 strategies={strategies}
+                currentUser={currentUser}
+                onSignOut={handleSignOut}
               />
             )}
 
@@ -277,7 +285,7 @@ export function App() {
                   if (user.role === 'admin') {
                     navigateTo('admin');
                   } else {
-                    navigateTo('landing');
+                    navigateTo('overview');
                   }
                 }}
               />

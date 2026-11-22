@@ -64,8 +64,7 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
       icon: BarChart2,
       defaultOpen: true,
       items: [
-        { id: 'landing', label: 'Platform Home', view: 'landing' },
-        { id: 'overview', label: 'Market Overview', view: 'overview' },
+        { id: 'overview', label: 'Platform Home', view: 'overview' },
         { id: 'papertrading', label: 'Paper Trading Desk', view: 'papertrading', badge: 'Live' },
         { id: 'heatmap', label: 'Market Heatmaps', view: 'heatmap' },
         { id: 'insights', label: 'Market Insights', view: 'insights' },
@@ -215,6 +214,15 @@ export const ArthatixSidebar: React.FC<ArthatixSidebarProps> = ({
 
       {/* ── Bottom Configuration & Status ── */}
       <div className="p-3 border-t border-[#E2E8F0] bg-[#F4F7FB] space-y-2">
+        <button
+          onClick={() => onNavigate('landing')}
+          className="w-full flex items-center gap-2.5 px-3 py-1.5 text-[#64748B] hover:text-[#2563EB] hover:bg-[#E2E8F0] rounded-lg transition-colors text-left text-[11.5px] font-medium active:scale-95"
+          title="Return to Public Landing Page"
+        >
+          <span className="material-symbols-outlined text-[16px] shrink-0">public</span>
+          {!isCollapsed && <span className="truncate">Public Landing Page</span>}
+        </button>
+
         <button
           onClick={onOpenSettings}
           className="w-full flex items-center gap-2.5 px-3 py-2 text-[#475569] hover:text-[#0F172A] hover:bg-[#E2E8F0] rounded-lg transition-colors text-left active:scale-95"
